@@ -2,13 +2,13 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import clsx from 'clsx'
+import { useAuth } from '@/app/contexts/AuthContext'
 
 export default function Header() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [activeLink, setActiveLink] = useState('')
-  const router = useRouter()
+  const { user, openLoginModal, logout } = useAuth()
 
   const navLinks = [
     { label: 'Explore', href: '#destinations' },
@@ -72,12 +72,26 @@ export default function Header() {
 
         {/* Right Actions */}
         <div className="flex items-center gap-2 md:gap-3">
-          <Link
-            href="/login"
-            className="hidden md:block px-5 py-2 bg-[#E8631A] text-white text-sm font-semibold rounded-full transition-all duration-200 hover:bg-[#C04E0A] hover:translate-y-[-1px] no-underline"
-          >
-            Login
-          </Link>
+          {user ? (
+            <>
+              <span className="hidden md:inline text-sm text-[#7A6A58] font-medium">
+                {user.fullName || user.email}
+              </span>
+              <button
+                onClick={logout}
+                className="hidden md:block px-5 py-2 bg-[#7A6A58] text-white text-sm font-semibold rounded-full transition-all duration-200 hover:bg-[#5A4A38] hover:translate-y-[-1px]"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={openLoginModal}
+              className="hidden md:block px-5 py-2 bg-[#E8631A] text-white text-sm font-semibold rounded-full transition-all duration-200 hover:bg-[#C04E0A] hover:translate-y-[-1px]"
+            >
+              Login
+            </button>
+          )}
 
           <button className="px-3.5 py-2 bg-[#DC2626] text-white text-xs font-bold rounded-full transition-all duration-200 hover:shadow-lg animate-pulse">
             🆘 SOS
@@ -134,15 +148,37 @@ export default function Header() {
 
         {/* Mobile Buttons */}
         <div className="flex gap-2 mt-3 pt-3.5 border-t border-[#E8DAC5]">
-          <Link
-            href="/login"
-            className="flex-1 px-4 py-2.75 bg-[#E8631A] text-white text-sm font-bold rounded-full transition-all duration-200 hover:bg-[#C04E0A] text-center no-underline"
-          >
-            Login
-          </Link>
-          <button className="flex-1 px-4 py-2.75 bg-[#DC2626] text-white text-xs font-bold rounded-full transition-all duration-200">
-            🆘 SOS
-          </button>
+          {user ? (
+            <>
+              <span className="flex-1 px-4 py-2.75 text-white text-sm font-bold bg-[#7A6A58] rounded-full text-center">
+                {user.fullName || user.email}
+              </span>
+              <button
+                onClick={() => {
+                  logout()
+                  setIsDrawerOpen(false)
+                }}
+                className="flex-1 px-4 py-2.75 bg-[#7A6A58] text-white text-sm font-bold rounded-full transition-all duration-200 hover:bg-[#5A4A38]"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => {
+                  openLoginModal()
+                  setIsDrawerOpen(false)
+                }}
+                className="flex-1 px-4 py-2.75 bg-[#E8631A] text-white text-sm font-bold rounded-full transition-all duration-200 hover:bg-[#C04E0A]"
+              >
+                Login
+              </button>
+              <button className="flex-1 px-4 py-2.75 bg-[#DC2626] text-white text-xs font-bold rounded-full transition-all duration-200">
+                🆘 SOS
+              </button>
+            </>
+          )}
         </div>
       </div>
 
