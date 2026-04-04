@@ -1,8 +1,26 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Color Variables */
+  --sf: #E8631A;
+  --sf2: #C04E0A;
+  --gold: #D4A017;
+  --gold2: #F0C842;
+  --cream: #FDF8F1;
+  --sand: #F5E8CC;
+  --ink: #2C2017;
+  --ch: #18120E;
+  --mu: #7A6A58;
+  --bdr: #E8DAC5;
+  --grn: #1A6B3C;
+  --red: #DC2626;
+  --nav-h: 66px;
+  --sh0: 0 1px 6px rgba(24, 18, 14, 0.06);
+  --sh1: 0 4px 20px rgba(24, 18, 14, 0.1);
+  --sh2: 0 12px 48px rgba(24, 18, 14, 0.16);
+  --r: 14px;
+  --rl: 22px;
 }
 
 @theme inline {
@@ -19,8 +37,87 @@
   }
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Animations */
+@keyframes sdot {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.8;
+  }
+  75% {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+}
+
+@keyframes sos-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.5);
+  }
+  60% {
+    box-shadow: 0 0 0 7px rgba(220, 38, 38, 0);
+  }
+}
+
+/* Utility Classes */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.letter-spacing-\[0\.8px\] {
+  letter-spacing: 0.8px;
+}
+
+.letter-spacing-\[0\.5px\] {
+  letter-spacing: 0.5px;
+}
+
+.letter-spacing-\[2px\] {
+  letter-spacing: 2px;
+}
+
+.letter-spacing-\[1\.5px\] {
+  letter-spacing: 1.5px;
+}
+
+.letter-spacing-\[0\.3px\] {
+  letter-spacing: 0.3px;
+}
+
+/* Focus Styles */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--sf);
+  outline-offset: 2px;
+}
+
+/* Form Elements */
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+button {
+  font-family: inherit;
 }
