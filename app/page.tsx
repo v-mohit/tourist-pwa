@@ -7,5 +7,5 @@ export default async function Page() {
   const data = await graphqlClient.request(FetchHomeDataDocument);
 console.log("data----",data);
 
-  return <Home/>;
+  return <Home homeData={data}/>;
 }

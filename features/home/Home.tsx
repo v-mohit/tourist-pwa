@@ -2,8 +2,16 @@
 
 import Link from 'next/link'
 import { useAuth } from '@/app/contexts/AuthContext'
+import SearchBar from '@/app/components/SearchBar'
+import TopDestinations from '@/app/components/TopDestinations'
+import TopMonuments from '@/app/components/TopMonuments'
+import TopWildlife from '@/app/components/TopWildlife'
 
-const Home = () => {
+interface HomeProps {
+  homeData?: any
+}
+
+const Home = ({ homeData }: HomeProps) => {
   const { isAuthenticated, openLoginModal } = useAuth()
 
   const handleBookClick = () => {
@@ -55,6 +63,11 @@ const Home = () => {
           <p className="text-base md:text-lg text-[rgba(255,255,255,0.75)] mb-8 md:mb-10 max-w-[540px] leading-relaxed">
             From the rose-pink arches of Hawa Mahal to golden desert sands — discover the Land of Kings through Rajasthan's official tourism & booking portal.
           </p>
+
+          {/* Search Bar */}
+          <div className="w-full mb-8 md:mb-10 flex justify-center">
+            <SearchBar />
+          </div>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4 mb-8">
@@ -171,6 +184,15 @@ const Home = () => {
           ))}
         </div>
       </section>
+
+      {/* Top Destinations Section */}
+      <TopDestinations destinations={homeData?.home?.data?.attributes?.home?.find?.((item: any) => item.__typename === 'ComponentHomePlaces')} />
+
+      {/* Top Monuments Section */}
+      <TopMonuments monuments={homeData?.home?.data?.attributes?.home?.find?.((item: any) => item.__typename === 'ComponentHomeMonuments')} />
+
+      {/* Top Wildlife Section */}
+      <TopWildlife wildlife={homeData?.home?.data?.attributes?.home?.find?.((item: any) => item.__typename === 'ComponentHomeWildLife')} />
     </div>
   )
 }
