@@ -1,43 +1,123 @@
 'use client'
 
-import { useState } from 'react'
+import {
+  useState,
+  useRef,
+  useEffect,
+  useImperativeHandle,
+  forwardRef,
+} from 'react'
 
-const SearchBar = () => {
-  const [searchQuery, setSearchQuery] = useState('')
+const SEARCH_MAP: Record<string, string> = {
+  'amber fort':     'monuments',
+  'hawa mahal':     'monuments',
+  'mehrangarh':     'monuments',
+  'jaisalmer fort': 'monuments',
+  'jantar mantar':  'monuments',
+  'tiger':          'wildlife',
+  'safari':         'wildlife',
+  'sariska':        'wildlife',
+  'leopard':        'wildlife',
+  'wildlife':       'wildlife',
+  'museum':         'museums',
+  'albert hall':    'museums',
+  'park':           'parks',
+  'garden':         'parks',
+  'light':          'ls',
+  'sound':          'ls',
+  'show':           'ls',
+  'chittorgarh':    'ls',
+  'kumbhalgarh':    'ls',
+  'package':        'packages',
+  'darshan':        'packages',
+  'hotel':          'rtdc',
+  'rtdc':           'rtdc',
+  'stay':           'rtdc',
+  'palace':         'rtdc',
+  'jkk':            'venues',
+  'event':          'venues',
+  'festival':       'venues',
+  'cafeteria':      'cafeteria',
+  'dining':         'cafeteria',
+  'food':           'cafeteria',
+  'masala chowk':   'cafeteria',
+  'asi':            'asi',
+  'archaeological': 'asi',
+  'jaipur':         'destinations',
+  'udaipur':        'destinations',
+  'jodhpur':        'destinations',
+  'jaisalmer':      'destinations',
+  'alwar':          'destinations',
+}
 
-  const handleSearch = () => {
-    if (!searchQuery.trim()) {
-      alert('Please type something to search')
-      return
-    }
-    // Search logic will be implemented later with data
-    console.log('Searching for:', searchQuery)
+export interface SearchBarHandle {
+  setValue: (value: string) => void
+}
+
+const SearchBar = forwardRef<SearchBarHandle>((_, ref) => {
+  const [query, setQuery] = useState('')
+  const [toast, setToast] = useState({ icon: '', msg: '', visible: false })
+  const inputRef = useRef<HTMLInputElement>(null)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])
+
+  useImperativeHandle(ref, () => ({
+    setValue(value: string) {
+      setQuery(value)
+      setTimeout(() => inputRef.current?.focus(), 0)
+    },
+  }))
+
+  function showToast(icon: string, msg: string) {
+    setToast({ icon, msg, visible: true })
+    if (timerRef.current) clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(
+      () => setToast((p) => ({ ...p, visible: false })),
+      3200,
+    )
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch()
+  function doSearch() {
+    const q = query.toLowerCase().trim()
+    if (!q) { showToast('⌨️', 'Please type something to search'); return }
+
+    let targetId: string | null = null
+    for (const [kw, id] of Object.entries(SEARCH_MAP)) {
+      if (q.includes(kw)) { targetId = id; break }
+    }
+
+    if (targetId) {
+      document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth' })
+      showToast('🔍', `Showing results for "${query.trim()}"`)
+    } else {
+      document.getElementById('destinations')?.scrollIntoView({ behavior: 'smooth' })
+      showToast('🤔', 'No exact match — showing all destinations')
     }
   }
 
   return (
-    <div className="flex items-center w-full max-w-[540px] bg-[rgba(255,255,255,0.14)] backdrop-blur-[18px] border-[1.5px] border-[rgba(255,255,255,0.3)] rounded-full px-6 py-1.75 gap-2">
-      <input
-        type="text"
-        placeholder="🔍  Search forts, wildlife, packages, parks…"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        onKeyDown={handleKeyDown}
-        className="flex-1 bg-transparent border-none outline-none text-white placeholder:text-[rgba(255,255,255,0.52)] text-sm font-family-['Inter']"
-      />
-      <button
-        onClick={handleSearch}
-        className="px-6 py-2.5 bg-[#E8631A] text-white rounded-full text-sm font-bold flex-shrink-0 transition-all duration-200 hover:bg-[#C04E0A] shadow-[0_4px_14px_rgba(232,99,26,0.4)]"
-      >
-        Search
-      </button>
-    </div>
-  )
-}
+    <>
+      <div className="hero-search">
+        <input
+          ref={inputRef}
+          type="text"
+          placeholder="🔍  Search forts, wildlife, packages, parks…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && doSearch()}
+        />
+        <button className="hero-sbtn" onClick={doSearch}>Search</button>
+      </div>
 
+      {/* Toast — .toast and .toast.show are in globals.css */}
+      <div className={`toast${toast.visible ? ' show' : ''}`}>
+        <span className="ti">{toast.icon}</span>
+        {toast.msg}
+      </div>
+    </>
+  )
+})
+
+SearchBar.displayName = 'SearchBar'
 export default SearchBar

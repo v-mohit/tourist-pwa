@@ -1,123 +1,78 @@
-'use client'
+const MUSEUMS = [
+  {
+    img: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=600&auto=format&fit=crop&q=80',
+    imgTag: { label: '🏆 Heritage', cls: 'tg' },
+    estd: 'Est. 1876',
+    name: 'Govt. Central Museum (Albert Hall)',
+    desc: 'Rajasthani art, textiles, jewellery and a rare Egyptian mummy.',
+    tags: ['🎨 Art', '🏺 Archaeology', '📜 Manuscripts'],
+    time: '9AM–5PM',
+    fee: '₹40/adult',
+  },
+  {
+    img: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=600&auto=format&fit=crop&q=80',
+    imgTag: { label: '🌊 Lakeside', cls: 'tw' },
+    estd: 'Est. 1890',
+    name: 'Government Museum, Udaipur',
+    desc: 'Sculptures, miniature paintings and artifacts from the Mewar region.',
+    tags: ['🖼 Paintings', '🗿 Sculptures', '👑 Royal Artifacts'],
+    time: '9:30AM–5:30PM',
+    fee: '₹100/adult',
+  },
+  {
+    img: 'https://images.unsplash.com/photo-1548013146-72479768bada?w=600&auto=format&fit=crop&q=80',
+    imgTag: { label: '🏛 State Museum', cls: 'tg' },
+    estd: 'Est. 1937',
+    name: 'Ganga Govt. Museum, Bikaner',
+    desc: 'Terracotta art, stone sculptures, Rajput & Mughal weaponry and rare coins.',
+    tags: ['⚔ Weaponry', '🏺 Terracotta', '🪙 Coins'],
+    time: '10AM–5PM',
+    fee: '₹20/adult',
+  },
+]
 
-const MuseumsSection = () => {
-  const museums = [
-    {
-      id: 1,
-      name: 'Govt. Central Museum (Albert Hall)',
-      image: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=600&auto=format&fit=crop&q=80',
-      year: 'Est. 1876',
-      tag: '🏆 Heritage',
-      description: 'Rajasthani art, textiles, jewellery and a rare Egyptian mummy.',
-      tags: ['🎨 Art', '🏺 Archaeology', '📜 Manuscripts'],
-      hours: '⏰ 9AM–5PM',
-      fee: '₹40/adult',
-    },
-    {
-      id: 2,
-      name: 'Government Museum, Udaipur',
-      image: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=600&auto=format&fit=crop&q=80',
-      year: 'Est. 1890',
-      tag: '🌊 Lakeside',
-      description: 'Sculptures, miniature paintings and artifacts from the Mewar region.',
-      tags: ['🖼 Paintings', '🗿 Sculptures', '👑 Royal Artifacts'],
-      hours: '⏰ 9:30AM–5:30PM',
-      fee: '₹100/adult',
-    },
-    {
-      id: 3,
-      name: 'Ganga Govt. Museum, Bikaner',
-      image: 'https://images.unsplash.com/photo-1548013146-72479768bada?w=600&auto=format&fit=crop&q=80',
-      year: 'Est. 1937',
-      tag: '🏛 State Museum',
-      description: 'Terracotta art, stone sculptures, Rajput & Mughal weaponry and rare coins.',
-      tags: ['⚔ Weaponry', '🏺 Terracotta', '🪙 Coins'],
-      hours: '⏰ 10AM–5PM',
-      fee: '₹20/adult',
-    },
-  ]
-
+export default function MuseumsSection(data: any) {
   return (
-    <section className="px-6 md:px-8 py-16 md:py-24 bg-[#FDF8F1]">
-      <div className="max-w-7xl mx-auto">
-        {/* Section Header */}
-        <div className="flex items-end justify-between gap-4 mb-12 flex-wrap">
-          <div>
-            <div className="text-[10px] font-bold letter-spacing-[2px] uppercase text-[#E8631A] mb-2">
-              ✦ Top Museums
+    <section className="sec bg-[var(--sand)]" id="museums">
+      {/* Header */}
+      <div className="sec-hd">
+        <div>
+          <div className="sec-lbl">✦ Top Museums</div>
+          <h2 className="sec-ttl">Preserving History</h2>
+        </div>
+        <a href="#" className="see-all">See all →</a>
+      </div>
+
+      {/* Grid */}
+      <div className="mus-grid">
+        {MUSEUMS.map(({ img, imgTag, estd, name, desc, tags, time, fee }) => (
+          <div key={name} className="mus-card">
+            {/* Image */}
+            <div className="mus-img">
+              <div className="dimg" style={{ backgroundImage: `url('${img}')` }} />
+              <div className="mus-img-grad" />
+              <div className="mus-img-foot">
+                <span className={`tag ${imgTag.cls}`} style={{ fontSize: 9 }}>{imgTag.label}</span>
+                <span style={{ fontSize: 11, color: 'rgba(255,255,255,.7)' }}>{estd}</span>
+              </div>
             </div>
-            <h2 className="font-['Playfair Display',serif] text-3xl md:text-4xl lg:text-5xl font-bold text-[#2C2017] leading-tight">
-              Preserving History
-            </h2>
+
+            {/* Body */}
+            <div className="mus-body">
+              <h4>{name}</h4>
+              <p>{desc}</p>
+              <div className="mus-tags">
+                {tags.map((t) => <span key={t} className="mus-tag">{t}</span>)}
+              </div>
+              <div className="mus-foot">
+                <span className="mus-time">⏰ {time}</span>
+                <span className="mus-fee">{fee}</span>
+              </div>
+              <button className="btn-sm btn-sm--full-mus">Book Tickets →</button>
+            </div>
           </div>
-          <a
-            href="#"
-            className="text-sm font-semibold text-[#E8631A] border-b border-current hover:opacity-70 transition-opacity inline-flex items-center gap-1"
-          >
-            See all →
-          </a>
-        </div>
-
-        {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4.5">
-          {museums.map((museum) => (
-            <div
-              key={museum.id}
-              className="bg-white rounded-[22px] overflow-hidden shadow-[0_1px_6px_rgba(24,18,14,0.06)] hover:shadow-[0_4px_20px_rgba(24,18,14,0.10)] hover:-translate-y-1 transition-all duration-300"
-            >
-              {/* Image */}
-              <div className="relative h-[195px] overflow-hidden bg-[#F5E8CC]">
-                <div
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-300 hover:scale-107"
-                  style={{ backgroundImage: `url('${museum.image}')` }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[rgba(24,18,14,0.55)] via-transparent to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 px-3.5 py-3 flex justify-between items-end">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[9px] font-bold text-[#D4A017] bg-[rgba(212,160,23,0.18)] border border-[rgba(212,160,23,0.38)]">
-                    {museum.tag}
-                  </span>
-                  <span className="text-[11px] text-[rgba(255,255,255,0.7)]">{museum.year}</span>
-                </div>
-              </div>
-
-              {/* Content */}
-              <div className="p-4.5">
-                <h4 className="font-['Playfair Display',serif] text-base font-bold text-[#2C2017] mb-1.5">
-                  {museum.name}
-                </h4>
-                <p className="text-sm text-[#7A6A58] leading-relaxed mb-3">
-                  {museum.description}
-                </p>
-
-                {/* Tags */}
-                <div className="flex gap-1.5 flex-wrap mb-3.25">
-                  {museum.tags.map((tag, i) => (
-                    <span
-                      key={i}
-                      className="text-[10px] px-2.5 py-1 rounded-full bg-[#F5E8CC] text-[#7A6A58] font-medium"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Footer */}
-                <div className="flex items-center justify-between pt-3 border-t border-[#E8DAC5]">
-                  <span className="text-[11px] text-[#7A6A58]">{museum.hours}</span>
-                  <span className="text-[11px] font-bold text-[#E8631A]">{museum.fee}</span>
-                </div>
-
-                {/* Book Button */}
-                <button className="w-full mt-3 px-4 py-2 bg-[#E8631A] text-white rounded-full text-[11px] font-bold hover:bg-[#C04E0A] transition-all inline-flex items-center justify-center gap-1">
-                  Book Tickets →
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+        ))}
       </div>
     </section>
   )
 }
-
-export default MuseumsSection

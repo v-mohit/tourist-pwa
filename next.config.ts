@@ -9,6 +9,11 @@ const withPWA = withPWAInit({
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+
+  webpack(config) {
+    config.resolve.symlinks = false; // 👈 CRITICAL for pnpm
+    return config;
+  },
 };
 
 export default withPWA(nextConfig);
