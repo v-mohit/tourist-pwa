@@ -2,6 +2,12 @@
 
 import Link from 'next/link'
 import { useAuth } from '@/features/auth/context/AuthContext'
+import SearchBar from './components/SearchBar'
+import TopDestinations from './components/TopDestinations'
+import TopMonuments from './components/TopMonuments'
+import WildlifeSection from './components/WildlifeSection'
+import MuseumsSection from './components/MuseumsSection'
+import PackagesSection from './components/PackagesSection'
 
 const Home = () => {
   const { isAuthenticated, openLoginModal } = useAuth()
@@ -56,20 +62,9 @@ const Home = () => {
             From the rose-pink arches of Hawa Mahal to golden desert sands — discover the Land of Kings through Rajasthan's official tourism & booking portal.
           </p>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 mb-8">
-            <button
-              onClick={handleBookClick}
-              className="inline-flex items-center justify-center gap-2 px-7 py-3 md:py-4 bg-[#E8631A] text-white font-semibold rounded-full transition-all duration-200 hover:bg-[#C04E0A] hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(232,99,26,0.35)]"
-            >
-              {isAuthenticated ? '🎫 Book Now →' : '🎫 Explore Destinations →'}
-            </button>
-            <Link
-              href="#packages"
-              className="inline-flex items-center justify-center gap-2 px-6 md:px-7 py-3 md:py-4 bg-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.85)] font-medium rounded-full border border-[rgba(255,255,255,0.3)] transition-all duration-200 hover:bg-[rgba(255,255,255,0.18)]"
-            >
-              View Packages
-            </Link>
+          {/* Search Bar */}
+          <div className="w-full max-w-[540px] mx-auto mb-5">
+            <SearchBar />
           </div>
 
           {/* Quick Links */}
