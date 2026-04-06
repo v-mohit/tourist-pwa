@@ -1,14 +1,8 @@
 'use client'
 
 import React, { createContext, useContext, useState, useCallback } from 'react'
-
-export interface AuthUser {
-  email: string
-  fullName?: string
-  phone?: string
-}
-
-export type AuthModalType = 'login' | 'signup' | null
+import { AuthUser, AuthModalType } from '@/features/auth/types'
+import { loginApi, signupApi } from '@/features/auth/api/authApi'
 
 interface AuthContextType {
   user: AuthUser | null
@@ -51,11 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const login = useCallback(async (email: string, password: string) => {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    // In a real app, this would validate with your backend
-    const userData: AuthUser = { email }
+    const userData = await loginApi(email, password)
     setUser(userData)
     localStorage.setItem('user', JSON.stringify(userData))
     closeModal()
@@ -63,11 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signup = useCallback(
     async (fullName: string, email: string, phone: string, password: string) => {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // In a real app, this would validate with your backend
-      const userData: AuthUser = { email, fullName, phone }
+      const userData = await signupApi(fullName, email, phone, password)
       setUser(userData)
       localStorage.setItem('user', JSON.stringify(userData))
       closeModal()

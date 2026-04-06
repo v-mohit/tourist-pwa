@@ -3,7 +3,7 @@
 import LoginModal from './LoginModal'
 import SignupModal from './SignupModal'
 
-export default function AuthModals() {
+export default function AuthModal() {
   return (
     <>
       <LoginModal />

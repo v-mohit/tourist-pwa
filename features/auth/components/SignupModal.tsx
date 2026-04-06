@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useAuth } from '@/app/contexts/AuthContext'
+import { useAuth } from '@/features/auth/context/AuthContext'
 import clsx from 'clsx'
 
 export default function SignupModal() {

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import clsx from 'clsx'
-import { useAuth } from '@/app/contexts/AuthContext'
+import { useAuth } from '@/features/auth/context/AuthContext'
 
 export default function Header() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)

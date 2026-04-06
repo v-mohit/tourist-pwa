@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useAuth } from '@/app/contexts/AuthContext'
+import { useAuth } from '@/features/auth/context/AuthContext'
 
 const Home = () => {
   const { isAuthenticated, openLoginModal } = useAuth()
