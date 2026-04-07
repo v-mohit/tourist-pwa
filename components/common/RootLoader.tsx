@@ -3,17 +3,16 @@
 import { useState, useEffect } from 'react'
 
 export default function RootLoader() {
-  const [isVisible, setIsVisible] = useState(true)
+  const [isHiding, setIsHiding] = useState(false)
 
   useEffect(() => {
-    // Hide loader when page is fully loaded
+    // Hide loader when page is fully loaded or after timeout
     const timer = setTimeout(() => {
-      setIsVisible(false)
-    }, 2000) // Adjust timing as needed
+      setIsHiding(true)
+    }, 1500)
 
-    // Also hide on page load
     const handleLoad = () => {
-      setIsVisible(false)
+      setIsHiding(true)
     }
 
     window.addEventListener('load', handleLoad)
@@ -23,14 +22,11 @@ export default function RootLoader() {
     }
   }, [])
 
-  if (!isVisible) return null
-
   return (
-    <div className="loader-overlay">
+    <div className={`loader-overlay ${isHiding ? 'loader-hiding' : ''}`}>
       <div className="loader-container">
         {/* Circular progress bar */}
         <svg className="loader-svg" viewBox="0 0 100 100">
-          <circle className="loader-bg-circle" cx="50" cy="50" r="45" />
           <circle className="loader-progress-circle" cx="50" cy="50" r="45" />
         </svg>
 
@@ -50,22 +46,17 @@ export default function RootLoader() {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: rgba(253, 248, 241, 0.95);
+          background: rgba(253, 248, 241, 0.98);
           z-index: 9999;
           backdrop-filter: blur(8px);
-          animation: fadeOut 0.5s ease-out forwards;
-          animation-delay: 1.8s;
+          opacity: 1;
+          visibility: visible;
+          transition: opacity 0.4s ease-out, visibility 0.4s ease-out;
         }
 
-        @keyframes fadeOut {
-          from {
-            opacity: 1;
-            visibility: visible;
-          }
-          to {
-            opacity: 0;
-            visibility: hidden;
-          }
+        .loader-overlay.loader-hiding {
+          opacity: 0;
+          visibility: hidden;
         }
 
         .loader-container {
@@ -84,43 +75,38 @@ export default function RootLoader() {
           transform: rotate(-90deg);
         }
 
-        .loader-bg-circle {
-          display: none;
-        }
-
         .loader-progress-circle {
           fill: none;
           stroke: url(#loaderGradient);
-          stroke-width: 2.5;
+          stroke-width: 3;
           stroke-linecap: round;
           stroke-dasharray: 282.7;
           stroke-dashoffset: 282.7;
-          animation: loaderProgress 1.5s ease-in-out infinite;
+          animation: loaderSpin 1.2s ease-in-out infinite;
         }
 
-        @keyframes loaderProgress {
+        @keyframes loaderSpin {
           0% {
             stroke-dashoffset: 282.7;
-          }
-          50% {
-            stroke-dashoffset: 0;
+            opacity: 1;
           }
           100% {
-            stroke-dashoffset: 282.7;
+            stroke-dashoffset: 0;
+            opacity: 1;
           }
         }
 
         .loader-icon {
           position: relative;
           z-index: 2;
-          width: 56px;
-          height: 56px;
+          width: 60px;
+          height: 60px;
           border-radius: 10px;
           background: linear-gradient(135deg, #E8631A 0%, #D4A017 100%);
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 28px;
+          font-size: 32px;
           box-shadow: 0 4px 12px rgba(232, 99, 26, 0.3);
           flex-shrink: 0;
         }
