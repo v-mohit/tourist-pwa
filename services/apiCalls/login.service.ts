@@ -178,21 +178,16 @@ export const GuestLogin = () => {
   };
 
   export const GetUserDetails = (id: any) => {
-    return useQuery(
-      [queryKeys.getUserDetails, id],
-      async () => {
+    return useQuery({
+      queryKey: [queryKeys.getUserDetails, id],
+      queryFn: async () => {
         const { data } = await axiosInstance.get(
           `${apiendpoints.getUserDetail(id)}`
         );
         return data;
       },
-      {
-        onSuccess: (res: any) => {
-          // successCallback(response?.result);          
-        },
-        enabled: !!id,
-      }
-    );
+      enabled: !!id,
+    });
   };
 
 export const GetEmitraKioskPaymentStatus = (callApi: boolean,
