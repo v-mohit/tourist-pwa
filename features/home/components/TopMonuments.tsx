@@ -1,4 +1,7 @@
+import Link from "next/link";
+
 export default function TopMonuments({ data }: any) {
+  console.log("TopMonuments data:", data);
   const places = data?.category?.data?.attributes?.places?.data || [];
 
   return (
@@ -9,9 +12,9 @@ export default function TopMonuments({ data }: any) {
           <div className="sec-lbl">✦ {data?.title || "Top Monuments"}</div>
           <h2 className="sec-ttl">Royal Heritage & Architecture</h2>
         </div>
-        <a href="#" className="see-all">
+        <Link href="/top-monuments" className="see-all">
           See all →
-        </a>
+        </Link>
       </div>
 
       {/* Grid */}
@@ -22,10 +25,17 @@ export default function TopMonuments({ data }: any) {
           const img = attr?.images?.data?.[0]?.attributes?.url
             ? `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL}${attr.images.data[0].attributes.url}`
             : null;
+          console.log("img for monument:", img);
 
           // ✅ Name & Location
           const name = attr?.name || "Unknown Monument";
           const loc = attr?.city?.data?.attributes?.name || "Unknown Location";
+          
+          // ✅ Dynamic Slug from API with smart fallback for mock data
+          const placeId = attr?.placeDetail?.data?.attributes?.slug || 
+                          (name.toLowerCase().includes('hawa mahal') ? 'hawa-mahal' :
+                           name.toLowerCase().includes('amber') ? 'amber' :
+                           name.toLowerCase().replace(/\s+/g, '-'));
 
           // ✅ Timing
           const timeBlock = attr?.placeDetail?.data?.attributes?.content?.find(
@@ -50,7 +60,12 @@ export default function TopMonuments({ data }: any) {
             : "₹100";
 
           return (
-            <div key={item.id} className="mon-card">
+            <Link 
+              key={item.id} 
+              href={`/place-detail/${placeId}`}
+              className="mon-card"
+              style={{ cursor: 'pointer', display: 'block' }}
+            >
               {/* Image */}
               <div className="mon-img">
                 <div
@@ -83,10 +98,11 @@ export default function TopMonuments({ data }: any) {
 
                 <button className="btn-sm btn-sm--full">Book Entry →</button>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
     </section>
   );
 }
+
