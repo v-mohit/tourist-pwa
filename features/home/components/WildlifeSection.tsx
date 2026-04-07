@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function WildlifeSection({ data }: any) {
   const places = data?.category?.data?.attributes?.places?.data || [];
 
@@ -11,13 +13,13 @@ export default function WildlifeSection({ data }: any) {
           </div>
           <h2 className="sec-ttl sec-ttl-w">Into the Wild</h2>
         </div>
-        <a href="#" className="see-all" style={{ color: '#22C55E', borderColor: '#22C55E' }}>
+        <Link href="/wildlife" className="see-all" style={{ color: '#22C55E', borderColor: '#22C55E' }}>
           See all →
-        </a>
+        </Link>
       </div>
 
       {/* ✅ Hero (kept static) */}
-      <div className="wild-hero">
+      <Link href="/place-detail/sariska" className="wild-hero" style={{ display: 'block', cursor: 'pointer' }}>
         <div
           className="dimg"
           style={{
@@ -43,7 +45,7 @@ export default function WildlifeSection({ data }: any) {
             <button className="btn-g">View Details</button>
           </div>
         </div>
-      </div>
+      </Link>
 
       {/* ✅ Dynamic Cards (limit 4) */}
       <div className="wild-grid">
@@ -59,6 +61,10 @@ export default function WildlifeSection({ data }: any) {
           // ✅ Name & Location
           const name = attr?.name || "Wildlife Park";
           const city = attr?.city?.data?.attributes?.name || "Unknown";
+          
+          const placeId = attr?.placeDetail?.data?.attributes?.slug || 
+                          (name.toLowerCase().includes('sariska') ? 'sariska' :
+                           name.toLowerCase().replace(/\s+/g, '-'));
 
           // ✅ Timing
           const timeBlock = attr?.placeDetail?.data?.attributes?.content?.find(
@@ -79,7 +85,12 @@ export default function WildlifeSection({ data }: any) {
             )?.value || "50";
 
           return (
-            <div key={item.id} className="wild-card">
+            <Link 
+              key={item.id} 
+              href={`/place-detail/${placeId}`}
+              className="wild-card" 
+              style={{ display: 'block', cursor: 'pointer' }}
+            >
               <div
                 className="dimg"
                 style={{ backgroundImage: `url('${img}')` }}
@@ -103,10 +114,10 @@ export default function WildlifeSection({ data }: any) {
                   </span>
                 </div>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
     </section>
   );
-}
+}

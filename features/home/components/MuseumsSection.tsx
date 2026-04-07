@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function MuseumsSection({ data }: any) {
   const places = data?.category?.data?.attributes?.places?.data || [];
 
@@ -47,8 +49,18 @@ export default function MuseumsSection({ data }: any) {
           // ✅ City (used in fallback desc)
           const city = attr?.city?.data?.attributes?.name || "Rajasthan";
 
+          const placeId = attr?.placeDetail?.data?.attributes?.slug || 
+                          (name.toLowerCase().includes('hawa mahal') ? 'hawa-mahal' :
+                           name.toLowerCase().includes('amber') ? 'amber' :
+                           name.toLowerCase().replace(/\s+/g, '-'));
+
           return (
-            <div key={item.id} className="mus-card">
+            <Link 
+              key={item.id} 
+              href={`/place-detail/${placeId}`}
+              className="mus-card"
+              style={{ display: 'block', cursor: 'pointer' }}
+            >
               {/* Image */}
               <div className="mus-img">
                 <div
@@ -93,7 +105,7 @@ export default function MuseumsSection({ data }: any) {
                   Book Tickets →
                 </button>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
