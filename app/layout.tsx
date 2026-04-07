@@ -7,6 +7,7 @@ import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
 import { AuthProvider } from "@/features/auth/context/AuthContext";
 import AuthModal from "@/features/auth/components/AuthModal";
+import RootLoader from "@/components/common/RootLoader";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,6 +36,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[#FDF8F1]">
+        <RootLoader />
         <AuthProvider>
           <ThemeRegistry>
             <Providers>
