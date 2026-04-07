@@ -1,37 +1,14 @@
-const WILD_CARDS = [
-  {
-    img: 'https://images.unsplash.com/photo-1608023136037-626dad6df359?w=500&auto=format&fit=crop&q=80',
-    tag: '🐆 Leopard',
-    name: 'Jhalana Leopard Park',
-    meta: '📍 Jaipur · 30+ Leopards',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1614267861476-3bde44e0bc6c?w=500&auto=format&fit=crop&q=80',
-    tag: '🦅 UNESCO',
-    name: 'Keoladeo National Park',
-    meta: '📍 Bharatpur · 380+ Bird Species',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=500&auto=format&fit=crop&q=80',
-    tag: '🐘 Bio Park',
-    name: 'Nahargarh Biological Park',
-    meta: '📍 Jaipur · Big Cats Zone',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1612428085659-de9c5c765fe6?w=500&auto=format&fit=crop&q=80',
-    tag: '🐅 Tiger Reserve',
-    name: 'Ramgarh Vishdhari Reserve',
-    meta: '📍 Bundi · Newest Reserve',
-  },
-]
+export default function WildlifeSection({ data }: any) {
+  const places = data?.category?.data?.attributes?.places?.data || [];
 
-export default function WildlifeSection(data: any) {
   return (
     <section className="sec" id="wildlife" style={{ background: '#0B1A12' }}>
       {/* Header */}
       <div className="sec-hd">
         <div>
-          <div className="sec-lbl" style={{ color: '#22C55E' }}>✦ Top Wildlife</div>
+          <div className="sec-lbl" style={{ color: '#22C55E' }}>
+            ✦ {data?.title || "Top Wildlife"}
+          </div>
           <h2 className="sec-ttl sec-ttl-w">Into the Wild</h2>
         </div>
         <a href="#" className="see-all" style={{ color: '#22C55E', borderColor: '#22C55E' }}>
@@ -39,13 +16,13 @@ export default function WildlifeSection(data: any) {
         </a>
       </div>
 
-      {/* Featured hero banner — Sariska */}
+      {/* ✅ Hero (kept static) */}
       <div className="wild-hero">
         <div
           className="dimg"
           style={{
             backgroundImage:
-              "url('https://images.unsplash.com/photo-1561731216-c3a4d99437d5?w=1400&auto=format&fit=crop&q=85')",
+              "url('https://images.unsplash.com/photo-1561731216-c3a4d99437d5?w=1400')",
           }}
         />
         <div className="wild-hero-grad" />
@@ -59,8 +36,7 @@ export default function WildlifeSection(data: any) {
             <div className="wf">📅 <b>Oct–Jun</b></div>
           </div>
           <p className="wild-hero-desc">
-            India&apos;s first reserve to successfully relocate tigers. Home to leopards, hyenas and
-            200+ bird species.
+            India&apos;s first reserve to successfully relocate tigers.
           </p>
           <div className="wild-hero-btns">
             <button className="btn-p">Book Safari →</button>
@@ -69,24 +45,68 @@ export default function WildlifeSection(data: any) {
         </div>
       </div>
 
-      {/* 4-card grid */}
+      {/* ✅ Dynamic Cards (limit 4) */}
       <div className="wild-grid">
-        {WILD_CARDS.map(({ img, tag, name, meta }) => (
-          <div key={name} className="wild-card">
-            <div className="dimg" style={{ backgroundImage: `url('${img}')` }} />
-            <div className="wild-grad" />
-            <div className="wild-top">
-              <span className="tag tn" style={{ fontSize: 9 }}>{tag}</span>
-            </div>
-            <div className="wild-foot">
-              <h4>{name}</h4>
-              <div className="wild-bar">
-                <span>{meta}</span>
+        {places.slice(0, 4).map((item: any) => {
+          const attr = item?.attributes;
+
+          // ✅ Image
+          const img =
+            attr?.images?.data?.[0]?.attributes?.url
+              ? `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL}${attr.images.data[0].attributes.url}`
+              : null;
+
+          // ✅ Name & Location
+          const name = attr?.name || "Wildlife Park";
+          const city = attr?.city?.data?.attributes?.name || "Unknown";
+
+          // ✅ Timing
+          const timeBlock = attr?.placeDetail?.data?.attributes?.content?.find(
+            (c: any) => c.__typename === "ComponentPlaceDetailPlaceTime"
+          );
+
+          const time =
+            timeBlock?.card?.[0]?.content?.[0]?.value || "9AM–5PM";
+
+          // ✅ Fee
+          const ticketBlock = attr?.placeDetail?.data?.attributes?.content?.find(
+            (c: any) => c.__typename === "ComponentPlaceDetailPlacetickets"
+          );
+
+          const fee =
+            ticketBlock?.card?.[0]?.content?.find(
+              (c: any) => c.name.includes("Adult")
+            )?.value || "50";
+
+          return (
+            <div key={item.id} className="wild-card">
+              <div
+                className="dimg"
+                style={{ backgroundImage: `url('${img}')` }}
+              />
+              <div className="wild-grad" />
+
+              {/* Tag (static fallback) */}
+              <div className="wild-top">
+                <span className="tag tn" style={{ fontSize: 9 }}>
+                  🐾 Wildlife
+                </span>
+              </div>
+
+              <div className="wild-foot">
+                <h4>{name}</h4>
+
+                {/* Meta (dynamic + fallback mix) */}
+                <div className="wild-bar">
+                  <span>
+                    📍 {city} · ⏰ {time} · ₹{fee}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
-  )
+  );
 }

@@ -12,7 +12,7 @@ import HomeClient from "./HomeClient";
 
 export default function Home(data: any) {
 
-   const sections = data?.home?.data?.attributes?.home || [];
+   const sections = data?.data?.home?.data?.attributes?.home || [];
 
   const monuments = sections.find(
     (s: any) => s.__typename === "ComponentHomeMonuments"
@@ -25,6 +25,7 @@ export default function Home(data: any) {
   const museums = sections.find(
     (s: any) => s.__typename === "ComponentHomeMuseum"
   );
+  
 
   return (
     <div className="w-full">
