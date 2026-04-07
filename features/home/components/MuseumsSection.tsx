@@ -11,7 +11,12 @@ export default function MuseumsSection({ data }: any) {
           <div className="sec-lbl">✦ {data?.title || "Top Museums"}</div>
           <h2 className="sec-ttl">Preserving History</h2>
         </div>
-        <a href="#" className="see-all">See all →</a>
+        <Link 
+          href={`/tourist-attraction?categoryId=${data?.category?.data?.id}`} 
+          className="see-all"
+        >
+          See all →
+        </Link>
       </div>
 
       {/* Grid */}

@@ -13,7 +13,11 @@ export default function WildlifeSection({ data }: any) {
           </div>
           <h2 className="sec-ttl sec-ttl-w">Into the Wild</h2>
         </div>
-        <Link href="/wildlife" className="see-all" style={{ color: '#22C55E', borderColor: '#22C55E' }}>
+        <Link 
+          href={`/tourist-attraction?categoryId=${data?.category?.data?.id}`} 
+          className="see-all" 
+          style={{ color: '#22C55E', borderColor: '#22C55E' }}
+        >
           See all →
         </Link>
       </div>

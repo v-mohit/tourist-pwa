@@ -273,7 +273,6 @@ function PlaceDetailContent({ placeData, contentData }: { placeData: any; conten
 }
 
 export default function PlaceDetailPage({ data }: { data: any }) {
-  console.log("GraphQL Data received in ClientComponent:", data);
 
   // Strapi GraphQL often returns data nested under dynamic field names and arrays
   const attributes = data?.placeDetails?.data?.[0]?.attributes;

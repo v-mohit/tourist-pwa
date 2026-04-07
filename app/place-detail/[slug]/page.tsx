@@ -8,13 +8,9 @@ export default async function Page({ params }: { params: { slug: string } }) {
   const { slug } = await params;
   const slugParam = decodeURIComponent(slug);
 
-  console.log("Fetching data for slug:", slugParam);
-
   const placeDetailData = await graphqlClient.request(FetchPlaceDetailsDocument, {
     slug: slugParam,
   });
-
-  console.log("placeDetailData (Server):", placeDetailData);
 
   return <PlaceDetailPage data={placeDetailData} />;
 }

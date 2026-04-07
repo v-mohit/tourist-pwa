@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 export default function TopMonuments({ data }: any) {
-  console.log("TopMonuments data:", data);
   const places = data?.category?.data?.attributes?.places?.data || [];
 
   return (
@@ -12,7 +11,10 @@ export default function TopMonuments({ data }: any) {
           <div className="sec-lbl">✦ {data?.title || "Top Monuments"}</div>
           <h2 className="sec-ttl">Royal Heritage & Architecture</h2>
         </div>
-        <Link href="/top-monuments" className="see-all">
+        <Link 
+          href={`/tourist-attraction?categoryId=${data?.category?.data?.id}`} 
+          className="see-all"
+        >
           See all →
         </Link>
       </div>
@@ -25,7 +27,6 @@ export default function TopMonuments({ data }: any) {
           const img = attr?.images?.data?.[0]?.attributes?.url
             ? `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL}${attr.images.data[0].attributes.url}`
             : null;
-          console.log("img for monument:", img);
 
           // ✅ Name & Location
           const name = attr?.name || "Unknown Monument";
