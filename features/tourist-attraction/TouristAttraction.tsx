@@ -73,27 +73,22 @@ const TouristAttraction: React.FC<TouristAttractionProps> = ({ data }) => {
   }, [places, searchQuery]);
 
   return (
-    <div className="sa-panel" style={{ minHeight: '100vh', position: 'relative', transform: 'none' }}>
+    <div className="sa-panel sa-panel--page">
       {/* ── HEADER ── */}
       <div 
-        className="sa-header" 
+        className="sa-header sa-header--page" 
         style={{ 
-          background: headerBg.startsWith('var') ? headerBg : `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('${headerBg}') center/cover`,
-          height: '240px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'flex-start',
-          padding: '20px max(22px, 5vw)',
-          position: 'relative'
+          background: headerBg.startsWith('var') 
+            ? headerBg 
+            : `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('${headerBg}') center/cover` 
         }}
       >
-        <Link href="/" className="sa-close" style={{ position: 'absolute', top: '20px', left: 'max(22px, 5vw)', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>
+        <Link href="/" className="sa-close sa-close--page">
           ✕
         </Link>
-        <div className="sa-header-body" style={{ marginTop: 'auto' }}>
-          <h2 style={{ fontSize: 'clamp(28px, 5vw, 42px)', marginBottom: '8px' }}>{title}</h2>
-          <p style={{ fontSize: '14px', opacity: 0.9, maxWidth: '600px' }}>{subtitle}</p>
+        <div className="sa-header-body sa-header-body--bottom">
+          <h2 className="sa-header-title--page">{title}</h2>
+          <p className="sa-header-subtitle--page">{subtitle}</p>
         </div>
       </div>
 
@@ -139,7 +134,7 @@ const TouristAttraction: React.FC<TouristAttractionProps> = ({ data }) => {
             )?.value || "100";
 
             return (
-              <Link key={place.id} href={`/place-detail/${slug}`} className="sa-card" style={{ textDecoration: 'none' }}>
+              <Link key={place.id} href={`/place-detail/${slug}`} className="sa-card sa-card--link">
                 <div className="sa-img" style={{ backgroundImage: `url('${imgUrl}')` }}>
                   <div className="sa-img-grad"></div>
                   <div className="sa-tag">{categoryName}</div>
@@ -159,8 +154,8 @@ const TouristAttraction: React.FC<TouristAttractionProps> = ({ data }) => {
             );
           })
         ) : (
-          <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px 20px', color: 'var(--mu)' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
+          <div className="sa-no-results">
+            <div className="sa-no-results-icon">🔍</div>
             <h3>No matches found</h3>
             <p>Try searching for a different name or city.</p>
           </div>

@@ -471,4 +471,67 @@ button {
   .pd-content { grid-template-columns: 1fr; }
   .pd-right { order: -1; }
   .sa-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+}
+/* ── SEE ALL PAGE IMPROVEMENTS ── */
+.sa-panel--page {
+  min-height: 100vh;
+  position: relative;
+  transform: none;
+}
+
+.sa-header--page {
+  height: 240px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px max(22px, 5vw);
+  position: relative;
+}
+
+.sa-header-title--page {
+  font-size: clamp(28px, 5vw, 42px);
+  margin-bottom: 8px;
+}
+
+.sa-header-subtitle--page {
+  font-size: 14px;
+  opacity: 0.9;
+  max-width: 600px;
+}
+
+.sa-close--page {
+  position: absolute;
+  top: 20px;
+  left: max(22px, 5vw);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.sa-card--link {
+  text-decoration: none;
+}
+
+.sa-no-results {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--mu);
+}
+
+.sa-no-results-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+  .sa-header--page {
+    height: 200px;
+  }
+}
+
+.sa-header-body--bottom {
+  margin-top: auto;
 }
