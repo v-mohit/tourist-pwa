@@ -50,9 +50,22 @@ export default function RootLoader() {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: rgba(253, 248, 241, 0.98);
+          background: rgba(253, 248, 241, 0.95);
           z-index: 9999;
-          backdrop-filter: blur(4px);
+          backdrop-filter: blur(8px);
+          animation: fadeOut 0.5s ease-out forwards;
+          animation-delay: 1.8s;
+        }
+
+        @keyframes fadeOut {
+          from {
+            opacity: 1;
+            visibility: visible;
+          }
+          to {
+            opacity: 0;
+            visibility: hidden;
+          }
         }
 
         .loader-container {
@@ -72,41 +85,42 @@ export default function RootLoader() {
         }
 
         .loader-bg-circle {
-          fill: none;
-          stroke: rgba(232, 99, 26, 0.1);
-          stroke-width: 2;
+          display: none;
         }
 
         .loader-progress-circle {
           fill: none;
           stroke: url(#loaderGradient);
-          stroke-width: 2;
+          stroke-width: 2.5;
           stroke-linecap: round;
           stroke-dasharray: 282.7;
-          stroke-dashoffset: 0;
-          animation: loaderSpin 2s linear infinite;
+          stroke-dashoffset: 282.7;
+          animation: loaderProgress 1.5s ease-in-out infinite;
         }
 
-        @keyframes loaderSpin {
+        @keyframes loaderProgress {
           0% {
             stroke-dashoffset: 282.7;
           }
-          100% {
+          50% {
             stroke-dashoffset: 0;
+          }
+          100% {
+            stroke-dashoffset: 282.7;
           }
         }
 
         .loader-icon {
           position: relative;
           z-index: 2;
-          width: 36px;
-          height: 36px;
+          width: 56px;
+          height: 56px;
           border-radius: 10px;
           background: linear-gradient(135deg, #E8631A 0%, #D4A017 100%);
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 18px;
+          font-size: 28px;
           box-shadow: 0 4px 12px rgba(232, 99, 26, 0.3);
           flex-shrink: 0;
         }
