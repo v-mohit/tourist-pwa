@@ -1,7 +1,3 @@
-import { WebCheckIn } from "@/services/booking.services";
-import { GuestUpdateMobileNumber } from "@/services/login.service";
-import { update } from "lodash";
-
 export const apiendpoints = {
   getBoardingPassData:( bookingId:any,
     identification:any)=> `/booking/getTouristTicketByDocument?bookingId=${bookingId}&identification=${identification}`,

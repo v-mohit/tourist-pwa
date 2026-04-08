@@ -1,5 +1,3 @@
-import { GuestUpdateMobileNumber } from "@/services/login.service";
-
 export const queryKeys = {
   getShiftsAndTicketTypesByPlace: "getShiftsAndTicketTypesByPlace",
   getPlaceQuickeLinks: "getPlaceQuickeLinks",
