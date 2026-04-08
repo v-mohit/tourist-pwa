@@ -6,8 +6,8 @@ import type { SearchBarHandle } from './SearchBar'
 
 const BADGES = [
   { label: '⭐ Incredible State of India', cls: 'tg' },
-  { label: '🏆 SKOCH Award Winner',        cls: 'tw' },
-  { label: 'Official Govt. Portal',        cls: 'tw' },
+  { label: '🏆 SKOCH Award Winner', cls: 'tw' },
+  { label: 'Official Govt. Portal', cls: 'tw' },
 ]
 
 const PILLS = [
@@ -22,14 +22,12 @@ const PILLS = [
 export default function HeroSection() {
   const searchRef = useRef<SearchBarHandle>(null)
 
-  // Strip leading emoji (2 chars) — mirrors HTML pill-click logic exactly
   function handlePillClick(pill: string) {
     searchRef.current?.setValue(pill.replace(/^.{2}/, '').trim())
   }
 
   return (
     <section className="hero">
-      {/* Background image is defined in globals.css .hero-bg — nothing inline here */}
       <div className="hero-bg" />
       <div className="hero-ov" />
 
@@ -46,24 +44,22 @@ export default function HeroSection() {
         </h1>
 
         <p className="hero-sub">
-          From the rose-pink arches of Hawa Mahal to golden desert sands — discover the Land of
-          Kings through Rajasthan&apos;s official tourism &amp; booking portal.
+          Discover forts, wildlife, museums & more across Rajasthan.
         </p>
 
         <SearchBar ref={searchRef} />
 
         <div className="hero-pills">
           {PILLS.map((pill) => (
-            <button key={pill} className="hero-pill" onClick={() => handlePillClick(pill)}>
+            <button
+              key={pill}
+              className="hero-pill"
+              onClick={() => handlePillClick(pill)}
+            >
               {pill}
             </button>
           ))}
         </div>
-      </div>
-
-      <div className="scroll-hint">
-        <span>Scroll</span>
-        <div className="scroll-ring" />
       </div>
     </section>
   )

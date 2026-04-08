@@ -272,7 +272,7 @@ export default function AuthModal() {
       {/* Backdrop */}
       <div
         className={clsx(
-          'fixed inset-0 bg-[rgba(24,18,14,0.72)] backdrop-blur-[6px] z-40 transition-opacity duration-300',
+          'fixed inset-0 bg-[rgba(24,18,14,0.72)] backdrop-blur-[6px] z-[400] transition-opacity duration-300',
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         )}
         onClick={loginStep === 3 ? undefined : closeModal}
@@ -282,7 +282,7 @@ export default function AuthModal() {
       {/* Modal container */}
       <div
         className={clsx(
-          'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-sm px-4 transition-all duration-300',
+          'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[500] w-full max-w-sm px-4 transition-all duration-300',
           loginStep === 3 && 'max-w-md',
           isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
         )}

@@ -2,7 +2,7 @@
 
 export default function BookingModal({ place, onClose }: any) {
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[400]">
       <div className="bg-white p-6 rounded-xl w-[400px]">
         <h2 className="text-lg font-semibold mb-4">
           Book {place?.attributes?.name}
