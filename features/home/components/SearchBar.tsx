@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   useState,
@@ -6,118 +6,157 @@ import {
   useEffect,
   useImperativeHandle,
   forwardRef,
-} from 'react'
-
-const SEARCH_MAP: Record<string, string> = {
-  'amber fort':     'monuments',
-  'hawa mahal':     'monuments',
-  'mehrangarh':     'monuments',
-  'jaisalmer fort': 'monuments',
-  'jantar mantar':  'monuments',
-  'tiger':          'wildlife',
-  'safari':         'wildlife',
-  'sariska':        'wildlife',
-  'leopard':        'wildlife',
-  'wildlife':       'wildlife',
-  'museum':         'museums',
-  'albert hall':    'museums',
-  'park':           'parks',
-  'garden':         'parks',
-  'light':          'ls',
-  'sound':          'ls',
-  'show':           'ls',
-  'chittorgarh':    'ls',
-  'kumbhalgarh':    'ls',
-  'package':        'packages',
-  'darshan':        'packages',
-  'hotel':          'rtdc',
-  'rtdc':           'rtdc',
-  'stay':           'rtdc',
-  'palace':         'rtdc',
-  'jkk':            'venues',
-  'event':          'venues',
-  'festival':       'venues',
-  'cafeteria':      'cafeteria',
-  'dining':         'cafeteria',
-  'food':           'cafeteria',
-  'masala chowk':   'cafeteria',
-  'asi':            'asi',
-  'archaeological': 'asi',
-  'jaipur':         'destinations',
-  'udaipur':        'destinations',
-  'jodhpur':        'destinations',
-  'jaisalmer':      'destinations',
-  'alwar':          'destinations',
-}
+} from "react";
+import { graphqlClient } from "@/services/client";
+import { FetchHomeSearchDocument } from "@/generated/graphql";
+import { useRouter } from 'next/navigation'
 
 export interface SearchBarHandle {
-  setValue: (value: string) => void
+  setValue: (value: string) => void;
 }
 
 const SearchBar = forwardRef<SearchBarHandle>((_, ref) => {
-  const [query, setQuery] = useState('')
-  const [toast, setToast] = useState({ icon: '', msg: '', visible: false })
-  const inputRef = useRef<HTMLInputElement>(null)
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const router = useRouter()
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<any>({});
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])
+  const inputRef = useRef<HTMLInputElement>(null);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   useImperativeHandle(ref, () => ({
     setValue(value: string) {
-      setQuery(value)
-      setTimeout(() => inputRef.current?.focus(), 0)
+      setQuery(value);
+      setTimeout(() => inputRef.current?.focus(), 0);
     },
-  }))
+  }));
 
-  function showToast(icon: string, msg: string) {
-    setToast({ icon, msg, visible: true })
-    if (timerRef.current) clearTimeout(timerRef.current)
-    timerRef.current = setTimeout(
-      () => setToast((p) => ({ ...p, visible: false })),
-      3200,
-    )
-  }
+  // ✅ Group by category
+ function groupByCategory(data: any[]) {
+  const map: Record<string, any[]> = {}
 
-  function doSearch() {
-    const q = query.toLowerCase().trim()
-    if (!q) { showToast('⌨️', 'Please type something to search'); return }
+  data.forEach((place) => {
+    const attr = place.attributes
 
-    let targetId: string | null = null
-    for (const [kw, id] of Object.entries(SEARCH_MAP)) {
-      if (q.includes(kw)) { targetId = id; break }
+    const name = attr.name
+    const city = attr.city?.data?.attributes?.name
+
+    const slug =
+      attr.placeDetail?.data?.attributes?.slug || null
+
+    const categories = attr.categories?.data || []
+
+    categories.forEach((cat: any) => {
+      const catName = cat.attributes.Name
+      const icon = cat.attributes.icon?.data?.attributes?.url
+
+      if (!map[catName]) map[catName] = []
+
+      map[catName].push({
+        name,
+        city,
+        icon,
+        slug, // ✅ add this
+      })
+    })
+  })
+
+  return map
+}
+
+  // ✅ Debounced API call
+  useEffect(() => {
+    if (!query.trim()) {
+      setShowDropdown(false);
+      return;
     }
 
-    if (targetId) {
-      document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth' })
-      showToast('🔍', `Showing results for "${query.trim()}"`)
-    } else {
-      document.getElementById('destinations')?.scrollIntoView({ behavior: 'smooth' })
-      showToast('🤔', 'No exact match — showing all destinations')
-    }
-  }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    debounceRef.current = setTimeout(async () => {
+      try {
+        setLoading(true);
+
+        const res: any = await graphqlClient.request(FetchHomeSearchDocument, {
+          searchKey: query,
+          page: 1,
+          pageSize: 10,
+        });
+
+        const places = res?.places?.data || [];
+        const grouped = groupByCategory(places);
+
+        setResults(grouped);
+        setShowDropdown(true);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }, 400); // 🔥 debounce time
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [query]);
+
+function handleSelect(item: any) {
+  if (!item.slug) return
+
+  setShowDropdown(false)
+  setQuery(item.name)
+
+  router.push(`/place-detail/${item.slug}`) // ✅ navigate
+}
 
   return (
-    <>
+    <div className="hero-search-wrap">
       <div className="hero-search">
         <input
           ref={inputRef}
           type="text"
-          placeholder="🔍  Search forts, wildlife, packages, parks…"
+          placeholder="🔍 Search forts, wildlife, museums..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && doSearch()}
+          onFocus={() => query && setShowDropdown(true)}
         />
-        <button className="hero-sbtn" onClick={doSearch}>Search</button>
+
+        <button className="hero-sbtn">Search</button>
       </div>
 
-      {/* Toast — .toast and .toast.show are in globals.css */}
-      <div className={`toast${toast.visible ? ' show' : ''}`}>
-        <span className="ti">{toast.icon}</span>
-        {toast.msg}
-      </div>
-    </>
-  )
-})
+      {/* ✅ Dropdown */}
+      {showDropdown && (
+        <div className="search-dropdown">
+          {loading && <div className="dropdown-loading">Searching...</div>}
 
-SearchBar.displayName = 'SearchBar'
-export default SearchBar
+          {!loading &&
+            Object.entries(results).map(([category, items]: any) => (
+              <div key={category} className="dropdown-section">
+                <h4 className="dropdown-title">
+                  {items[0]?.icon && (
+                    <img src={`${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL}${items[0].icon}`} className="cat-icon" />
+                  )}
+                  {category}
+                </h4>
+
+                {items.slice(0, 4).map((item: any, idx: number) => (
+                  <div
+                    key={idx}
+                    className="dropdown-item"
+                    onClick={() => handleSelect(item)}
+                  >
+                    <strong>{item.name}</strong>
+                    <span>{item.city}</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+        </div>
+      )}
+    </div>
+  );
+});
+
+SearchBar.displayName = "SearchBar";
+export default SearchBar;
