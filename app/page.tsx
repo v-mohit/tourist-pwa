@@ -7,7 +7,6 @@ export const revalidate = 60;
 export default async function Page() {
   const data = await graphqlClient.request(FetchHomeDataDocument);
   const topPackageData =  await graphqlClient.request(FetchTopPackageDocument);
-  console.log('Top Package Data:', topPackageData);
 
   return <Home data={data} topPackageData={topPackageData} />;
 }

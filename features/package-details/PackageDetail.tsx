@@ -1,11 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 
 const PackageDetail = ({ data }: any) => {
-  const [activeTab, setActiveTab] = useState('overview');
-  
   const pkg = data?.packageDetails?.data?.[0]?.attributes;
   if (!pkg) {
     return (
@@ -18,224 +16,190 @@ const PackageDetail = ({ data }: any) => {
   }
 
   const images = pkg.images?.data || [];
-  const heroImage = images[0]?.attributes?.url 
+  const mainImage = images[0]?.attributes?.url
     ? `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL}${images[0].attributes.url}`
-    : 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=1200&auto=format&fit=crop&q=80';
+    : null;
 
-  const placesToVisit = pkg.places || [];
+  const overviewText = pkg.overview || pkg.description || '';
+
+  // Helper to extract price from text using regex
+  const extractPrice = (label: string) => {
+    const regex = new RegExp(`${label}-(\\d+)`, 'i');
+    const match = overviewText.match(regex);
+    return match ? match[1] : null;
+  };
+
+  const prices = {
+    indianCitizen: extractPrice('Indian Citizen'),
+    indianStudent: extractPrice('Indian Student'),
+    foreignerCitizen: extractPrice('Foreigner Citizen'),
+    foreignerStudent: extractPrice('Foreigner Student'),
+  };
+
+  const rawGroups = pkg.places;
+  const groups = Array.isArray(rawGroups) ? rawGroups : (rawGroups ? [rawGroups] : []);
+
+  // Calculate total places count
+  const totalPlaces = groups.reduce((acc: number, group: any) => acc + (group.places?.data?.length || 0), 0);
+  const totalDays = pkg.days || null;
+
+  // Extract dynamic categories from the places within this specific package
+  const allCategories = new Set<string>();
+  groups.forEach((group: any) => {
+    group.places?.data?.forEach((place: any) => {
+      place.attributes?.categories?.data?.forEach((cat: any) => {
+        if (cat.attributes?.Name) allCategories.add(cat.attributes.Name);
+      });
+    });
+  });
+  const dynamicCats = Array.from(allCategories);
 
   return (
     <div className="pd-panel">
-      {/* Back Button / Navigation */}
-      <Link href="/" className="pd-close no-underline flex items-center gap-2">
-        <span>←</span> Back to Experiences
-      </Link>
-
-      {/* Hero Section */}
-      <div className="pd-hero-wrap">
-        <div 
-          className="pd-hero-main" 
-          style={{ backgroundImage: `url('${heroImage}')` }}
-        />
-        <div className="pd-hero-gallery">
-          {[1, 2, 3, 4].map((i) => {
-            const imgUrl = images[i]?.attributes?.url;
-            return (
-              <div 
-                key={i} 
-                className="pd-gallery-img" 
-                style={{ 
-                  backgroundImage: `url('${imgUrl ? process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL + imgUrl : 'https://images.unsplash.com/photo-1603262110263-fb0112e7cc33?w=400&auto=format&fit=crop&q=60'}')` 
+      {/* ── HERO SECTION ── */}
+      {mainImage && (
+        <div className="pd-hero-wrap">
+          <div
+            className="pd-hero-main"
+            style={{ backgroundImage: `url('${mainImage}')`, width: '100%', height: '320px' }}
+          />
+          <div className="pd-hero-gallery">
+            {images.slice(1, 5).map((img: any, i: number) => (
+              <div
+                key={i}
+                className="pd-gallery-img"
+                style={{
+                  backgroundImage: `url('${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL}${img.attributes.url}')`
                 }}
               />
-            );
-          })}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Main Content */}
-      <div className="pd-content">
-        <div className="pd-left">
-          {/* Header Info */}
-          <div className="pd-tag">EXPERIENCE PACKAGE</div>
-          <h1 className="pd-title">{pkg.name}</h1>
-          <div className="pd-loc">📍 Rajasthan Explorer • {pkg.days || '4 Days'} Duration</div>
+      {/* ── CONTENT AREA ── */}
+      <div className="pkg-detail">
+        {/* ── BREADCRUMB ── */}
+        <div className="breadcrumb mt-4">
+          <Link href="/">Explore</Link>
+          <span>›</span>
+          <Link href="/tourist-attraction?tab=packages">Packages</Link>
+          <span>›</span>
+          <span>{pkg.name}</span>
+        </div>
 
-          <div className="pd-meta-row">
-            <div className="pd-meta-badge">⭐ 4.9 (120+ Reviews)</div>
-            <div className="pd-meta-badge">🚌 Transport Included</div>
-            <div className="pd-meta-badge">🏨 4-Star Stay</div>
-            <div className="pd-meta-badge">🎟 Entry Tickets</div>
-          </div>
+        {/* Overview Section */}
+        <div className="pkg-overview">
+          <h1 className="mt-8 uppercase text-[10px] tracking-[2px] text-[var(--mu)] font-bold mb-4">Overview</h1>
+          <div
+            className="pkg-desc"
+            dangerouslySetInnerHTML={{ __html: overviewText }}
+          />
 
-          {/* Tabs */}
-          <div className="pd-tabs">
-            <button 
-              className={`pd-tab ${activeTab === 'overview' ? 'active' : ''}`}
-              onClick={() => setActiveTab('overview')}
-            >
-              Overview
-            </button>
-            <button 
-              className={`pd-tab ${activeTab === 'itinerary' ? 'active' : ''}`}
-              onClick={() => setActiveTab('itinerary')}
-            >
-              Itinerary
-            </button>
-            <button 
-              className={`pd-tab ${activeTab === 'reviews' ? 'active' : ''}`}
-              onClick={() => setActiveTab('reviews')}
-            >
-              Reviews
-            </button>
-          </div>
-
-          {/* Tab Content: Overview */}
-          {activeTab === 'overview' && (
-            <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <div className="pd-desc">
-                {pkg.overview || pkg.description || "Embark on an unforgettable journey through Rajasthan's golden sands and royal heritage. This curated experience takes you through majestic forts, vibrant markets, and serene lakes, offering a perfect blend of history and culture."}
-              </div>
-
-              <h3 className="pd-section-title">Experience Highlights</h3>
-              <div className="pd-facts">
-                <div className="pd-fact-item">✨ Guided Tour of Jaisalmer Fort</div>
-                <div className="pd-fact-item">🐫 Camel Safari at Sam Sand Dunes</div>
-                <div className="pd-fact-item">🎵 Folk Cultural Evening</div>
-                <div className="pd-fact-item">🍽 Traditional Rajasthani Thali</div>
-              </div>
-
-              <h3 className="pd-section-title">What's Included</h3>
-              <div className="pd-section-body">
-                 • Luxury accommodation at boutique hotels/camps<br/>
-                 • Breakfast and dinner as per itinerary<br/>
-                 • All transfers and sightseeing by private AC vehicle<br/>
-                 • Monument entry fees and activity charges<br/>
-                 • Professional English/Hindi speaking guide
-              </div>
+          {/* Pricing Box - Displays only if prices are extracted */}
+          {(prices.indianCitizen || prices.indianStudent || prices.foreignerCitizen || prices.foreignerStudent) && (
+            <div className="pkg-pricing-box">
+              <div className="pkg-pricing-title">PACKAGE PRICING</div>
+              {prices.indianCitizen && <div className="pkg-pricing-row"><span>Indian Citizen</span><span>₹{prices.indianCitizen}</span></div>}
+              {prices.indianStudent && <div className="pkg-pricing-row"><span>Indian Student</span><span>₹{prices.indianStudent}</span></div>}
+              {prices.foreignerCitizen && <div className="pkg-pricing-row"><span>Foreigner Citizen</span><span>₹{prices.foreignerCitizen}</span></div>}
+              {prices.foreignerStudent && <div className="pkg-pricing-row"><span>Foreigner Student</span><span>₹{prices.foreignerStudent}</span></div>}
             </div>
           )}
+        </div>
 
-          {/* Tab Content: Itinerary */}
-          {activeTab === 'itinerary' && (
-            <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-              {placesToVisit.length > 0 ? (
-                placesToVisit.map((group: any, idx: number) => (
-                  <div key={idx} className="mb-8">
-                    <h3 className="pd-section-title flex items-center gap-3">
-                       <span className="w-8 h-8 rounded-full bg-[var(--sf)] text-white flex items-center justify-center text-sm">{idx + 1}</span>
-                       {group.title || `Day ${idx + 1}`}
-                    </h3>
-                    <div className="space-y-4 mt-4">
-                      {group.places?.data?.map((place: any, pIdx: number) => {
-                        const pAttr = place.attributes;
-                        const pImg = pAttr.images?.data?.[0]?.attributes?.url
-                          ? `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL}${pAttr.images.data[0].attributes.url}`
-                          : 'https://images.unsplash.com/photo-1621259182978-f09e5e2ca1ff?w=400&auto=format&fit=crop&q=60';
-                          
-                        return (
-                          <div key={pIdx} className="flex gap-4 p-3 bg-white rounded-xl border border-[var(--bdr)] hover:shadow-md transition-shadow">
-                            <div 
-                              className="w-24 h-24 rounded-lg bg-cover bg-center flex-shrink-0"
-                              style={{ backgroundImage: `url('${pImg}')` }}
-                            />
-                            <div>
-                               <h4 className="font-bold text-[var(--ch)]">{pAttr.name}</h4>
-                               <p className="text-xs text-[var(--mu)] mt-1 line-clamp-2">{pAttr.description || "A beautiful place to explore the wonders of Rajasthan."}</p>
-                               <div className="flex gap-2 mt-2">
-                                  {pAttr.categories?.data?.map((cat: any, cIdx: number) => (
-                                    <span key={cIdx} className="text-[10px] bg-[var(--sand)] px-2 py-0.5 rounded-full text-[var(--mu)] font-medium">
-                                      {cat.attributes.Name}
-                                    </span>
-                                  ))}
-                               </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="pd-section-body py-8 text-center border-2 border-dashed border-[var(--bdr)] rounded-2xl">
-                   Detailed itinerary will be shared upon booking.
+        {/* Dynamic Places Sections */}
+        {groups.map((group: any, gIdx: number) => {
+          const groupPlaces = group.places?.data || [];
+          if (groupPlaces.length === 0) return null;
+
+          return (
+            <div key={gIdx} className="pkg-places mt-10">
+              <div className="pkg-places-header">
+                <h2>{group.title || pkg.name}</h2>
+                <div className="flex gap-2">
+                  {gIdx === 0 && totalDays && <span className="pkg-places-count">📅 {totalDays} Days</span>}
+                  <span className="pkg-places-count">{groupPlaces.length} Places</span>
                 </div>
-              )}
-            </div>
-          )}
+              </div>
 
-           {/* Tab Content: Reviews */}
-           {activeTab === 'reviews' && (
-            <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-               <div className="bg-white p-6 rounded-2xl border border-[var(--bdr)] mb-6">
-                  <div className="flex items-center justify-between mb-4">
-                     <div>
-                        <div className="text-3xl font-bold">4.9/5</div>
-                        <div className="text-[var(--mu)] text-sm">Based on 124 traveler reviews</div>
-                     </div>
-                     <button className="btn-s">Write a Review</button>
-                  </div>
-                  <div className="space-y-4">
-                     {[1, 2].map(r => (
-                       <div key={r} className="p-4 bg-[var(--cream)] rounded-xl">
-                          <div className="flex justify-between mb-2">
-                             <div className="font-semibold text-sm">Rahul S.</div>
-                             <div className="text-[var(--gold)] text-xs">⭐⭐⭐⭐⭐</div>
-                          </div>
-                          <p className="text-xs text-[var(--mu)] italic">"The most seamless travel experience I've had in Rajasthan. Every detail was meticulously planned!"</p>
-                       </div>
-                     ))}
-                  </div>
-               </div>
-            </div>
-          )}
-        </div>
+              <div className="places-grid">
+                {groupPlaces.map((place: any, pIdx: number) => {
+                  const pAttr = place.attributes;
+                  const imgUrl = pAttr.images?.data?.[0]?.attributes?.url;
+                  const pImg = imgUrl ? `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL}${imgUrl}` : null;
 
-        {/* Sticky Sidebar */}
-        <div className="pd-right sticky top-[calc(var(--nav-h)+20px)]">
-          <div className="pd-book-card">
-            <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-3xl font-bold text-[var(--sf)]">₹{pkg.price || '12,999'}</span>
-              <span className="text-[var(--mu)] text-sm">per person</span>
-            </div>
-            <p className="text-[10px] text-[var(--mu)] uppercase tracking-wider font-bold mb-4">Price varies by group size</p>
-            
-            <div className="pd-book-title">Reserve Your Spot</div>
-            <input type="date" className="pd-book-input" />
-            <select className="pd-book-input">
-              <option>2 Travelers</option>
-              <option>4 Travelers</option>
-              <option>6+ Travelers</option>
-            </select>
-            
-            <button className="pd-book-btn">Book Experience</button>
-            <button className="pd-avail-btn">Chat with Expert</button>
-            
-            <p className="text-[10px] text-center text-[var(--mu)] mt-3">
-              * 100% Refund if cancelled 48hrs prior
-            </p>
-          </div>
+                  const pCats = pAttr.categories?.data || [];
+                  const placeName = pAttr.name;
+                  const targetSlug = pAttr.placeDetail?.data?.attributes?.slug;
 
-          <div className="pd-nearby-section">
-            <h4 className="pd-nearby-title">Why choose this?</h4>
-            <div className="space-y-3">
-               <div className="flex gap-3 text-xs">
-                  <span className="text-lg">✅</span>
-                  <div>
-                    <div className="font-bold">Instant Confirmation</div>
-                    <div className="text-[var(--mu)]">Get your vouchers in minutes</div>
-                  </div>
-               </div>
-               <div className="flex gap-3 text-xs">
-                  <span className="text-lg">🛡️</span>
-                  <div>
-                    <div className="font-bold">Safe Travels</div>
-                    <div className="text-[var(--mu)]">Verified operators & insured travel</div>
-                  </div>
-               </div>
+                  if (!placeName) return null;
+
+                  return (
+                    <Link
+                      key={pIdx}
+                      href={targetSlug ? `/place-detail/${targetSlug}` : '#'}
+                      className={`place-card block no-underline decoration-transparent ${!targetSlug ? 'pointer-events-none' : ''}`}
+                      style={{ cursor: targetSlug ? 'pointer' : 'default' }}
+                    >
+                      {pImg && (
+                        <div className="place-img">
+                          <img src={pImg} alt={placeName} />
+                          {pCats[0] && (
+                            <div style={{ position: 'absolute', top: 12, left: 12 }}>
+                              <span className="tag tg text-[8px] px-2 py-0.5" style={{ fontSize: 8 }}>
+                                🏆 {pCats[0].attributes?.Name}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      <div className="place-body">
+                        <h3 className="place-name uppercase">{placeName}</h3>
+                        <div className="place-loc">📍 {pAttr.city?.data?.attributes?.name || ''}</div>
+                        <div className="mb-4">
+                          {pCats.slice(0, 2).map((c: any, i: number) => (
+                            <span key={i} className="text-[9px] text-[var(--mu)] bg-[var(--sand)] px-2 py-0.5 rounded-full mr-1">
+                              {c.attributes?.Name}
+                            </span>
+                          ))}
+                        </div>
+                        {targetSlug && (
+                          <button className="place-btn">
+                            View More
+                          </button>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Dynamic Categories Section */}
+        {dynamicCats.length > 0 && (
+          <div className="categories-section mt-12 pb-4">
+            <h3 className="cat-title">Package Categories</h3>
+            <div className="cat-links">
+              {dynamicCats.map(cat => (
+                <div key={cat} className="cat-link">{cat}</div>
+              ))}
             </div>
           </div>
+        )}
+
+        {/* Dynamic Footer / Social Tagline */}
+        <div className="pkg-footer mt-16 text-center border-t-2 border-[var(--bdr)] pt-12">
+          <p className="footer-tagline italic text-[var(--mu)]">
+            Powered by Rajasthan Tourism & OBMS Portal
+          </p>
+          <div className="footer-bottom mt-8">
+            <p className="text-[11px] text-[var(--mu)]">Copyright © 2025 Rajasthan Tourism. All rights reserved.</p>
+          </div>
         </div>
+
       </div>
     </div>
   );

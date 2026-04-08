@@ -16,8 +16,7 @@ type HomeProps = {
 };
 
 export default function Home({ data, topPackageData }: HomeProps) {
-  console.log('Home data:', data);
-  const sections = data?.data?.home?.data?.attributes?.home || [];
+  const sections = data?.home?.data?.attributes?.home || [];
 
   const monuments = sections.find(
     (s: any) => s.__typename === "ComponentHomeMonuments"
