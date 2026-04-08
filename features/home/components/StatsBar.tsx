@@ -8,16 +8,6 @@ type Stat = {
   suffix?: string;
 };
 
-const STATS: Stat[] = [
-  { icon: "🌆", num: 34, label: "Cities", suffix: "+" },
-  { icon: "🏯", num: 60, label: "Monuments", suffix: "+" },
-  { icon: "🐯", num: 20, label: "Wildlife Parks", suffix: "+" },
-  { icon: "🎫", num: 10, label: "Darshan Packages" },
-  { icon: "🏛", num: 30, label: "Museums", suffix: "+" },
-  { icon: "🌿", num: 5, label: "City Parks", suffix: "+" },
-];
-
-// 🔢 CountUp Hook
 function useCountUp(end: number, duration: number = 1500): number {
   const [count, setCount] = useState<number>(0);
 
@@ -49,7 +39,18 @@ const StatItem: React.FC<Stat> = ({ icon, num, label, suffix = "" }) => {
 
   return (
     <div className="si">
-      <span className="si-ico">{icon}</span>
+      {/* 🖼 icon (image or emoji) */}
+      {icon.startsWith("http") ? (
+        <img
+          src={icon}
+          alt={label}
+          className="si-ico"
+          style={{ height: "20px", width: "20px" }}
+        />
+      ) : (
+        <span className="si-ico">{icon}</span>
+      )}
+
       <div>
         <div className="si-n">
           {count}
@@ -62,10 +63,35 @@ const StatItem: React.FC<Stat> = ({ icon, num, label, suffix = "" }) => {
 };
 
 // 🚀 Main Component
-const StatsBar: React.FC = () => {
+const StatsBar: React.FC<{ categoryCountsData: any }> = ({
+  categoryCountsData,
+}) => {
+  const categories = categoryCountsData?.categories?.data || [];
+
+  const stats: Stat[] = categories
+    .map((cat: any) => {
+      const attr = cat.attributes;
+
+      const name = attr.Name;
+      const count = attr.places?.data?.length || 0;
+
+      // ✅ get icon from Strapi
+      const iconUrl = attr.icon?.data?.attributes?.url;
+
+      return {
+        label: name,
+        num: count,
+        icon: iconUrl
+          ? `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL}${iconUrl}`
+          : "📍", // fallback emoji
+        suffix: "+",
+      };
+    })
+    .filter((item: any) => item.num > 0);
+
   return (
     <div className="stats-bar">
-      {STATS.map((item) => (
+      {stats.map((item) => (
         <StatItem key={item.label} {...item} />
       ))}
     </div>

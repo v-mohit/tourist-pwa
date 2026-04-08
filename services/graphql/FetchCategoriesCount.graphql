@@ -1,0 +1,22 @@
+query FetchCategoriesCounts {
+  categories {
+    data {
+      id
+      attributes {
+        Name
+        icon {
+          data {
+            attributes {
+              url
+            }
+          }
+        }
+        places(pagination: { limit: 100 }) {
+          data {
+            id
+          }
+        }
+      }
+    }
+  }
+}

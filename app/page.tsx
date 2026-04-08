@@ -1,7 +1,8 @@
 import {
   FetchHomeDataDocument,
   FetchDestinationDocument,
-  FetchTopPackageDocument
+  FetchTopPackageDocument,
+  FetchCategoriesCountsDocument
 } from "@/generated/graphql";
 import { graphqlClient } from "@/services/client";
 import Home from '@/features/home/Home';
@@ -12,6 +13,7 @@ export default async function Page() {
   const data = await graphqlClient.request(FetchHomeDataDocument);
   const cityData = await graphqlClient.request(FetchDestinationDocument);
   const topPackageData = await graphqlClient.request(FetchTopPackageDocument);
+  const categoryCountsData = await graphqlClient.request(FetchCategoriesCountsDocument);
 
-  return <Home data={data} cityData={cityData} topPackageData={topPackageData} />;
+  return <Home data={data} cityData={cityData} topPackageData={topPackageData} categoryCountsData={categoryCountsData} />;
 }

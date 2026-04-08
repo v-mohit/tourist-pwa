@@ -13,9 +13,10 @@ type HomeProps = {
   data: any;
   topPackageData: any;
   cityData: any;
+  categoryCountsData: any;
 };
 
-export default function Home({ data, topPackageData, cityData }: HomeProps) {
+export default function Home({ data, topPackageData, cityData, categoryCountsData }: HomeProps) {
   const sections = data?.home?.data?.attributes?.home || [];
 
   const monuments = sections.find(
@@ -33,7 +34,7 @@ export default function Home({ data, topPackageData, cityData }: HomeProps) {
   return (
     <div className="w-full">
       <HeroSection />
-      <StatsBar />
+      <StatsBar categoryCountsData={categoryCountsData} />
       <TabsBar />
       <TopDestinations
         cities={cityData?.cities}
