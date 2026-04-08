@@ -11,8 +11,8 @@ export default function TopMonuments({ data }: any) {
           <div className="sec-lbl">✦ {data?.title || "Top Monuments"}</div>
           <h2 className="sec-ttl">Royal Heritage & Architecture</h2>
         </div>
-        <Link 
-          href={`/tourist-attraction?categoryId=${data?.category?.data?.id}`} 
+        <Link
+          href={`/tourist-attraction?categoryId=${data?.category?.data?.id}`}
           className="see-all"
         >
           See all →
@@ -31,12 +31,15 @@ export default function TopMonuments({ data }: any) {
           // ✅ Name & Location
           const name = attr?.name || "Unknown Monument";
           const loc = attr?.city?.data?.attributes?.name || "Unknown Location";
-          
+
           // ✅ Dynamic Slug from API with smart fallback for mock data
-          const placeId = attr?.placeDetail?.data?.attributes?.slug || 
-                          (name.toLowerCase().includes('hawa mahal') ? 'hawa-mahal' :
-                           name.toLowerCase().includes('amber') ? 'amber' :
-                           name.toLowerCase().replace(/\s+/g, '-'));
+          const placeId =
+            attr?.placeDetail?.data?.attributes?.slug ||
+            (name.toLowerCase().includes("hawa mahal")
+              ? "hawa-mahal"
+              : name.toLowerCase().includes("amber")
+                ? "amber"
+                : name.toLowerCase().replace(/\s+/g, "-"));
 
           // ✅ Timing
           const timeBlock = attr?.placeDetail?.data?.attributes?.content?.find(
@@ -61,11 +64,11 @@ export default function TopMonuments({ data }: any) {
             : "₹100";
 
           return (
-            <Link 
-              key={item.id} 
+            <Link
+              key={item.id}
               href={`/place-detail/${placeId}`}
               className="mon-card"
-              style={{ cursor: 'pointer', display: 'block' }}
+              style={{ cursor: "pointer", display: "block" }}
             >
               {/* Image */}
               <div className="mon-img">
@@ -106,4 +109,3 @@ export default function TopMonuments({ data }: any) {
     </section>
   );
 }
-
