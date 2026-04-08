@@ -1,71 +1,146 @@
-const DESTINATIONS = [
-  {
-    img: 'https://images.unsplash.com/photo-1603262110263-fb0112e7cc33?w=900&auto=format&fit=crop&q=85',
-    tag: { label: '⭐ Most Popular', cls: 'tg' },
-    name: 'Jaipur',
-    meta: [{ icon: '📍', text: 'The Pink City' }, { icon: '🏯', text: '12 Monuments' }],
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=700&auto=format&fit=crop&q=85',
-    tag: { label: '🌊 Lakes', cls: 'tw' },
-    name: 'Udaipur',
-    meta: [{ icon: '📍', text: 'City of Lakes' }, { icon: '🏛', text: '9 Attractions' }],
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=700&auto=format&fit=crop&q=85',
-    tag: { label: '🏯 Fort City', cls: 'tw' },
-    name: 'Jodhpur',
-    meta: [{ icon: '📍', text: 'The Blue City' }, { icon: '🏯', text: '8 Attractions' }],
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1593693397690-362cb9666fc2?w=700&auto=format&fit=crop&q=85',
-    tag: { label: '🏜 Desert', cls: 'tg' },
-    name: 'Jaisalmer',
-    meta: [{ icon: '📍', text: 'Golden City' }, { icon: '🏰', text: '6 Attractions' }],
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1561731216-c3a4d99437d5?w=700&auto=format&fit=crop&q=85',
-    tag: { label: '🐯 Wildlife', cls: 'tn' },
-    name: 'Alwar',
-    meta: [{ icon: '📍', text: 'Sariska Tiger Reserve' }, { icon: '🌿', text: 'Wildlife Zone' }],
-  },
-]
+import Link from "next/link";
 
-export default function TopDestinations() {
+interface ImageAttributes {
+  url: string;
+}
+
+interface ImageData {
+  data: {
+    attributes: ImageAttributes;
+  };
+}
+
+interface CityAttributes {
+  name: string;
+  popularity: number;
+  image: ImageData;
+  cityDetail: {
+    data: {
+      attributes: {
+        slug: string;
+      };
+    };
+  };
+}
+
+interface City {
+  attributes: CityAttributes;
+}
+
+interface Pagination {
+  page: number;
+  pageSize: number;
+  total: number;
+  pageCount: number;
+}
+
+interface DestHeaderComponent {
+  __typename: "ComponentDestinationDestHeader";
+  id: string;
+  title1: string;
+  title2: string;
+  title3: string;
+  image: ImageData;
+}
+
+interface DestContentComponent {
+  __typename: "ComponentDestinationDestContent";
+  id: string;
+}
+
+type DestinationContent = DestHeaderComponent | DestContentComponent;
+
+interface DestinationAttributes {
+  content: DestinationContent[];
+}
+
+interface FetchDestinationResponse {
+  cities: {
+    meta: {
+      pagination: Pagination;
+    };
+    data: City[];
+  };
+  destination: {
+    data: {
+      id: string;
+      attributes: DestinationAttributes;
+    };
+  };
+}
+
+export default function TopDestinations({
+  cities,
+  destination,
+}: FetchDestinationResponse) {
+  const FEATURED_CITIES = [
+    "Jaipur",
+    "Udaipur",
+    "Jodhpur",
+    "Jaisalmer",
+    "Alwar",
+  ];
+
+  const destinations = FEATURED_CITIES.map((cityName) =>
+    cities?.data?.find(
+      (c) => c.attributes.name.toLowerCase() === cityName.toLowerCase(),
+    ),
+  ).filter((c): c is City => Boolean(c));
+
+  const headerBlock = destination?.data?.attributes?.content?.find(
+    (c): c is DestHeaderComponent =>
+      c.__typename === "ComponentDestinationDestHeader",
+  );
+
   return (
     <section className="sec bg-[var(--cream)]" id="destinations">
-      {/* Header */}
       <div className="sec-hd">
         <div>
           <div className="sec-lbl">✦ Top Destinations</div>
           <h2 className="sec-ttl">
-            Where do you want<br />to explore?
+            {headerBlock?.title1 ?? "Where do you want"}
+            <br />
+            {headerBlock?.title2 ?? "to explore?"}
           </h2>
         </div>
-        <a href="#" className="see-all">View all cities →</a>
+        <Link href="/exploreseeall" className="see-all">
+          View all cities →
+        </Link>
       </div>
 
-      {/* Grid */}
       <div className="dest-grid">
-        {DESTINATIONS.map(({ img, tag, name, meta }) => (
-          <div key={name} className="dest-card">
-            <div className="dimg" style={{ backgroundImage: `url('${img}')` }} />
-            <div className="dest-grad" />
-            <div className="dest-top">
-              <span className={`tag ${tag.cls}`}>{tag.label}</span>
-              <div className="dest-arr">→</div>
-            </div>
-            <div className="dest-foot">
-              <h3>{name}</h3>
-              <div className="dest-meta">
-                {meta.map((m, i) => (
-                  <span key={i}>{m.icon} {m.text}</span>
-                ))}
+        {destinations.map(({ attributes }) => {
+          const { name, image, cityDetail } = attributes;
+          const imageUrl = image?.data?.attributes?.url;
+          const slug = cityDetail?.data?.attributes?.slug;
+          const img = imageUrl?.startsWith("http")
+            ? imageUrl
+            : `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL}${imageUrl}`;
+
+          return (
+            <div key={name} className="dest-card">
+              <div
+                className="dimg"
+                style={{ backgroundImage: `url('${img}')` }}
+              />
+              <div className="dest-grad" />
+              <div className="dest-top">
+                <span className="tag tg">⭐ Top Destination</span>
+                <Link href={`/citydetail/${slug}`} className="dest-arr">
+                  →
+                </Link>
+              </div>
+              <div className="dest-foot">
+                <h3>{name}</h3>
+                <div className="dest-meta">
+                  <span>📍 Rajasthan, India</span>
+                  <span>🏛 Must Visit</span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
-  )
+  );
 }

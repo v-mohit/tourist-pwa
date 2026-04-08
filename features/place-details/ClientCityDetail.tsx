@@ -90,6 +90,7 @@ function PlaceDetailContent({ placeData, contentData }: { placeData: any; conten
   // ✅ MERGE DATA: API > Mock
   const name = placeData?.name || mockPlace.name;
   const loc = placeData?.city?.data?.attributes?.name || mockPlace.loc;
+  console.log("place data----", placeData);
   
   // Images from API
   const apiImages = placeData?.images?.data?.map((img: any) => 
@@ -113,6 +114,7 @@ function PlaceDetailContent({ placeData, contentData }: { placeData: any; conten
   const description = overviewBlock?.overview?.description || placeData?.description || mockPlace.desc;
 
   const nearby = nearbyPlaces[loc] || nearbyPlaces[mockPlace.nearbyCity] || [];
+console.log("near by -----", nearby);
 
   return (
     <div className="pd-panel" style={{ position: 'relative', minHeight: '100vh' }}>

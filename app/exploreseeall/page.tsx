@@ -1,6 +1,5 @@
-import Home from "@/features/home/Home";
+import ExploreSeeAll from "@/features/explore-see-all/ExploreSeeAll";
 import {
-  FetchHomeDataDocument,
   FetchDestinationDocument,
 } from "@/generated/graphql";
 import { graphqlClient } from "@/services/client";
@@ -8,8 +7,7 @@ import { graphqlClient } from "@/services/client";
 export const revalidate = 60;
 
 export default async function Page() {
-  const data = await graphqlClient.request(FetchHomeDataDocument);
   const cityData = await graphqlClient.request(FetchDestinationDocument);
 
-  return <Home data={data} cityData={cityData} />;
+  return <ExploreSeeAll cityData={cityData} />;
 }

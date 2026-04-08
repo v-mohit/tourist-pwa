@@ -9,21 +9,19 @@ import WildlifeSection from "./components/WildlifeSection";
 import MuseumsSection from "./components/MuseumsSection";
 import HomeClient from "./HomeClient";
 
-
-export default function Home(data: any) {
-
-   const sections = data?.data?.home?.data?.attributes?.home || [];
+export default function Home({ data, cityData }: any) {
+  const sections = data?.data?.home?.data?.attributes?.home || [];
 
   const monuments = sections.find(
-    (s: any) => s.__typename === "ComponentHomeMonuments"
+    (s: any) => s.__typename === "ComponentHomeMonuments",
   );
 
   const wildlife = sections.find(
-    (s: any) => s.__typename === "ComponentHomeWildLife"
+    (s: any) => s.__typename === "ComponentHomeWildLife",
   );
 
   const museums = sections.find(
-    (s: any) => s.__typename === "ComponentHomeMuseum"
+    (s: any) => s.__typename === "ComponentHomeMuseum",
   );
   
 
@@ -32,7 +30,7 @@ export default function Home(data: any) {
       <HeroSection />
       <StatsBar />
       <TabsBar />
-      <TopDestinations />
+      <TopDestinations cities={cityData?.cities} destination={cityData?.destination} />
       <PackagesSection />
       <TopMonuments data={monuments} />
       <WildlifeSection data={wildlife} />
