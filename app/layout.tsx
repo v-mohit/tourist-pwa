@@ -5,6 +5,7 @@ import { Providers } from "./providers";
 import ThemeRegistry from "./ThemeRegistry";
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
+import AppLoader from "@/components/common/AppLoader";
 import { AuthProvider } from "@/features/auth/context/AuthContext";
 import AuthModal from "@/features/auth/components/AuthModal";
 
@@ -40,7 +41,7 @@ export default function RootLayout({
             <Providers>
               <Header />
               <main className="flex-1">
-                {children}
+                <AppLoader>{children}</AppLoader>
               </main>
               <Footer />
               <AuthModal />
