@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 export default function TopMonuments({ data }: any) {
+  console.log('TopMonuments data:', data);
   const places = data?.category?.data?.attributes?.places?.data || [];
 
   return (

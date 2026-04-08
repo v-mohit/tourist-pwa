@@ -10,9 +10,14 @@ import MuseumsSection from "./components/MuseumsSection";
 import HomeClient from "./HomeClient";
 
 
-export default function Home(data: any) {
+type HomeProps = {
+  data: any;
+  topPackageData: any;
+};
 
-   const sections = data?.data?.home?.data?.attributes?.home || [];
+export default function Home({ data, topPackageData }: HomeProps) {
+  console.log('Home data:', data);
+  const sections = data?.data?.home?.data?.attributes?.home || [];
 
   const monuments = sections.find(
     (s: any) => s.__typename === "ComponentHomeMonuments"
@@ -25,7 +30,6 @@ export default function Home(data: any) {
   const museums = sections.find(
     (s: any) => s.__typename === "ComponentHomeMuseum"
   );
-  
 
   return (
     <div className="w-full">
@@ -33,12 +37,11 @@ export default function Home(data: any) {
       <StatsBar />
       <TabsBar />
       <TopDestinations />
-      <PackagesSection />
+      <PackagesSection data={topPackageData} />
       <TopMonuments data={monuments} />
       <WildlifeSection data={wildlife} />
       <MuseumsSection data={museums} />
       <FeaturesSection />
-
       <HomeClient />
     </div>
   );
