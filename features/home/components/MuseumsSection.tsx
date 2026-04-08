@@ -27,7 +27,7 @@ export default function MuseumsSection({ data }: any) {
           // ✅ Image
           const img =
             attr?.images?.data?.[0]?.attributes?.url
-              ? `${process.env.NEXT_PUBLIC_BASE_URL}${attr.images.data[0].attributes.url}`
+              ? `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL}${attr.images.data[0].attributes.url}`
               : null;
 
           // ✅ Name
