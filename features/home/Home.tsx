@@ -8,6 +8,7 @@ import TopMonuments from "./components/TopMonuments";
 import WildlifeSection from "./components/WildlifeSection";
 import MuseumsSection from "./components/MuseumsSection";
 import HomeClient from "./HomeClient";
+import HotelSection from "../hotels/hotelSection";
 
 type HomeProps = {
   data: any;
@@ -44,6 +45,7 @@ export default function Home({ data, topPackageData, cityData, categoryCountsDat
       <TopMonuments data={monuments} />
       <WildlifeSection data={wildlife} />
       <MuseumsSection data={museums} />
+      <HotelSection />
       <FeaturesSection />
       <HomeClient />
     </div>
