@@ -17,7 +17,7 @@ export default function PackagesSection({ data }: any) {
             Curated Darshan<br />Experiences
           </h2>
         </div>
-        <Link href="/tourist-attraction?tab=packages" className="see-all sag">See all →</Link>
+        <Link href="/packageseeall" className="see-all sag">See all →</Link>
       </div>
 
       {/* Grid */}
