@@ -111,7 +111,7 @@ function handleSelect(item: any) {
 }
 
   return (
-    <div className="hero-search-wrap">
+    <>
       <div className="hero-search">
         <input
           ref={inputRef}
@@ -154,7 +154,7 @@ function handleSelect(item: any) {
             ))}
         </div>
       )}
-    </div>
+    </>
   );
 });
 

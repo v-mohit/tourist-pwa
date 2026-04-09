@@ -11,7 +11,7 @@ export default function WildlifeSection({ data }: any) {
           <div className="sec-lbl" style={{ color: '#22C55E' }}>
             ✦ {data?.title || "Top Wildlife"}
           </div>
-          <h2 className="sec-ttl sec-ttl-w">Into the Wild</h2>
+          <h2 className="sec-ttl sec-ttl-w">Into the Wildlife</h2>
         </div>
         <Link 
           href={`/tourist-attraction?categoryId=${data?.category?.data?.id}`} 
@@ -124,4 +124,4 @@ export default function WildlifeSection({ data }: any) {
       </div>
     </section>
   );
-}
+}
