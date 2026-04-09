@@ -13,7 +13,7 @@ export const revalidate = 60;
 
 export default async function Page() {
   const data = await graphqlClient.request(FetchHomeDataDocument);
-  const cityData = await graphqlClient.request(FetchDestinationDocument);
+  const cityData = await graphqlClient.request(FetchDestinationDocument, {});
   const topPackageData = await graphqlClient.request(FetchTopPackageDocument);
   const categoryCountsData = await graphqlClient.request(
     FetchCategoriesCountsDocument,
@@ -22,18 +22,17 @@ export default async function Page() {
     FetchUpcomingEventsDocument,
   );
   const JkkplaceDetailsData = await graphqlClient.request(
-    FetchPlaceDetailsDocument,{ slug: "JAWAHAR-KALA-KENDRA" }
+    FetchPlaceDetailsDocument,
+    { slug: "JAWAHAR-KALA-KENDRA" },
   );
 
-
-  return (
-    <Home
-      data={data}
-      cityData={cityData}
-      topPackageData={topPackageData}
-      categoryCountsData={categoryCountsData}
-      upcomingEventsData={upcomingEventsData}
-      JkkplaceDetailsData={JkkplaceDetailsData}
-    />
-  );
+  const props = {
+    data,
+    cityData,
+    topPackageData,
+    categoryCountsData,
+    upcomingEventsData,
+    JkkplaceDetailsData,
+  };
+  return <Home {...props} />;
 }

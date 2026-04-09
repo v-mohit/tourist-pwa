@@ -97,7 +97,7 @@ export default function TopDestinations({
       <div className="sec-hd">
         <div>
           <div className="sec-lbl">✦ Top Destinations</div>
-          <h2 className="sec-ttl">
+          <h2 className="sec-ttl" style={{color:"black"}}>
             {headerBlock?.title1 ?? "Where do you want"}
             <br />
             {headerBlock?.title2 ?? "to explore?"}

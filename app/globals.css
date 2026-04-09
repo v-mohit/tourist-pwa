@@ -3499,6 +3499,44 @@ button {
   gap: 10px;
 }
 
+/* MOBILE FIX for JKK section */
+@media (max-width: 768px) {
+  .jkk-top {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Move gallery BELOW description */
+  .jkk-gallery {
+    order: 2;
+    margin: 16px 0;
+  }
+
+  /* Left content becomes first */
+  .jkk-top > div:first-child {
+    order: 1;
+  }
+
+  /* Keep rest below images */
+  .jkk-stats,
+  .jkk-chips,
+  .jkk-btns {
+    order: 3;
+  }
+
+  /* Make gallery proper 2x2 */
+  .jkk-gallery {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .jkk-thumb {
+    height: 110px;
+    border-radius: 14px;
+  }
+}
+
 .btn-p {
   padding: 10px 22px;
   background: #E8631A;
