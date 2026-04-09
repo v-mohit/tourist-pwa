@@ -751,3 +751,298 @@ button {
 .bookable-badge{display:inline-flex;align-items:center;gap:4px;background:linear-gradient(90deg,var(--sf),var(--gold));color:#fff;font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:3px 9px;border-radius:99px}
 @keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
 .city-card{animation:fadeUp .55s ease both}
+
+/* ════════════════ JKK — venues + events ════════════════ */
+
+#venues {
+  background: linear-gradient(135deg, #18120E 0%, #2C1A0E 100%);
+  padding: 60px max(22px, 5vw);
+}
+
+/* Header helpers (if not already added) */
+.sec-hd {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 36px;
+  flex-wrap: wrap;
+}
+
+.sec-lbl {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #E8631A;
+  margin-bottom: 8px;
+}
+
+.sec-ttl {
+  font-family: 'Playfair Display', serif;
+  font-size: 42px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.sec-ttl-w {
+  color: #fff;
+}
+
+/* Top Layout */
+.jkk-top {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  margin-bottom: 48px;
+}
+
+/* Description */
+.jkk-desc {
+  font-size: 14px;
+  color: rgba(255,255,255,.6);
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+
+/* Stats */
+.jkk-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.jkk-stat {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+}
+
+.jkk-stat-n {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: #D4A017;
+}
+
+.jkk-stat-l {
+  font-size: 10px;
+  color: rgba(255,255,255,.5);
+}
+
+/* Chips */
+.jkk-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.jkk-chip {
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.2);
+  font-size: 12px;
+  color: rgba(255,255,255,.7);
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.jkk-chip:hover,
+.jkk-chip.active {
+  background: #D4A017;
+  color: #18120E;
+  font-weight: 600;
+}
+
+/* Buttons */
+.jkk-btns {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-p {
+  padding: 10px 22px;
+  background: #E8631A;
+  color: #fff;
+  border-radius: 999px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-g {
+  padding: 10px 22px;
+  background: transparent;
+  color: #fff;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.3);
+  cursor: pointer;
+}
+
+/* Gallery */
+.jkk-gallery {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.jkk-thumb {
+  height: 150px;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+}
+
+.dimg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform .4s;
+}
+
+.jkk-thumb:hover .dimg {
+  transform: scale(1.07);
+}
+
+/* Events Section */
+.events-section {
+  border-top: 1px solid rgba(255,255,255,.1);
+  padding-top: 40px;
+}
+
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+/* Event Card */
+.event-card {
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: 0.3s;
+}
+
+.event-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(212,160,23,.4);
+}
+
+/* Date Bar */
+.event-date-bar {
+  background: #E8631A;
+  padding: 10px 16px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.day {
+  font-size: 26px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.month {
+  font-size: 11px;
+  color: rgba(255,255,255,.8);
+}
+
+.status {
+  font-size: 10px;
+  background: rgba(255,255,255,.2);
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: #fff;
+}
+
+/* Event Body */
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+/* CARD */
+.event-card {
+  position: relative;
+  height: 240px;
+  border-radius: 18px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+}
+
+/* DARK OVERLAY */
+.event-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.8),
+    rgba(0, 0, 0, 0.2)
+  );
+}
+
+/* CONTENT */
+.event-content {
+  position: absolute;
+  bottom: 0;
+  padding: 16px;
+  color: #fff;
+  z-index: 2;
+}
+
+/* DATE */
+.event-date {
+  font-size: 12px;
+  color: #E8631A;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+/* TITLE */
+.event-content h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+/* DESC */
+.event-content p {
+  font-size: 12px;
+  color: rgba(255,255,255,.7);
+  margin-bottom: 8px;
+}
+
+/* META */
+.event-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 11px;
+  color: rgba(255,255,255,.8);
+}
+
+/* TAG */
+.tag {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #D4A017;
+  color: #000;
+  font-size: 10px;
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
+/* HOVER */
+.event-card:hover {
+  transform: translateY(-6px);
+  transition: 0.3s;
+}

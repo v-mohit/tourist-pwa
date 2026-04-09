@@ -8,15 +8,18 @@ import TopMonuments from "./components/TopMonuments";
 import WildlifeSection from "./components/WildlifeSection";
 import MuseumsSection from "./components/MuseumsSection";
 import HomeClient from "./HomeClient";
+import JkkSection from "./components/JkkSection";
 
 type HomeProps = {
   data: any;
   topPackageData: any;
   cityData: any;
   categoryCountsData: any;
+  upcomingEventsData: any;
+  JkkplaceDetailsData: any;
 };
 
-export default function Home({ data, topPackageData, cityData, categoryCountsData }: HomeProps) {
+export default function Home({ data, topPackageData, cityData, categoryCountsData, upcomingEventsData, JkkplaceDetailsData }: HomeProps) {
   const sections = data?.home?.data?.attributes?.home || [];
 
   const monuments = sections.find(
@@ -44,6 +47,7 @@ export default function Home({ data, topPackageData, cityData, categoryCountsDat
       <TopMonuments data={monuments} />
       <WildlifeSection data={wildlife} />
       <MuseumsSection data={museums} />
+      <JkkSection JkkplaceDetailsData={JkkplaceDetailsData} upcomingEventsData={upcomingEventsData} />
       <FeaturesSection />
       <HomeClient />
     </div>
