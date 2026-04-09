@@ -9,6 +9,7 @@ import WildlifeSection from "./components/WildlifeSection";
 import MuseumsSection from "./components/MuseumsSection";
 import HomeClient from "./HomeClient";
 import JkkSection from "./components/JkkSection";
+import HotelSection from "../hotels/hotelSection";
 
 type HomeProps = {
   data: any;
@@ -48,6 +49,7 @@ export default function Home({ data, topPackageData, cityData, categoryCountsDat
       <WildlifeSection data={wildlife} />
       <MuseumsSection data={museums} />
       <JkkSection JkkplaceDetailsData={JkkplaceDetailsData} upcomingEventsData={upcomingEventsData} />
+      <HotelSection />
       <FeaturesSection />
       <HomeClient />
     </div>
