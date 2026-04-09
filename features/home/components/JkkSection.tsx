@@ -29,8 +29,6 @@ const JkkSection = ({
     };
   };
 
-  console.log("jkk data---", JkkplaceDetailsData, upcomingEventsData);
-
   return (
     <section className="sec" id="venues">
       {/* HEADER */}
