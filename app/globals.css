@@ -690,3 +690,64 @@ button {
   background: #eee;
   margin-left: 10px;
 }
+
+/*  CITY DETAIL CARD  */
+.page-bg{background:var(--cream);min-height:100vh;padding:32px max(20px,2vw) 80px}
+.city-card{background:#fff;border-radius:var(--rl);overflow:hidden;box-shadow:var(--sh1);border:1px solid var(--bdr);width:100%;margin:0 0 48px;transition:transform .3s,box-shadow .3s}
+.city-card:hover{box-shadow:var(--sh2)}
+.cc-hero{position:relative;height:320px;overflow:hidden;background:var(--sand);cursor:pointer}
+.cc-hero-img{position:absolute;inset:0;background-size:cover;background-position:center;transition:transform .55s ease}
+.city-card:hover .cc-hero-img{transform:scale(1.06)}
+.cc-hero-grad{position:absolute;inset:0;background:linear-gradient(to top, rgba(24,18,14,.78) 0%, rgba(24,18,14,.2) 55%, transparent 100%)}
+.cc-hero-top{position:absolute;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:flex-start;z-index:2}
+.cc-weather{display:flex;align-items:center;gap:6px;background:rgba(24,18,14,.55);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.2);border-radius:99px;padding:5px 12px;font-size:11px;color:#fff;font-weight:600}
+.cc-weather span{opacity:.7;font-weight:400}
+.cc-hero-foot{position:absolute;bottom:0;left:0;right:0;padding:16px 20px;z-index:2}
+.cc-city-name{font-family:'Playfair Display',serif;font-size:38px;font-weight:700;color:#fff;line-height:1.1;margin-bottom:8px}
+.cc-city-name em{font-style:italic;color:var(--gold2)}
+.cc-meta-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cc-meta-pill{display:flex;align-items:center;gap:5px;font-size:10px;color:rgba(255,255,255,.75);background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:99px;padding:3px 10px}
+.cc-body{padding:20px 22px;border-bottom:1px solid var(--bdr)}
+.cc-info-grid{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start}
+.cc-desc{font-size:13px;color:var(--mu);line-height:1.75;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.cc-stats{display:flex;flex-direction:column;gap:8px;flex-shrink:0;min-width:140px}
+.cc-stat{background:var(--sand);border:1px solid var(--bdr);border-radius:10px;padding:9px 14px;text-align:center}
+.cc-stat-num{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--sf);line-height:1}
+.cc-stat-lbl{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--mu);margin-top:2px}
+.cc-how-row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.cc-reach{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:500;color:var(--mu);background:var(--sand);border:1px solid var(--bdr);border-radius:99px;padding:5px 12px}
+.cc-reach-ico{font-size:13px}
+.cc-places-hd{padding:16px 22px 0;display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.cc-places-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--ch)}
+.cc-places-sub{font-size:11px;color:var(--mu);margin-top:2px}
+.cc-filter-btn{display:flex;align-items:center;gap:5px;padding:7px 14px;background:#fff;border:1.5px solid var(--bdr);border-radius:99px;font-size:11px;font-weight:600;color:var(--mu);cursor:pointer;transition:all .2s}
+.cc-filter-btn:hover{border-color:var(--sf);color:var(--sf)}
+.cc-cats{display:flex;gap:7px;padding:12px 22px 0;overflow-x:auto;scrollbar-width:none}
+.cc-cats::-webkit-scrollbar{display:none}
+.cc-cat{display:inline-flex;align-items:center;gap:4px;padding:6px 14px;border-radius:99px;font-size:11px;font-weight:600;border:1.5px solid var(--bdr);color:var(--mu);background:#fff;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0}
+.cc-cat:hover,.cc-cat.active{background:var(--sf);color:#fff;border-color:var(--sf)}
+.cc-places{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;padding:16px 24px 24px}
+.cc-place-card{background:var(--cream);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:transform .25s,box-shadow .25s,border-color .25s}
+.cc-place-card:hover{transform:translateY(-4px);box-shadow:var(--sh1);border-color:rgba(232,99,26,.3)}
+.cc-pc-img{height:120px;position:relative;overflow:hidden;background:var(--sand)}
+.cc-pc-img-bg{position:absolute;inset:0;background-size:cover;background-position:center;transition:transform .5s ease}
+.cc-place-card:hover .cc-pc-img-bg{transform:scale(1.08)}
+.cc-pc-img-grad{position:absolute;inset:0;background:linear-gradient(to top,rgba(24,18,14,.52) 0%,transparent 55%)}
+.cc-pc-cat-tag{position:absolute;top:8px;left:8px;background:rgba(24,18,14,.68);backdrop-filter:blur(8px);color:#fff;font-size:9px;font-weight:700;padding:3px 9px;border-radius:99px;border:1px solid rgba(255,255,255,.18);z-index:1}
+.cc-pc-body{padding:10px 12px 13px}
+.cc-pc-type{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--sf);margin-bottom:3px}
+.cc-pc-name{font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:var(--ch);line-height:1.2;margin-bottom:3px}
+.cc-pc-loc{font-size:10px;color:var(--mu);margin-bottom:8px;display:flex;align-items:center;gap:3px}
+.cc-pc-foot{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid var(--bdr)}
+.cc-pc-fee{font-size:11px;font-weight:700;color:var(--sf)}
+.cc-pc-btn{padding:5px 11px;background:var(--sf);color:#fff;font-size:10px;font-weight:700;border-radius:99px;transition:background .2s}
+.cc-pc-btn:hover{background:var(--sf2)}
+.cc-pc-rating{font-size:10px;font-weight:600;color:var(--ch)}
+.cc-foot{display:flex;align-items:center;justify-content:space-between;padding:14px 22px;border-top:1px solid var(--bdr);background:var(--sand);gap:10px;flex-wrap:wrap}
+.cc-foot-info{font-size:11px;color:var(--mu)}
+.cc-foot-info b{color:var(--ch);font-weight:600}
+.cc-explore-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 22px;background:var(--sf);color:#fff;font-size:13px;font-weight:700;border-radius:99px;box-shadow:0 4px 14px rgba(232,99,26,.3);transition:all .2s;flex-shrink:0}
+.cc-explore-btn:hover{background:var(--sf2);transform:translateY(-1px)}
+.bookable-badge{display:inline-flex;align-items:center;gap:4px;background:linear-gradient(90deg,var(--sf),var(--gold));color:#fff;font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:3px 9px;border-radius:99px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+.city-card{animation:fadeUp .55s ease both}
