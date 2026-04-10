@@ -2470,7 +2470,8 @@ button {
   height: 100svh;
   min-height: 640px;
   display: flex;
-  overflow: hidden;
+  overflow: visible; /* 🔥 changed from hidden to let dropdown show */
+  z-index: 1000;      /* 🔥 ensures hero is on top of following sections */
 }
 
 /* Slideshow */
@@ -2928,6 +2929,7 @@ button {
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
+  z-index: 1001; /* 🔥 ensured it's even higher */
 }
 
 .dropdown-section {
@@ -4922,3 +4924,440 @@ tourist stats style
     opacity: 1;
     transform: translateY(0);
   }
+/* ════════════════ ASI SITES ════════════════ */
+#asi {
+  background: var(--cream);
+}
+
+.asi-intro {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 40px;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.asi-badge-block {
+  background: linear-gradient(135deg, var(--ch) 0%, #2C1A0E 100%);
+  border-radius: var(--rl);
+  padding: 32px 28px;
+  text-align: center;
+}
+
+.asi-badge-block .logo {
+  font-size: 52px;
+  margin-bottom: 12px;
+}
+
+.asi-badge-block h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.asi-badge-block p {
+  font-size: 12px;
+  color: rgba(255, 255, 255, .55);
+  line-height: 1.65;
+  margin-bottom: 16px;
+}
+
+.asi-count {
+  font-family: 'Playfair Display', serif;
+  font-size: 52px;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.asi-count-l {
+  font-size: 11px;
+  color: rgba(255, 255, 255, .5);
+  margin-top: 4px;
+  letter-spacing: .3px;
+}
+
+.asi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.asi-card {
+  background: #fff;
+  border-radius: var(--r);
+  overflow: hidden;
+  box-shadow: var(--sh0);
+  transition: transform .3s, box-shadow .3s;
+}
+
+.asi-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--sh1);
+}
+
+.asi-img {
+  height: 140px;
+  position: relative;
+  overflow: hidden;
+  background: var(--sand);
+}
+
+.asi-card:hover .asi-img .dimg {
+  transform: scale(1.08);
+}
+
+.asi-img-grad {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(24, 18, 14, .5) 0%, transparent 55%);
+}
+
+.asi-tag-wrap {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+}
+
+.asi-body {
+  padding: 12px 13px 14px;
+}
+
+.asi-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ch);
+  margin-bottom: 3px;
+}
+
+.asi-loc {
+  font-size: 10px;
+  color: var(--mu);
+  margin-bottom: 8px;
+}
+
+.asi-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid var(--bdr);
+}
+
+.asi-entry {
+  font-size: 10px;
+  color: var(--sf);
+  font-weight: 700;
+}
+
+.asi-time {
+  font-size: 10px;
+  color: var(--mu);
+}
+
+@media(max-width:1060px) {
+  .asi-intro {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+@media(max-width:960px) {
+  .asi-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media(max-width:700px) {
+  .asi-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media(max-width:440px) {
+  .asi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ════════════════ SEE ALL PAGE ════════════════ */
+.sa-page {
+  background: var(--cream);
+  min-height: 100vh;
+}
+
+.sa-header {
+  padding: 24px max(22px, 5vw);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--sh1);
+  background: var(--sf);
+}
+
+.sa-back {
+  width: 42px;
+  height: 42px;
+  background: rgba(255, 255, 255, .2);
+  border: 1.5px solid rgba(255, 255, 255, .35);
+  border-radius: 99px;
+  color: #fff !important;
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+  transition: all .2s;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sa-back:hover {
+  background: rgba(255, 255, 255, .35);
+  transform: scale(1.05);
+}
+
+.sa-header-body h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.sa-header-body p {
+  font-size: 13px;
+  opacity: .85;
+  margin-top: 4px;
+}
+
+.sa-filters {
+  padding: 16px max(22px, 5vw);
+  background: #fff;
+  border-bottom: 1px solid var(--bdr);
+  position: sticky;
+  top: 90px;
+  z-index: 90;
+  box-shadow: var(--sh0);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.sa-search-wrap {
+  position: relative;
+  flex: 1;
+  max-width: 480px;
+}
+
+.sa-search {
+  width: 100%;
+  padding: 12px 18px 12px 46px;
+  border: 1.5px solid var(--bdr);
+  border-radius: 99px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: all .2s;
+  background: #fff url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="%237A6A58"><path d="M12.5 11h-.8l-.3-.3c1-1.1 1.6-2.6 1.6-4.2C13 2.5 10.5 0 7.5 0S2 2.5 2 5.5 4.5 11 7.5 11c1.6 0 3.1-.6 4.2-1.6l.3.3v.8l5 5 1.5-1.5-5-5zm-5 0C5 11 3 9 3 6.5S5 2 7.5 2 12 4 12 6.5 10 11 7.5 11z"/></svg>') no-repeat 16px center;
+}
+
+.sa-search:focus {
+  border-color: var(--sf);
+  box-shadow: 0 0 0 4px rgba(232, 99, 26, 0.1);
+}
+
+.sa-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 28px;
+  padding: 36px max(22px, 5vw) 80px;
+}
+
+.sa-card {
+  background: #fff;
+  border-radius: var(--rl);
+  overflow: hidden;
+  box-shadow: var(--sh0);
+  transition: all .35s ease;
+  border: 1.5px solid transparent;
+  display: flex;
+  flex-direction: column;
+}
+
+.sa-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--sh2);
+  border-color: rgba(232, 99, 26, .25);
+}
+
+.sa-img {
+  height: 230px;
+  position: relative;
+  overflow: hidden;
+  background: var(--sand);
+}
+
+.sa-img .dimg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform .6s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.sa-card:hover .sa-img .dimg {
+  transform: scale(1.08);
+}
+
+.sa-img-grad {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(13, 10, 8, 0.7) 0%, transparent 55%);
+}
+
+.sa-tag {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: rgba(13, 10, 8, 0.75);
+  backdrop-filter: blur(12px);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 99px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  z-index: 10;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.sa-rating-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--ch);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 99px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: var(--sh0);
+  z-index: 10;
+}
+
+.sa-body {
+  padding: 24px 26px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.sa-cat {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--sf);
+  margin-bottom: 8px;
+}
+
+.sa-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ch);
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+.sa-loc {
+  font-size: 13px;
+  color: var(--mu);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sa-desc {
+  font-size: 14px;
+  color: var(--mu);
+  line-height: 1.7;
+  margin-bottom: 24px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+
+.sa-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 18px;
+  border-top: 1px solid var(--bdr);
+}
+
+.sa-price {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--sf);
+  line-height: 1;
+}
+
+.sa-price small {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--mu);
+  margin-left: 2px;
+}
+
+.sa-time {
+  font-size: 12px;
+  color: var(--mu);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+@media (max-width: 1024px) {
+  .sa-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sa-filters {
+    flex-direction: column;
+    align-items: stretch;
+    top: 86px;
+  }
+  .sa-search-wrap {
+    max-width: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .sa-grid {
+    grid-template-columns: 1fr;
+  }
+  .sa-header-body h2 {
+    font-size: 22px;
+  }
+}

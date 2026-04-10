@@ -15,6 +15,7 @@ import HotelSection from "../hotels/hotelSection";
 import ParkSection from "./components/ParkSection";
 import TouristStats from "./components/TouristStats";
 import LightSoundShow from "./components/Light&SoundShow";
+import AsiSection from "./components/AsiSection";
 
 interface HomeProps {
   data?: any;
@@ -23,6 +24,7 @@ interface HomeProps {
   categoryCountsData?: any;
   upcomingEventsData?: any;
   JkkplaceDetailsData?: any;
+  departmentData?: any;
 }
 
 export default function Home({
@@ -32,8 +34,13 @@ export default function Home({
   categoryCountsData,
   upcomingEventsData,
   JkkplaceDetailsData,
+  departmentData,
 }: HomeProps) {
   const sections = data?.home?.data?.attributes?.home || [];
+  const updatedDepartmentData = departmentData?.departments?.data?.find(
+  (dept: any) =>
+    dept?.attributes?.Name === "Archaeological Survey of India"
+)?.attributes;
 
   const sectionMap = useMemo(() => {
     return sections.reduce((acc: any, section: any) => {
@@ -64,6 +71,7 @@ export default function Home({
       <HotelSection />
       <ParkSection />
       <TouristStats />
+      <AsiSection  data={updatedDepartmentData}/>
       <FeaturesSection />
       <HomeClient />
     </div>
