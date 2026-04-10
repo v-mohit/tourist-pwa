@@ -8,6 +8,9 @@ import Footer from "@/components/common/Footer";
 import AppLoader from "@/components/common/AppLoader";
 import { AuthProvider } from "@/features/auth/context/AuthContext";
 import AuthModal from "@/features/auth/components/AuthModal";
+import { BookingProvider } from "@/features/booking/context/BookingContext";
+import BookingModal from "@/features/booking/components/BookingModal";
+import UnauthorizedHandler from "@/components/common/UnauthorizedHandler";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,16 +40,23 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-[#FDF8F1]">
         <AuthProvider>
-          <ThemeRegistry>
-            <Providers>
-              <Header />
-              <main className="flex-1">
-                <AppLoader>{children}</AppLoader>
-              </main>
-              <Footer />
-              <AuthModal />
-            </Providers>
-          </ThemeRegistry>
+          <BookingProvider>
+            <ThemeRegistry>
+              <Providers>
+                <Header />
+                <main className="flex-1">
+                  <AppLoader>{children}</AppLoader>
+                </main>
+                <Footer />
+                {/* Auth modal — always mounted */}
+                <AuthModal />
+                {/* Booking modal — always mounted, opens on demand */}
+                <BookingModal />
+                {/* Closes all modals and opens login on any 401 response */}
+                <UnauthorizedHandler />
+              </Providers>
+            </ThemeRegistry>
+          </BookingProvider>
         </AuthProvider>
       </body>
     </html>

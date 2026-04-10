@@ -1,4 +1,5 @@
 import Link from "next/link";
+import BookNowButton from '@/features/booking/components/BookNowButton';
 
 export default function TopMonuments({ data }: any) {
   const places = data?.category?.data?.attributes?.places?.data || [];
@@ -100,7 +101,16 @@ export default function TopMonuments({ data }: any) {
                   <span className="mon-fee">{fee}</span>
                 </div>
 
-                <button className="btn-sm btn-sm--full">Book Entry →</button>
+                <BookNowButton
+                  config={{
+                    placeId: attr?.placeDetail?.data?.attributes?.obmsId ?? item.id,
+                    placeName: name,
+                    category: 'standard',
+                    locationId: item.id,
+                  }}
+                  label="Book Entry →"
+                  className="btn-sm btn-sm--full inline-flex items-center justify-center"
+                />
               </div>
             </Link>
           );

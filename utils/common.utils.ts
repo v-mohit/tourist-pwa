@@ -57,6 +57,12 @@ export const convertDateIST = (date: Date | number) =>
 export const convertTimeIST = (date: Date | number) =>
   moment(date).tz(TIMEZONES.india).format("hh:mm A");
 
+export const getBookingDateEpochIST = (date: string) =>
+  moment.tz(date, "YYYY-MM-DD", TIMEZONES.india).valueOf();
+
+export const getBookingDayEndEpochIST = (date: string) =>
+  moment.tz(date, "YYYY-MM-DD", TIMEZONES.india).endOf('day').valueOf();
+
 export const formatPriceInDisplayFormat = (amount: any) => {
   return amount
     ? new Intl.NumberFormat("en-IN", {
@@ -120,4 +126,3 @@ export const generateCaptcha = () => {
   }
   return captcha;
 };
-
