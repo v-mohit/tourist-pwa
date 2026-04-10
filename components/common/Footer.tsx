@@ -6,9 +6,9 @@ import { useEffect, useState } from 'react'
 export default function Footer() {
   const [year, setYear] = useState(new Date().getFullYear())
 
-  useEffect(() => {
-    setYear(new Date().getFullYear())
-  }, [])
+  // useEffect(() => {
+  //   setYear(new Date().getFullYear())
+  // }, [])
 
   return (
     <footer className="bg-[#100D09]">
@@ -20,13 +20,13 @@ export default function Footer() {
             Government of Rajasthan
           </h3>
           <p className="text-xs md:text-sm leading-relaxed text-[rgba(255,255,255,0.35)] mb-5">
-            OBMS — your single official gateway to Rajasthan's top tourist destinations, wildlife parks, monuments, parks and cultural venues.
+            OBMS — your single official gateway to Rajasthan&apos;s top tourist destinations, wildlife parks, monuments, parks and cultural venues.
           </p>
           <div className="text-xs text-[rgba(255,255,255,0.48)] mb-2 flex items-center gap-1.75">
             📞 01412923486 · 01412921311
           </div>
           <div className="text-xs text-[rgba(255,255,255,0.48)] mb-4 flex items-center gap-1.75">
-            ✉️ info@rajasthantourism.gov.in
+            ✉️ helpdesk[dot]tourist[at]rajasthan[dot]gov[dot]in
           </div>
           <div className="mt-4 flex gap-2 flex-wrap">
             <span className="px-3 py-1.25 bg-[rgba(212,160,23,0.15)] border border-[rgba(212,160,23,0.3)] rounded-full text-[10px] text-[#D4A017] font-semibold">
@@ -41,28 +41,28 @@ export default function Footer() {
             Destinations
           </h5>
           <nav className="flex flex-col gap-2.25">
-            <Link href="#" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
+            <Link href="/citydetail/jaipur" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
               Jaipur
             </Link>
-            <Link href="#" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
+            <Link href="/citydetail/udaipur" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
               Udaipur
             </Link>
-            <Link href="#" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
+            <Link href="/citydetail/jodhpur" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
               Jodhpur
             </Link>
-            <Link href="#" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
+            <Link href="/citydetail/jaisalmer" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
               Jaisalmer
             </Link>
-            <Link href="#" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
+            <Link href="/citydetail/bikaner" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
               Bikaner
             </Link>
-            <Link href="#" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
+            <Link href="/citydetail/alwar" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
               Alwar
             </Link>
-            <Link href="#" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
+            <Link href="/citydetail/mount-abu" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
               Mount Abu
             </Link>
-            <Link href="#" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
+            <Link href="/citydetail/ajmer" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
               Ajmer
             </Link>
           </nav>

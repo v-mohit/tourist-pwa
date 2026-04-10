@@ -58,7 +58,7 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
 
   return (
     <div className="page-bg">
-      <span className="demo-label">OBMS · Explore City</span>
+      {/* <span className="demo-label">OBMS · Explore City</span> */}
 
       <div className="city-card">
         {/* Hero Section */}

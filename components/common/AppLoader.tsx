@@ -13,7 +13,7 @@ export default function AppLoader({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white">
+      <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#E8DAC5]">
         <div className="relative flex items-center justify-center">
           {/* Spinner ring */}
           <svg
@@ -34,7 +34,7 @@ export default function AppLoader({ children }: { children: React.ReactNode }) {
             <path
               d="M48 6 A42 42 0 0 1 90 48"
               stroke="#E8631A"
-              strokeWidth="6"
+              strokeWidth="3"
               strokeLinecap="round"
             />
           </svg>

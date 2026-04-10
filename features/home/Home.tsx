@@ -12,6 +12,8 @@ import MuseumsSection from "./components/MuseumsSection";
 import HomeClient from "./HomeClient";
 import JkkSection from "./components/JkkSection";
 import HotelSection from "../hotels/hotelSection";
+import ParkSection from "./components/ParkSection";
+import TouristStats from "./components/TouristStats";
 
 interface HomeProps {
   data?: any;
@@ -58,6 +60,8 @@ export default function Home({
         upcomingEventsData={upcomingEventsData}
       />
       <HotelSection />
+      <ParkSection />
+      <TouristStats />
       <FeaturesSection />
       <HomeClient />
     </div>

@@ -4397,3 +4397,445 @@ button {
     grid-template-columns: 1fr;
   }
 }
+
+
+/*------------------------------
+//park style
+--------------------------------*/
+
+/* SECTION BG */
+.park-sec {
+  padding: 60px 60px;
+  background: linear-gradient(180deg, #062e1c, #041e14);
+  color: #fff;
+}
+
+/* HEADER */
+.park-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 28px;
+}
+
+.park-label {
+  color: #2ecc71;
+  font-size: 12px;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+.park-title {
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.park-link {
+  color: #2ecc71;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+/* GRID */
+.park-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+
+/* CARD */
+.park-card {
+  position: relative;
+  height: 260px;
+  border-radius: 20px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.park-card:hover {
+  transform: translateY(-6px);
+}
+
+/* OVERLAY */
+.park-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.85),
+    rgba(0, 0, 0, 0.1)
+  );
+}
+
+/* TOP TAGS */
+.park-top {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  justify-content: space-between;
+  z-index: 2;
+}
+
+.park-tag {
+  background: rgba(46, 204, 113, 0.2);
+  color: #2ecc71;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+}
+
+.park-badge {
+  background: rgba(255, 255, 255, 0.9);
+  color: #000;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+}
+
+/* CONTENT */
+.park-content {
+  position: absolute;
+  bottom: 0;
+  padding: 16px;
+  z-index: 2;
+}
+
+.park-content h3 {
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+
+.park-content p {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.75);
+  margin-bottom: 8px;
+}
+
+/* META */
+.park-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+@media (max-width: 768px) {
+  .park-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .park-title {
+    font-size: 28px;
+  }
+
+  .park-card {
+    height: 220px;
+  }
+}
+
+/*------------------------------
+tourist stats style
+------------------------------*/
+  .ts-root *, .ts-root *::before, .ts-root *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* ── TOURIST STATS SECTION ── */
+  .ts-stats-section {
+    background: var(--ch);
+    padding: 60px clamp(22px, 5vw, 80px);
+  }
+
+  .ts-sec-ctr {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .ts-sec-lbl {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+
+  .ts-sec-ttl {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(24px, 4vw, 40px);
+    font-weight: 700;
+    line-height: 1.15;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+
+  .ts-sec-sub {
+    font-size: 14px;
+    color: rgba(255,255,255,.5);
+  }
+
+  /* stat cards grid */
+  .ts-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+
+  @media (max-width: 1060px) {
+    .ts-stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 440px) {
+    .ts-stats-grid { grid-template-columns: 1fr; }
+  }
+
+  .ts-stat-card {
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 22px;
+    padding: 28px 22px;
+    text-align: center;
+    transition: transform .3s, border-color .3s;
+    cursor: default;
+  }
+
+  .ts-stat-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(212,160,23,.3);
+  }
+
+  .ts-stat-ico {
+    font-size: 36px;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .ts-stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .ts-stat-lbl {
+    font-size: 13px;
+    color: rgba(255,255,255,.65);
+    font-weight: 500;
+  }
+
+  .ts-stat-sub {
+    font-size: 11px;
+    color: rgba(255,255,255,.35);
+    margin-top: 4px;
+  }
+
+  /* bar chart */
+  .ts-bar-chart {
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 22px;
+    padding: 28px 28px 24px;
+  }
+
+  .ts-bar-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+
+  .ts-bar-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,.45);
+    margin-bottom: 24px;
+  }
+
+  .ts-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .ts-bar-row:last-child { margin-bottom: 0; }
+
+  .ts-bar-label {
+    font-size: 12px;
+    color: rgba(255,255,255,.6);
+    width: 110px;
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  @media (max-width: 500px) {
+    .ts-bar-label { width: 80px; font-size: 11px; }
+    .ts-bar-chart { padding: 20px 16px 18px; }
+  }
+
+  .ts-bar-track {
+    flex: 1;
+    height: 10px;
+    background: rgba(255,255,255,.07);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .ts-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(to right, var(--sf), var(--gold));
+    transition: width 1.4s ease;
+  }
+
+  .ts-bar-val {
+    font-size: 12px;
+    color: rgba(255,255,255,.55);
+    width: 52px;
+    flex-shrink: 0;
+  }
+
+  /* ── AWARD SECTION ── */
+  .ts-award-section {
+    background: linear-gradient(135deg, #1A1200 0%, #2C2000 50%, #1A1200 100%);
+    padding: 60px clamp(22px, 5vw, 80px);
+  }
+
+  .ts-award-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 56px;
+    align-items: center;
+  }
+
+  @media (max-width: 1060px) {
+    .ts-award-wrap { grid-template-columns: 1fr; gap: 36px; }
+    .ts-award-trophy { display: flex; flex-direction: column; align-items: center; }
+  }
+
+  .ts-trophy-circle {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold) 0%, #8B6A00 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    box-shadow: 0 0 0 12px rgba(212,160,23,.12), 0 0 0 24px rgba(212,160,23,.06), 0 20px 60px rgba(212,160,23,.3);
+  }
+
+  .ts-trophy-circle span { font-size: 64px; line-height: 1; }
+
+  .ts-trophy-circle p {
+    font-size: 11px;
+    color: rgba(255,255,255,.8);
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  .ts-award-year {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--gold);
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .ts-award-info h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(24px, 3.5vw, 40px);
+    color: #fff;
+    margin-bottom: 16px;
+    line-height: 1.15;
+  }
+
+  .ts-award-info h2 em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .ts-award-info p {
+    font-size: 14px;
+    color: rgba(255,255,255,.62);
+    line-height: 1.8;
+    margin-bottom: 24px;
+  }
+
+  .ts-award-chips {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+
+  .ts-award-chip {
+    padding: 7px 16px;
+    background: rgba(212,160,23,.12);
+    border: 1px solid rgba(212,160,23,.3);
+    border-radius: 99px;
+    font-size: 12px;
+    color: var(--gold);
+    font-weight: 600;
+  }
+
+  .ts-award-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+
+  @media (max-width: 700px) {
+    .ts-award-stats { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 440px) {
+    .ts-award-stats { grid-template-columns: 1fr 1fr; }
+  }
+
+  .ts-award-stat {
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 12px;
+    padding: 16px 12px;
+    text-align: center;
+  }
+
+  .ts-award-stat-n {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--gold2);
+    line-height: 1;
+  }
+
+  .ts-award-stat-l {
+    font-size: 10px;
+    color: rgba(255,255,255,.45);
+    margin-top: 4px;
+  }
+
+  /* ── fade-in animation ── */
+  .ts-rv {
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity .6s ease, transform .6s ease;
+  }
+
+  .ts-rv.ts-in {
+    opacity: 1;
+    transform: translateY(0);
+  }
