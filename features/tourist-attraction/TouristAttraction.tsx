@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
 interface Place {
   id: string;
@@ -46,118 +47,176 @@ interface TouristAttractionProps {
 }
 
 const TouristAttraction: React.FC<TouristAttractionProps> = ({ data }) => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const searchParams = useSearchParams();
+  const categoryId = searchParams.get('categoryId');
+
+  const imgUrlBase = process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL || '';
 
   // Extract places from data
   const places: Place[] = data?.places?.data || [];
-  
-  // Extract seeAllPlace header info
+
+  // Extract category info if filtered
+  const categoryNameFromApi = data?.category?.data?.attributes?.Name;
+  const categoryNameFromPlaces = useMemo(() => {
+    if (!categoryId) return undefined;
+    for (const p of places) {
+      const cats = p?.attributes?.categories?.data || [];
+      const match = cats.find((c) => c?.id?.toString() === categoryId.toString());
+      if (match?.attributes?.Name) return match.attributes.Name;
+    }
+    return undefined;
+  }, [categoryId, places]);
+
+  const categoryName = categoryNameFromApi || categoryNameFromPlaces;
+
+  // Extract seeAllPlace header info for base design
   const seeAllHeader = data?.seeAllPlace?.data?.attributes?.content?.find(
     (c: any) => c.__typename === "ComponentPlacePlaceHeader"
   );
-  
-  const title = seeAllHeader?.title1 || "Explore Rajasthan";
-  const subtitle = seeAllHeader?.title2 || "Discover the best monuments, wildlife, and cultural sites.";
-  const headerBg = seeAllHeader?.image?.data?.attributes?.url 
-    ? `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL}${seeAllHeader.image.data.attributes.url}`
-    : 'var(--sf)';
 
-  // Filter places based on search query
+  const title = categoryName ? `${categoryName}` : (seeAllHeader?.title1 || "Explore Rajasthan");
+  const subtitle = categoryName ? `Discover the best ${categoryName} in Rajasthan.` : (seeAllHeader?.title2 || "Discover monuments, wildlife, and cultural heritage.");
+
+  const headerRawUrl = seeAllHeader?.image?.data?.attributes?.url || '';
+  const headerBg = headerRawUrl
+    ? (headerRawUrl.startsWith('http')
+      ? headerRawUrl
+      : `${imgUrlBase}${headerRawUrl}`)
+    : 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=1200';
+
+  // Filter places based on categoryId + search query
   const filteredPlaces = useMemo(() => {
     return places.filter(place => {
+      if (categoryId) {
+        const cats = place?.attributes?.categories?.data || [];
+        const hasCategory = cats.some((c) => c?.id?.toString() === categoryId.toString());
+        if (!hasCategory) return false;
+      }
       const name = place.attributes.name.toLowerCase();
       const city = place.attributes.city?.data?.attributes?.name?.toLowerCase() || '';
-      const query = searchQuery.toLowerCase();
+      const query = searchTerm.toLowerCase();
       return name.includes(query) || city.includes(query);
     });
-  }, [places, searchQuery]);
+  }, [places, searchTerm, categoryId]);
 
   return (
-    <div className="sa-panel sa-panel--page">
-      {/* ── HEADER ── */}
-      <div 
-        className="sa-header sa-header--page" 
-        style={{ 
-          background: headerBg.startsWith('var') 
-            ? headerBg 
-            : `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('${headerBg}') center/cover` 
-        }}
-      >
-        <Link href="/" className="sa-close sa-close--page">
-          ✕
-        </Link>
-        <div className="sa-header-body sa-header-body--bottom">
-          <h2 className="sa-header-title--page">{title}</h2>
-          <p className="sa-header-subtitle--page">{subtitle}</p>
+    <div className="sa-panel" style={{ minHeight: '100vh', position: 'relative' }}>
+      {/* Header */}
+      <div className="sa-header">
+        <div className="sa-header-bg" style={{
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('${headerBg}')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          height: '240px',
+          padding: '40px max(22px, 5vw) 20px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-end'
+        }}>
+          <Link href="/" className="sa-close" style={{
+            position: 'absolute', top: '24px', left: 'max(22px, 5vw)', color: '#fff', fontSize: '20px'
+          }}>✕</Link>
+          <div className="sa-header-body">
+            <p style={{ color: 'var(--gold)', fontWeight: 700, fontSize: '12px', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px' }}>
+              ✦ {categoryName || 'Explore'}
+            </p>
+            <h2 style={{ fontSize: 'clamp(28px, 5vw, 42px)', color: '#fff' }}>{title}</h2>
+            <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)', marginTop: '6px', maxWidth: '600px' }}>{subtitle}</p>
+          </div>
+          <div className="sa-header-count" style={{ position: 'absolute', bottom: '24px', right: 'max(22px, 5vw)' }}>
+            {places.length} Items Found
+          </div>
+        </div>
+
+        {/* Filter bar */}
+        <div className="sa-filters">
+          <div className="sa-search-wrap">
+            <span className="sa-search-icon">🔍</span>
+            <input
+              className="sa-search"
+              type="text"
+              placeholder={`Search ${categoryName || 'places'}...`}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </div>
       </div>
 
-      {/* ── FILTERS ── */}
-      <div className="sa-filters">
-        <div className="sa-search-wrap">
-          <input 
-            className="sa-search" 
-            type="text" 
-            placeholder="🔍 Search places…" 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+      {/* Results Bar */}
+      <div className="sa-results-bar">
+        <span className="sa-results-count">
+          Showing {filteredPlaces.length} results
+        </span>
+        <div className="sa-view-toggle">
+          <button
+            className={`sa-vt-btn ${viewMode === 'grid' ? 'active' : ''}`}
+            onClick={() => setViewMode('grid')}
+          >⊞</button>
+          <button
+            className={`sa-vt-btn ${viewMode === 'list' ? 'active' : ''}`}
+            onClick={() => setViewMode('list')}
+          >☰</button>
         </div>
       </div>
 
-      {/* ── GRID ── */}
-      <div className="sa-grid">
+      {/* Grid */}
+      <div className={`sa-grid ${viewMode === 'list' ? 'list-view' : ''}`}>
         {filteredPlaces.length > 0 ? (
-          filteredPlaces.map((place) => {
+          filteredPlaces.map((place: Place, idx: number) => {
             const attr = place.attributes;
-            const imgUrl = attr.images?.data?.[0]?.attributes?.url
-              ? `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL}${attr.images.data[0].attributes.url}`
+            const placeRawUrl = attr.images?.data?.[0]?.attributes?.url || '';
+            const img = placeRawUrl
+              ? (placeRawUrl.startsWith('http')
+                ? placeRawUrl
+                : `${imgUrlBase}${placeRawUrl}`)
               : 'https://images.unsplash.com/photo-1477587458883-47145ed31f5e?w=500';
-            
-            const cityName = attr.city?.data?.attributes?.name || "Rajasthan";
-            const categoryName = attr.categories?.data?.[0]?.attributes?.Name || "Attraction";
-            const slug = attr.placeDetail?.data?.attributes?.slug || place.id;
-            
-            // Extract timing and fee from content if available
-            const content = attr.placeDetail?.data?.attributes?.content || [];
-            
-            const timeBlock = content.find(
-              (c: any) => c.__typename === "ComponentPlaceDetailPlaceTime"
-            );
-            const time = timeBlock?.card?.[0]?.content?.[0]?.value || "9:00 AM - 5:00 PM";
 
-            const ticketBlock = content.find(
-              (c: any) => c.__typename === "ComponentPlaceDetailPlacetickets"
-            );
-            const fee = ticketBlock?.card?.[0]?.content?.find(
-              (c: any) => c.name === "Indian Adult"
-            )?.value || "100";
+            const cityName = attr.city?.data?.attributes?.name || "Rajasthan";
+            const firstCat = attr.categories?.data?.[0]?.attributes?.Name || "Attraction";
+            const slug = attr.placeDetail?.data?.attributes?.slug || place.id || `place-${idx}`;
+            const reactKey = `${slug}-${place.id || idx}`;
 
             return (
-              <Link key={place.id} href={`/place-detail/${slug}`} className="sa-card sa-card--link">
-                <div className="sa-img" style={{ backgroundImage: `url('${imgUrl}')` }}>
-                  <div className="sa-img-grad"></div>
-                  <div className="sa-tag">{categoryName}</div>
+              <Link
+                key={reactKey}
+                href={`/place-detail/${slug}`}
+                className="sa-card"
+                style={{ textDecoration: 'none' }}
+              >
+                <div className="sa-img">
+                  <div className="sa-img-inner" style={{ backgroundImage: `url('${img}')` }}></div>
+                  <div className="sa-card-top">
+                    <span className="sa-tag">{firstCat}</span>
+                    <span className="sa-rating-badge">⭐ {attr.popularity || '4.5'}</span>
+                  </div>
+                  <div className="sa-img-foot">
+                    <div className="sa-name">{attr.name}</div>
+                    <div className="sa-nickname">📍 {cityName}</div>
+                  </div>
                 </div>
                 <div className="sa-body">
-                  <div className="sa-cat">{categoryName}</div>
-                  <h3 className="sa-name">{attr.name}</h3>
-                  <div className="sa-loc">📍 {cityName}</div>
-                  <div className="sa-row">
-                    <span className="sa-rating">⭐ {attr.popularity || '4.5'}</span>
-                    <span className="sa-entry">₹{fee}</span>
-                    <span className="sa-time">⏰ {time}</span>
+                  <div className="sa-highlights">
+                    <span className="sa-hl">✦ Must Visit</span>
+                    <span className="sa-hl">✦ {firstCat}</span>
+                    <span className="sa-hl">✦ {cityName}</span>
                   </div>
-                  <button className="sa-btn">View Details →</button>
+                  <div className="sa-card-foot">
+                    <span className="sa-season">📅 Open All Year</span>
+                    <span className="sa-region-tag">{cityName}</span>
+                  </div>
+                  <button className="sa-btn">Book Tickets →</button>
                 </div>
               </Link>
             );
           })
         ) : (
-          <div className="sa-no-results">
-            <div className="sa-no-results-icon">🔍</div>
-            <h3>No matches found</h3>
-            <p>Try searching for a different name or city.</p>
+          <div className="sa-empty">
+            <div className="sa-empty-ico">🔍</div>
+            <div className="sa-empty-msg">No results found</div>
+            <div className="sa-empty-sub">Try searching for something else</div>
           </div>
         )}
       </div>

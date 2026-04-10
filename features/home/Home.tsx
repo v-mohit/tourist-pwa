@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { useMemo } from "react";
 import HeroSection from "./components/HeroSection";
 import StatsBar from "./components/StatsBar";
 import TabsBar from "./components/TabsBar";
@@ -8,37 +10,61 @@ import TopMonuments from "./components/TopMonuments";
 import WildlifeSection from "./components/WildlifeSection";
 import MuseumsSection from "./components/MuseumsSection";
 import HomeClient from "./HomeClient";
+import JkkSection from "./components/JkkSection";
+import HotelSection from "../hotels/hotelSection";
+import ParkSection from "./components/ParkSection";
+import TouristStats from "./components/TouristStats";
+import LightSoundShow from "./components/Light&SoundShow";
 
+interface HomeProps {
+  data?: any;
+  cityData?: any;
+  topPackageData?: any;
+  categoryCountsData?: any;
+  upcomingEventsData?: any;
+  JkkplaceDetailsData?: any;
+}
 
-export default function Home(data: any) {
+export default function Home({
+  data,
+  cityData,
+  topPackageData,
+  categoryCountsData,
+  upcomingEventsData,
+  JkkplaceDetailsData,
+}: HomeProps) {
+  const sections = data?.home?.data?.attributes?.home || [];
 
-   const sections = data?.data?.home?.data?.attributes?.home || [];
+  const sectionMap = useMemo(() => {
+    return sections.reduce((acc: any, section: any) => {
+      acc[section.__typename] = section;
+      return acc;
+    }, {});
+  }, [sections]);
 
-  const monuments = sections.find(
-    (s: any) => s.__typename === "ComponentHomeMonuments"
-  );
-
-  const wildlife = sections.find(
-    (s: any) => s.__typename === "ComponentHomeWildLife"
-  );
-
-  const museums = sections.find(
-    (s: any) => s.__typename === "ComponentHomeMuseum"
-  );
-  
+  const { cities, destination } = cityData || {};
 
   return (
     <div className="w-full">
       <HeroSection />
-      <StatsBar />
+      <StatsBar categoryCountsData={categoryCountsData} />
       <TabsBar />
-      <TopDestinations />
-      <PackagesSection />
-      <TopMonuments data={monuments} />
-      <WildlifeSection data={wildlife} />
-      <MuseumsSection data={museums} />
+      <Suspense fallback={<div>Loading...</div>}>
+        <TopDestinations cities={cities} destination={destination} />
+      </Suspense>
+      <PackagesSection data={topPackageData} />
+      <TopMonuments data={sectionMap["ComponentHomeMonuments"]} />
+      <WildlifeSection data={sectionMap["ComponentHomeWildLife"]} />
+      <MuseumsSection data={sectionMap["ComponentHomeMuseum"]} />
+      <LightSoundShow data={sectionMap["ComponentHomeLightAndSoundShow"]} />
+      <JkkSection
+        JkkplaceDetailsData={JkkplaceDetailsData}
+        upcomingEventsData={upcomingEventsData}
+      />
+      <HotelSection />
+      <ParkSection />
+      <TouristStats />
       <FeaturesSection />
-
       <HomeClient />
     </div>
   );
