@@ -1,57 +1,77 @@
 "use client";
-
+import Link from "next/link";
 import React from "react";
 
-const ParkSection = () => {
-  const parks = [
+const ParkSection = (data: any) => {
+  const section = data?.data;
+
+  const title = section?.title || "CITY PARKS & GARDENS";
+
+  const places = section?.category?.data?.attributes?.places?.data || [];
+
+  // fallback static data (used if API empty)
+  const fallbackParks = [
     {
       title: "Sawan Bhado Park",
-      desc: "Twin artificial lakes surrounded by lush greenery — a beloved picnic spot in the heart of Jaipur.",
+      desc: "Beautiful lakes and greenery.",
       tag: "Water Park",
       badge: "FREE",
-      image:
-        "https://images.unsplash.com/photo-1501785888041-af3ef285b470",
+      image: "https://images.unsplash.com/photo-1501785888041-af3ef285b470",
       meta: ["Jaipur", "6AM-8PM", "Free Entry"],
     },
-    {
-      title: "Kishan Bagh Park",
-      desc: "Sprawling green urban park with walking tracks, playgrounds and seasonal flower displays.",
-      tag: "Garden Park",
-      badge: "FREE",
-      image:
-        "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
-      meta: ["Jaipur", "6AM-9PM", "Free Entry"],
-    },
-    {
-      title: "Central Park, Jaipur",
-      desc: "Jaipur’s largest park with India’s tallest flagmast and jogging tracks.",
-      tag: "Heritage Garden",
-      badge: "POPULAR",
-      image:
-        "https://images.unsplash.com/photo-1470115636492-6d2b56f9146d",
-      meta: ["C-Scheme, Jaipur", "5AM-10PM", "206 ft Flagmast"],
-    },
   ];
+
+  const parks =
+    places.length > 0
+      ? places.map((item: any) => {
+          const attr = item?.attributes;
+
+          return {
+            title: attr?.name || "Unnamed Park",
+
+            desc:
+              attr?.placeDetail?.data?.attributes?.content?.[0]?.children?.[0]
+                ?.text || "A peaceful green escape perfect for relaxation.",
+
+            tag: "Park",
+
+            badge: "POPULAR",
+
+            image: attr?.images?.data?.[0]?.attributes?.url
+              ? `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL}${attr.images.data[0].attributes.url}`
+              : "https://images.unsplash.com/photo-1501785888041-af3ef285b470",
+
+            meta: [
+              attr?.city?.data?.attributes?.name || "Unknown City",
+              "6AM-9PM",
+              "Free Entry",
+            ],
+          };
+        })
+      : fallbackParks;
 
   return (
     <section className="park-sec">
       {/* HEADER */}
       <div className="park-head">
         <div>
-          <div className="park-label">✦ CITY PARKS & GARDENS</div>
+          <div className="park-label">✦ {title}</div>
           <h2 className="park-title">
             Green Escapes <br /> & Nature Retreats
           </h2>
         </div>
 
-        <a href="#" className="park-link">
+        <Link
+          href={`/tourist-attraction?categoryId=${data?.data?.category?.data?.id}`}
+          className="park-link"
+        >
           See all →
-        </a>
+        </Link>
       </div>
 
       {/* CARDS */}
       <div className="park-grid">
-        {parks.map((park, i) => (
+        {parks.map((park: any, i: number) => (
           <div
             key={i}
             className="park-card"
@@ -72,7 +92,7 @@ const ParkSection = () => {
               <p>{park.desc}</p>
 
               <div className="park-meta">
-                {park.meta.map((m, idx) => (
+                {park.meta.map((m: string, idx: number) => (
                   <span key={idx}>• {m}</span>
                 ))}
               </div>

@@ -636,6 +636,91 @@ query FetchHomeData {
               }
             }
           }
+              ... on ComponentHomeParks {
+             id
+            title
+            category {
+              data {
+                id
+                attributes {
+                  Name
+                  places(pagination: { limit: 10 }) {
+                    data {
+                      id
+                      attributes {
+                        name
+                        link
+                        images {
+                      data {
+                        attributes {
+                          url
+                        }
+                      }
+                    }
+                     city {
+                      data {
+                        attributes {
+                          name
+                        }
+                      }
+                    }
+                       placeDetail {
+                          data {
+                            attributes {
+                              slug
+                              content {
+                                __typename
+                                ... on ComponentPlaceDetailPlacetickets {
+                                  id
+                                  title1
+                                  title2
+                                  information {
+                                    title
+                                    description
+                                  }
+                                  card {
+                                    title
+                                    content {
+                                      name
+                                      value
+                                    }
+                                  }
+                                }
+                                 ... on ComponentPlaceDetailPlaceothers {
+                                    id
+                                    title1
+                                    title2
+                                    card(pagination: { limit: 10 }) {
+                                      title
+                                      content(pagination: { limit: 10 }) {
+                                        name
+                                        value
+                                      }
+                                    }
+                                  }
+                                  ... on ComponentPlaceDetailPlaceTime {
+                                      id
+                                      tabName
+                                      card(pagination: { limit: 10 }) {
+                                        title
+                                        content(pagination: { limit: 10 }) {
+                                          name
+                                          value
+                                        }
+                                      }
+                                    }
+                                    
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
 
         }
       }

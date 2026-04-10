@@ -71,6 +71,17 @@ query FetchDepartmentData {
                           }
                         }
                       }
+                       ... on ComponentPlaceDetailPlaceTime {
+                        id
+                        tabName
+                        card(pagination: { limit: 100 }) {
+                          title
+                          content(pagination: { limit: 100 }) {
+                            name
+                            value
+                          }
+                        }
+                      }
 
                     }
                   }

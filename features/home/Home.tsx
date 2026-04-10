@@ -62,7 +62,7 @@ export default function Home({
         upcomingEventsData={upcomingEventsData}
       />
       <HotelSection />
-      <ParkSection />
+      <ParkSection data={sectionMap["ComponentHomeParks"]} />
       <TouristStats />
       <FeaturesSection />
       <HomeClient />
