@@ -14,6 +14,7 @@ import JkkSection from "./components/JkkSection";
 import HotelSection from "../hotels/hotelSection";
 import ParkSection from "./components/ParkSection";
 import TouristStats from "./components/TouristStats";
+import LightSoundShow from "./components/Light&SoundShow";
 
 interface HomeProps {
   data?: any;
@@ -55,6 +56,7 @@ export default function Home({
       <TopMonuments data={sectionMap["ComponentHomeMonuments"]} />
       <WildlifeSection data={sectionMap["ComponentHomeWildLife"]} />
       <MuseumsSection data={sectionMap["ComponentHomeMuseum"]} />
+      <LightSoundShow data={sectionMap["ComponentHomeLightAndSoundShow"]} />
       <JkkSection
         JkkplaceDetailsData={JkkplaceDetailsData}
         upcomingEventsData={upcomingEventsData}

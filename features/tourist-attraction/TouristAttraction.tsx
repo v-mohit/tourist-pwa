@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
 interface Place {
   id: string;
@@ -48,6 +49,8 @@ interface TouristAttractionProps {
 const TouristAttraction: React.FC<TouristAttractionProps> = ({ data }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const searchParams = useSearchParams();
+  const categoryId = searchParams.get('categoryId');
 
   const imgUrlBase = process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL || '';
 
@@ -55,7 +58,18 @@ const TouristAttraction: React.FC<TouristAttractionProps> = ({ data }) => {
   const places: Place[] = data?.places?.data || [];
 
   // Extract category info if filtered
-  const categoryName = data?.category?.data?.attributes?.Name;
+  const categoryNameFromApi = data?.category?.data?.attributes?.Name;
+  const categoryNameFromPlaces = useMemo(() => {
+    if (!categoryId) return undefined;
+    for (const p of places) {
+      const cats = p?.attributes?.categories?.data || [];
+      const match = cats.find((c) => c?.id?.toString() === categoryId.toString());
+      if (match?.attributes?.Name) return match.attributes.Name;
+    }
+    return undefined;
+  }, [categoryId, places]);
+
+  const categoryName = categoryNameFromApi || categoryNameFromPlaces;
 
   // Extract seeAllPlace header info for base design
   const seeAllHeader = data?.seeAllPlace?.data?.attributes?.content?.find(
@@ -72,15 +86,20 @@ const TouristAttraction: React.FC<TouristAttractionProps> = ({ data }) => {
       : `${imgUrlBase}${headerRawUrl}`)
     : 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=1200';
 
-  // Filter places based on search query (Server side does the category filtering)
+  // Filter places based on categoryId + search query
   const filteredPlaces = useMemo(() => {
     return places.filter(place => {
+      if (categoryId) {
+        const cats = place?.attributes?.categories?.data || [];
+        const hasCategory = cats.some((c) => c?.id?.toString() === categoryId.toString());
+        if (!hasCategory) return false;
+      }
       const name = place.attributes.name.toLowerCase();
       const city = place.attributes.city?.data?.attributes?.name?.toLowerCase() || '';
       const query = searchTerm.toLowerCase();
       return name.includes(query) || city.includes(query);
     });
-  }, [places, searchTerm]);
+  }, [places, searchTerm, categoryId]);
 
   return (
     <div className="sa-panel" style={{ minHeight: '100vh', position: 'relative' }}>
@@ -146,7 +165,7 @@ const TouristAttraction: React.FC<TouristAttractionProps> = ({ data }) => {
       {/* Grid */}
       <div className={`sa-grid ${viewMode === 'list' ? 'list-view' : ''}`}>
         {filteredPlaces.length > 0 ? (
-          filteredPlaces.map((place: Place) => {
+          filteredPlaces.map((place: Place, idx: number) => {
             const attr = place.attributes;
             const placeRawUrl = attr.images?.data?.[0]?.attributes?.url || '';
             const img = placeRawUrl
@@ -157,10 +176,16 @@ const TouristAttraction: React.FC<TouristAttractionProps> = ({ data }) => {
 
             const cityName = attr.city?.data?.attributes?.name || "Rajasthan";
             const firstCat = attr.categories?.data?.[0]?.attributes?.Name || "Attraction";
-            const slug = attr.placeDetail?.data?.attributes?.slug || place.id;
+            const slug = attr.placeDetail?.data?.attributes?.slug || place.id || `place-${idx}`;
+            const reactKey = `${slug}-${place.id || idx}`;
 
             return (
-              <Link key={place.id} href={`/place-detail/${slug}`} className="sa-card" style={{ textDecoration: 'none' }}>
+              <Link
+                key={reactKey}
+                href={`/place-detail/${slug}`}
+                className="sa-card"
+                style={{ textDecoration: 'none' }}
+              >
                 <div className="sa-img">
                   <div className="sa-img-inner" style={{ backgroundImage: `url('${img}')` }}></div>
                   <div className="sa-card-top">
