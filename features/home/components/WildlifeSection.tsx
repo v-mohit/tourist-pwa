@@ -1,4 +1,14 @@
 import Link from "next/link";
+import BookNowButton from "@/features/booking/components/BookNowButton";
+
+function inferWildlifeBookingConfig(item: any, attr: any, name: string) {
+  return {
+    placeId: attr?.placeDetail?.data?.attributes?.obmsId ?? item.id,
+    placeName: name,
+    category: 'inventory' as const,
+    locationId: item.id,
+  };
+}
 
 export default function WildlifeSection({ data }: any) {
   const places = data?.category?.data?.attributes?.places?.data || [];
@@ -23,7 +33,7 @@ export default function WildlifeSection({ data }: any) {
       </div>
 
       {/* ✅ Hero (kept static) */}
-      <Link href="/place-detail/sariska" className="wild-hero" style={{ display: 'block', cursor: 'pointer' }}>
+      <div className="wild-hero" style={{ display: 'block', position: 'relative' }}>
         <div
           className="dimg"
           style={{
@@ -45,11 +55,22 @@ export default function WildlifeSection({ data }: any) {
             India&apos;s first reserve to successfully relocate tigers.
           </p>
           <div className="wild-hero-btns">
-            <button className="btn-p">Book Safari →</button>
-            <button className="btn-g">View Details</button>
+            <BookNowButton
+              config={{
+                placeId: places[0]?.attributes?.placeDetail?.data?.attributes?.obmsId ?? places[0]?.id ?? 'sariska',
+                placeName: places[0]?.attributes?.name ?? 'Sariska Tiger Reserve',
+                category: 'inventory',
+                locationId: places[0]?.id,
+              }}
+              label="Book Safari →"
+              className="btn-p inline-flex items-center justify-center"
+            />
+            <Link href="/place-detail/sariska" className="btn-g inline-flex items-center justify-center">
+              View Details
+            </Link>
           </div>
         </div>
-      </Link>
+      </div>
 
       {/* ✅ Dynamic Cards (limit 4) */}
       <div className="wild-grid">
@@ -89,11 +110,10 @@ export default function WildlifeSection({ data }: any) {
             )?.value || "50";
 
           return (
-            <Link 
-              key={item.id} 
-              href={`/place-detail/${placeId}`}
-              className="wild-card" 
-              style={{ display: 'block', cursor: 'pointer' }}
+            <div
+              key={item.id}
+              className="wild-card"
+              style={{ display: 'block', cursor: 'default', position: 'relative' }}
             >
               <div
                 className="dimg"
@@ -109,7 +129,9 @@ export default function WildlifeSection({ data }: any) {
               </div>
 
               <div className="wild-foot">
-                <h4>{name}</h4>
+                <Link href={`/place-detail/${placeId}`} className="block">
+                  <h4>{name}</h4>
+                </Link>
 
                 {/* Meta (dynamic + fallback mix) */}
                 <div className="wild-bar">
@@ -117,11 +139,25 @@ export default function WildlifeSection({ data }: any) {
                     📍 {city} · ⏰ {time} · ₹{fee}
                   </span>
                 </div>
+
+                <div className="mt-3 flex gap-2">
+                  <BookNowButton
+                    config={inferWildlifeBookingConfig(item, attr, name)}
+                    label="Book Safari →"
+                    className="btn-sm btn-sm--full inline-flex items-center justify-center"
+                  />
+                  <Link
+                    href={`/place-detail/${placeId}`}
+                    className="inline-flex items-center justify-center rounded-full border border-[#22C55E]/50 px-3 py-2 text-xs font-semibold text-[#D3F3DE] hover:bg-[#163323]"
+                  >
+                    View Details
+                  </Link>
+                </div>
               </div>
-            </Link>
+            </div>
           );
         })}
       </div>
     </section>
   );
-}
+}
