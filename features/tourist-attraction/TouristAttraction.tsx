@@ -51,6 +51,7 @@ const TouristAttraction: React.FC<TouristAttractionProps> = ({ data }) => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const searchParams = useSearchParams();
   const categoryId = searchParams.get('categoryId');
+  const categoryNameParam = searchParams.get('categoryName');
 
   const imgUrlBase = process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL || '';
 
@@ -93,13 +94,20 @@ const TouristAttraction: React.FC<TouristAttractionProps> = ({ data }) => {
         const cats = place?.attributes?.categories?.data || [];
         const hasCategory = cats.some((c) => c?.id?.toString() === categoryId.toString());
         if (!hasCategory) return false;
+      } else if (categoryNameParam) {
+        const wanted = categoryNameParam.toLowerCase().trim();
+        const cats = place?.attributes?.categories?.data || [];
+        const hasCategoryName = cats.some(
+          (c) => (c?.attributes?.Name || "").toLowerCase().trim() === wanted,
+        );
+        if (!hasCategoryName) return false;
       }
       const name = place.attributes.name.toLowerCase();
       const city = place.attributes.city?.data?.attributes?.name?.toLowerCase() || '';
       const query = searchTerm.toLowerCase();
       return name.includes(query) || city.includes(query);
     });
-  }, [places, searchTerm, categoryId]);
+  }, [places, searchTerm, categoryId, categoryNameParam]);
 
   return (
     <div className="sa-panel" style={{ minHeight: '100vh', position: 'relative' }}>
