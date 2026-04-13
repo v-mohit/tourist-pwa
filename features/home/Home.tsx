@@ -15,6 +15,7 @@ import HotelSection from "../hotels/hotelSection";
 import ParkSection from "./components/ParkSection";
 import TouristStats from "./components/TouristStats";
 import LightSoundShow from "./components/Light&SoundShow";
+import Cafeteria from "./components/Cafeteria";
 
 interface HomeProps {
   data?: any;
@@ -57,6 +58,7 @@ export default function Home({
       <WildlifeSection data={sectionMap["ComponentHomeWildLife"]} />
       <MuseumsSection data={sectionMap["ComponentHomeMuseum"]} />
       <LightSoundShow data={sectionMap["ComponentHomeLightAndSoundShow"]} />
+      <Cafeteria data={sectionMap["ComponentHomeCafeteria"]} />
       <JkkSection
         JkkplaceDetailsData={JkkplaceDetailsData}
         upcomingEventsData={upcomingEventsData}
