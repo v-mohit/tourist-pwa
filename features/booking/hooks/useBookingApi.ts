@@ -194,6 +194,16 @@ export function useObmsPlaceId() {
   });
 }
 
+export function usePackageObmsPlaceId() {
+  return useMutation({
+    mutationFn: async (locationId: string | number) => {
+      const { data } = await axiosInstance.get(`/package/get-place?locationId=${locationId}`);
+      return data?.result;
+    },
+    onError: (err: any) => showErrorToastMessage(err?.response?.data?.message || 'Failed to load package info'),
+  });
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Season   /season/getSeasonByDate
 // ─────────────────────────────────────────────────────────────────────────────

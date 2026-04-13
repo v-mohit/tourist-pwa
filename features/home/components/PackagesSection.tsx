@@ -1,6 +1,11 @@
+'use client';
+
+import BookNowButton from '@/features/booking/components/BookNowButton';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function PackagesSection({ data }: any) {
+  const router = useRouter();
   const packageList = data?.data?.topPackage?.data?.attributes?.package || 
                      data?.topPackage?.data?.attributes?.package || 
                      [];
@@ -35,46 +40,72 @@ export default function PackagesSection({ data }: any) {
             : 'https://images.unsplash.com/photo-1603262110263-fb0112e7cc33?w=600&auto=format&fit=crop&q=80';
 
           const slug = pkgAttr.package_detail?.data?.attributes?.slug;
+          const locationId = pkgAttr.package_detail?.data?.id;
 
           // Fields not provided in common are made static as per instructions
           const infos = ['🏯 10 Places', '🕐 Full Day', '🚌 Transport not Incl.', '🎟 Entry Tickets'];
           const badge = { label: 'COMPOSITE', cls: 'tg' };
 
           return (
-            <Link 
-              key={slug || index} 
-              href={slug ? `/package-detail?slug=${slug}` : '#'}
+            <div
+              key={slug || index}
               className="pkg-card block no-underline decoration-transparent"
+              style={{ cursor: slug ? 'pointer' : 'default' }}
+              
             >
-              {/* Image */}
-              <div className="pkg-img">
-                <div className="dimg" style={{ backgroundImage: `url('${img}')` }} />
-                <div className="pkg-grad" />
-                <div className="pkg-rating">{rating}</div>
-                <div className="pkg-badge">
-                  <div className="amt">{price}</div>
-                  <div className="per">per person</div>
+              <div className="block no-underline decoration-transparent"
+              onClick={() => {
+                if (slug) {
+                  router.push(`/package-detail?slug=${slug}`);
+                }
+              }}
+              >
+                {/* Image */}
+                <div className="pkg-img">
+                  <div className="dimg" style={{ backgroundImage: `url('${img}')` }} />
+                  <div className="pkg-grad" />
+                  <div className="pkg-rating">{rating}</div>
+                  <div className="pkg-badge">
+                    <div className="amt">{price}</div>
+                    <div className="per">per person</div>
+                  </div>
                 </div>
+
+                {/* Body */}
+                <div className="pkg-body text-[var(--cw)]">
+                  <h3>{name}</h3>
+                  <div className="pkg-info">
+                    {infos.map((info) => (
+                      <div key={info} className="pkg-ii">{info}</div>
+                    ))}
+                  </div>
+                  <div className="pkg-foot">
+                    <span className={`tag ${badge.cls}`} style={{ fontSize: 9 }}>{badge.label}</span>
+                  </div>
+                </div>
+                
               </div>
 
-              {/* Body */}
-              <div className="pkg-body text-[var(--cw)]">
-                <h3>{name}</h3>
-                <div className="pkg-info">
-                  {infos.map((info) => (
-                    <div key={info} className="pkg-ii">{info}</div>
-                  ))}
-                </div>
-                <div className="pkg-foot">
-                  <span className={`tag ${badge.cls}`} style={{ fontSize: 9 }}>{badge.label}</span>
-                  <span className="btn-s">Book →</span>
-                </div>
+              <div className="px-4 pb-4 -mt-2">
+                {locationId ? (
+                  <BookNowButton
+                    config={{
+                      placeId: locationId,
+                      placeName: name,
+                      category: 'package',
+                      locationId,
+                    }}
+                    label="Book →"
+                    className="btn-s"
+                  />
+                ) : (
+                  <span className="btn-s opacity-40">Book →</span>
+                )}
               </div>
-            </Link>
+            </div>
           );
         })}
       </div>
     </section>
   )
 }
-

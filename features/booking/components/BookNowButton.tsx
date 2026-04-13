@@ -2,6 +2,7 @@
 
 import { useBooking } from '../context/BookingContext';
 import { useAuth } from '@/features/auth/context/AuthContext';
+import { usePackageObmsPlaceId } from '../hooks/useBookingApi';
 import type { PlaceBookingConfig } from '../types/booking.types';
 
 interface BookNowButtonProps {
@@ -30,6 +31,22 @@ export default function BookNowButton({
 }: BookNowButtonProps) {
   const { openBookingModal } = useBooking();
   const { user, openLoginModal, setPostLoginAction } = useAuth();
+  const packagePlaceMutation = usePackageObmsPlaceId();
+
+  async function openResolvedBooking(configToOpen: PlaceBookingConfig) {
+    if (configToOpen.category === 'package' && configToOpen.locationId) {
+      const packagePlace = await packagePlaceMutation.mutateAsync(configToOpen.locationId).catch(() => null);
+      if (!packagePlace) return;
+
+      openBookingModal({
+        ...configToOpen,
+        placeId: packagePlace?.id ?? configToOpen.placeId,
+      });
+      return;
+    }
+
+    openBookingModal(configToOpen);
+  }
 
   function handleClick(e: React.MouseEvent) {
     // Prevent parent Link/anchor from navigating when this button is nested inside one
@@ -37,11 +54,13 @@ export default function BookNowButton({
     e.stopPropagation();
 
     if (!user) {
-      setPostLoginAction(() => openBookingModal(config));
+      setPostLoginAction(() => {
+        void openResolvedBooking(config);
+      });
       openLoginModal();
       return;
     }
-    openBookingModal(config);
+    void openResolvedBooking(config);
   }
 
   const base =
