@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
-import Link from 'next/link';
+import BookNowButton from '@/features/booking/components/BookNowButton';
+import type { PlaceBookingConfig } from '@/features/booking/types/booking.types';
 
 // Mock data based on the HTML file
 const placesData: Record<string, any> = {
@@ -73,6 +74,24 @@ const nearbyPlaces: Record<string, string[]> = {
   'Alwar': ['Sariska Tiger Reserve', 'Bala Qila', 'Siliserh Lake Palace', 'Viratnagar'],
 };
 
+function inferBookingCategory(placeData: any, fallbackName: string): PlaceBookingConfig['category'] {
+  const categoryName = placeData?.categories?.data?.[0]?.attributes?.Name?.toLowerCase?.() ?? '';
+  const placeName = fallbackName.toLowerCase();
+
+  if (
+    categoryName.includes('wildlife') ||
+    categoryName.includes('safari') ||
+    placeName.includes('tiger reserve') ||
+    placeName.includes('leopard reserve') ||
+    placeName.includes('national park') ||
+    placeName.includes('wildlife')
+  ) {
+    return 'inventory';
+  }
+
+  return 'standard';
+}
+
 function PlaceDetailContent({ placeData, contentData }: { placeData: any; contentData: any }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -111,6 +130,9 @@ function PlaceDetailContent({ placeData, contentData }: { placeData: any; conten
   const openingTime = timeBlock?.card?.[0]?.content?.[0] ? `${timeBlock.card[0].content[0].name}: ${timeBlock.card[0].content[0].value}` : mockPlace.time;
 
   const description = overviewBlock?.overview?.description || placeData?.description || mockPlace.desc;
+  const bookingCategory = inferBookingCategory(placeData, name);
+  const obmsPlaceId = placeData?.obmsId ?? placeData?.ObmsId ?? placeData?.placeId ?? null;
+  const locationId = placeData?.id ?? null;
 
   const nearby = nearbyPlaces[loc] || nearbyPlaces[mockPlace.nearbyCity] || [];
 
@@ -243,16 +265,30 @@ function PlaceDetailContent({ placeData, contentData }: { placeData: any; conten
         {/* Right sticky panel */}
         <div className="pd-right">
           <div className="pd-book-card">
-            <div className="pd-book-title">Check Availability</div>
-            <input className="pd-book-input" type="date" defaultValue={new Date().toISOString().split('T')[0]} />
-            <select className="pd-book-input">
-              <option>1 Adult</option>
-              <option>2 Adults</option>
-              <option>Family (4)</option>
-              <option>Group (10+)</option>
-            </select>
-            <button className="pd-book-btn">Book Now →</button>
-            <button className="pd-avail-btn">Check Availability</button>
+            <div className="pd-book-title">Book Your Visit</div>
+            <p style={{ fontSize: 11, color: '#7A6A58', marginBottom: 12 }}>
+              Secure your tickets online. Skip the queue at the entrance.
+            </p>
+            {locationId ? (
+              <BookNowButton
+                config={{
+                  placeId: obmsPlaceId ?? locationId,
+                  placeName: name,
+                  category: bookingCategory,
+                  locationId,
+                } as PlaceBookingConfig}
+                className="w-full py-3 bg-[#E8631A] text-white font-bold rounded-full hover:bg-[#C04E0A] transition-all duration-200 text-sm inline-flex items-center justify-center"
+              />
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="w-full py-3 bg-[#E8631A] text-white font-bold rounded-full opacity-40 cursor-not-allowed text-sm inline-flex items-center justify-center"
+                title="Booking is unavailable because the place id could not be resolved."
+              >
+                Book Now
+              </button>
+            )}
           </div>
           {/* Near By */}
           <div className="pd-nearby-section">

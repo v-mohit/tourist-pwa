@@ -5,6 +5,7 @@ import {
   FetchCategoriesCountsDocument,
   FetchUpcomingEventsDocument,
   FetchPlaceDetailsDocument,
+  FetchDepartmentDataDocument,
 } from "@/generated/graphql";
 import { graphqlClient } from "@/services/client";
 import Home from "@/features/home/Home";
@@ -25,6 +26,9 @@ export default async function Page() {
     FetchPlaceDetailsDocument,
     { slug: "JAWAHAR-KALA-KENDRA" },
   );
+  const departmentData = await graphqlClient.request(
+    FetchDepartmentDataDocument
+  );
 
   const props = {
     data,
@@ -33,6 +37,7 @@ export default async function Page() {
     categoryCountsData,
     upcomingEventsData,
     JkkplaceDetailsData,
+    departmentData
   };
   return <Home {...props} />;
 }

@@ -6,16 +6,6 @@ import SearchBar, { type SearchBarHandle } from './SearchBar'
 
 const SLIDES = [
   {
-    id: 0,
-    title1: 'Land of',
-    title2: 'Kings & Forts',
-    sub: "Discover Rajasthan's forts, tiger reserves, palace hotels and cultural jewels — and book them all through India's award-winning official tourism portal.",
-    img: 'https://images.unsplash.com/photo-1477587458883-47145ed31f5e?w=1920&auto=format&fit=crop&q=90',
-    thumbImg: 'https://images.unsplash.com/photo-1477587458883-47145ed31f5e?w=600&auto=format&fit=crop&q=80',
-    label: 'Amber Fort',
-    tag: 'Jaipur · UNESCO',
-  },
-  {
     id: 1,
     title1: 'Pink City',
     title2: 'Hawa Mahal',
@@ -64,7 +54,6 @@ const BADGES = [
 ]
 
 const PILLS = [
-  '🏯 Amber Fort',
   '🐯 Tiger Safari',
   '🏜 Jaisalmer',
   '🌊 Udaipur',
@@ -115,13 +104,13 @@ export default function HeroSection() {
 
       {/* Left content pane */}
       <div className="hero-pane">
-        <div className="hero-kicker">
+        {/* <div className="hero-kicker">
           {BADGES.map((badge, idx) => (
             <span key={idx} className={`hero-kicker-badge ${badge.cls}`}>
               {badge.label}
             </span>
           ))}
-        </div>
+        </div> */}
 
         <h1 className="hero-ttl">
           {SLIDES[activeIndex].title1}<br />
