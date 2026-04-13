@@ -10,6 +10,8 @@ export default function PackagesSection({ data }: any) {
                      data?.topPackage?.data?.attributes?.package || 
                      [];
 
+                     console.log("package list---", packageList);
+                     
   const updatedPackageList = packageList.slice(0,6)
 
   return (
@@ -38,14 +40,15 @@ export default function PackagesSection({ data }: any) {
           const img = pkgAttr.image?.data?.attributes?.url
             ? `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL}${pkgAttr.image.data.attributes.url}`
             : 'https://images.unsplash.com/photo-1603262110263-fb0112e7cc33?w=600&auto=format&fit=crop&q=80';
-
+          const placeId = pkgAttr.package_detail?.data?.id || '';
           const slug = pkgAttr.package_detail?.data?.attributes?.slug;
           const locationId = pkgAttr.package_detail?.data?.id;
 
           // Fields not provided in common are made static as per instructions
           const infos = ['🏯 10 Places', '🕐 Full Day', '🚌 Transport not Incl.', '🎟 Entry Tickets'];
           const badge = { label: 'COMPOSITE', cls: 'tg' };
-
+          console.log("place id---", placeId);
+          
           return (
             <div
               key={slug || index}
