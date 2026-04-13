@@ -27,6 +27,7 @@ const ParkSection = (data: any) => {
           const attr = item?.attributes;
 
           return {
+            slug: attr?.placeDetail?.data?.attributes?.slug,
             title: attr?.name || "Unnamed Park",
 
             desc:
@@ -50,6 +51,7 @@ const ParkSection = (data: any) => {
         })
       : fallbackParks;
 
+
   return (
     <section className="park-sec">
       {/* HEADER */}
@@ -72,32 +74,34 @@ const ParkSection = (data: any) => {
       {/* CARDS */}
       <div className="park-grid">
         {parks.map((park: any, i: number) => (
-          <div
-            key={i}
-            className="park-card"
-            style={{ backgroundImage: `url(${park.image})` }}
-          >
-            {/* TOP TAGS */}
-            <div className="park-top">
-              <span className="park-tag">{park.tag}</span>
-              <span className="park-badge">{park.badge}</span>
-            </div>
+          <Link key={i} href={`/place-detail/${park.slug}`}>
+            <div
+              key={i}
+              className="park-card"
+              style={{ backgroundImage: `url(${park.image})` }}
+            >
+              {/* TOP TAGS */}
+              <div className="park-top">
+                <span className="park-tag">{park.tag}</span>
+                <span className="park-badge">{park.badge}</span>
+              </div>
 
-            {/* OVERLAY */}
-            <div className="park-overlay" />
+              {/* OVERLAY */}
+              <div className="park-overlay" />
 
-            {/* CONTENT */}
-            <div className="park-content">
-              <h3>{park.title}</h3>
-              <p>{park.desc}</p>
+              {/* CONTENT */}
+              <div className="park-content">
+                <h3>{park.title}</h3>
+                <p>{park.desc}</p>
 
-              <div className="park-meta">
-                {park.meta.map((m: string, idx: number) => (
-                  <span key={idx}>• {m}</span>
-                ))}
+                <div className="park-meta">
+                  {park.meta.map((m: string, idx: number) => (
+                    <span key={idx}>• {m}</span>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </section>
