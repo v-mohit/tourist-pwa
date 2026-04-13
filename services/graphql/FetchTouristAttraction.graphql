@@ -13,7 +13,7 @@ query FetchTouristAttraction(
         { city: { name: { containsi: $cityName } } }
       ]
     }
-    pagination: { pageSize: 20, page: $pageParam }
+    pagination: { pageSize: 40, page: $pageParam }
     sort: $sortBy
   ) {
     meta {
