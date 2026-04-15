@@ -367,6 +367,7 @@ button {
 /* ── HERO ── */
 .hero {
   position: relative;
+  isolation: isolate; /* Contain hero-slide GPU compositing layers; nav (z-[700]) always paints above */
   height: 100svh;
   min-height: 600px;
   display: flex;
@@ -3428,16 +3429,18 @@ button {
 
 .cc-pc-cat-tag {
   position: absolute;
-  top: 8px;
-  left: 8px;
-  background: rgba(24, 18, 14, .68);
-  backdrop-filter: blur(8px);
-  color: #fff;
+  top: 10px;
+  left: 10px;
+  background: rgba(255, 255, 255, .92);
+  backdrop-filter: blur(12px);
+  color: var(--sf);
   font-size: 9px;
-  font-weight: 700;
-  padding: 3px 9px;
+  font-weight: 800;
+  padding: 4px 10px;
   border-radius: 99px;
-  border: 1px solid rgba(255, 255, 255, .18);
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(24, 18, 14, .15);
   z-index: 1
 }
 

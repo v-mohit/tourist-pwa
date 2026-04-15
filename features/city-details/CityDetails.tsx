@@ -174,12 +174,12 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
                   <span className="cc-pc-cat-tag">{category}</span>
                 </div>
                 <div className="cc-pc-body">
-                  <div className="cc-pc-type">Government</div>
+                  {/* <div className="cc-pc-type">Government</div> */}
                   <div className="cc-pc-name">{attr.name}</div>
                   <div className="cc-pc-loc">📍 {cityName}</div>
-                  <span className="bookable-badge">✓ Bookable</span>
+                  {/* <span className="bookable-badge">✓ Bookable</span> */}
                   <div className="cc-pc-foot">
-                    <span className="cc-pc-fee">₹50 Entry</span>
+                    <span className="cc-pc-fee">starting from ₹50</span>
                     <span className="cc-pc-btn">
                       {slug ? 'Book →' : 'No Details'}
                     </span>
