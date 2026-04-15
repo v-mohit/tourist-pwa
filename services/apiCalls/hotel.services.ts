@@ -18,23 +18,15 @@ export const GetHotelAvlibilityById = (
   room: any,
   callApi: boolean
 ) => {
-  return useQuery(
-    [queryKeys.getHotelAvlibilityById, id, startDate, endDate, room],
-    async () => {
+  return useQuery({
+    queryKey: [queryKeys.getHotelAvlibilityById, id, startDate, endDate, room],
+    queryFn: async () => {
       const { data } = await axiosInstance.get(
         `${apiendpoints.getHotelAvlibilityById}?id=${id}&startDate=${startDate}&endDate=${endDate}&room=${room}`,
       );
       return data;
     },
-    {
-      enabled: callApi,
-      retry: false,
-      onSuccess: () => {
-
-      },
-      onError: (error: any) => {
-        showErrorToastMessage(error.response.data.message);
-      },
-    },
-  );
+    enabled: callApi,
+    retry: false,
+  });
 };

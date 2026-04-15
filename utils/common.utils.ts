@@ -54,7 +54,7 @@ export const getAccessToken = async () => {
 export const convertDateIST = (date: Date | number) =>
   moment(date).tz(TIMEZONES.india).format("Do MMMM, YYYY");
 
-export const convertTimeIST = (date: Date | number) =>
+export const convertTimeIST = (date: Date | number | string) =>
   moment(date).tz(TIMEZONES.india).format("hh:mm A");
 
 export const getBookingDateEpochIST = (date: string) =>

@@ -151,7 +151,8 @@ function formatClockTime(value?: string | number) {
     }
   }
 
-  const normalized = value.length === 5 ? `${value}:00` : value;
+  const strValue = String(value);
+  const normalized = strValue.length === 5 ? `${strValue}:00` : strValue;
   const parsed = new Date(`1970-01-01T${normalized}`);
   if (Number.isNaN(parsed.getTime())) return String(value);
 

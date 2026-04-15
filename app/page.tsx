@@ -13,21 +13,21 @@ import Home from "@/features/home/Home";
 export const revalidate = 60;
 
 export default async function Page() {
-  const data = await graphqlClient.request(FetchHomeDataDocument);
+  const data = await graphqlClient.request(FetchHomeDataDocument, {});
   const cityData = await graphqlClient.request(FetchDestinationDocument, {});
-  const topPackageData = await graphqlClient.request(FetchTopPackageDocument);
+  const topPackageData = await graphqlClient.request(FetchTopPackageDocument, {});
   const categoryCountsData = await graphqlClient.request(
-    FetchCategoriesCountsDocument,
+    FetchCategoriesCountsDocument, {}
   );
   const upcomingEventsData = await graphqlClient.request(
-    FetchUpcomingEventsDocument,
+    FetchUpcomingEventsDocument, {}
   );
   const JkkplaceDetailsData = await graphqlClient.request(
     FetchPlaceDetailsDocument,
     { slug: "JAWAHAR-KALA-KENDRA" },
   );
   const departmentData = await graphqlClient.request(
-    FetchDepartmentDataDocument
+    FetchDepartmentDataDocument, {}
   );
 
   const props = {

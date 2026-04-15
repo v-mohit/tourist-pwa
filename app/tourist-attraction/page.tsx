@@ -7,7 +7,7 @@ export const revalidate = 60;
 export default async function Page({
   searchParams,
 }: {
-  searchParams: { categoryId?: string };
+  searchParams: Promise<{ categoryId?: string }>;
 }) {
   const params = await searchParams;
 

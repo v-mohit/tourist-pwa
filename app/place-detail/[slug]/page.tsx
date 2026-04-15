@@ -4,7 +4,7 @@ import PlaceDetailPage from '@/features/place-details/ClientCityDetail';
 
 export const revalidate = 60;
 
-export default async function Page({ params }: { params: { slug: string } }) {
+export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const slugParam = decodeURIComponent(slug);
 

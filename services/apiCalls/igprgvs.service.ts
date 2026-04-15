@@ -16,20 +16,24 @@ type IgAvailabilityPayload = {
 };
 
 export const CheckIgAvailability = () => {
-  return useMutation(async (payload: IgAvailabilityPayload) => {
-    const path =
-      (apiendpoints as any)?.checkIgAvailability;
-    const { data } = await axiosInstance.post(path, payload);
-    return data;
+  return useMutation({
+    mutationFn: async (payload: IgAvailabilityPayload) => {
+      const path =
+        (apiendpoints as any)?.checkIgAvailability;
+      const { data } = await axiosInstance.post(path, payload);
+      return data;
+    },
   });
 };
 
 export const GetIgCategories = () => {
-  return useMutation(async () => {
-    const path =
-      (apiendpoints as any)?.getAllIgrpsCategory;
-    const { data } = await axiosInstance.get(path);
-    return data as { result?: IgCategory[] };
+  return useMutation({
+    mutationFn: async () => {
+      const path =
+        (apiendpoints as any)?.getAllIgrpsCategory;
+      const { data } = await axiosInstance.get(path);
+      return data as { result?: IgCategory[] };
+    },
   });
 };
 
@@ -42,15 +46,15 @@ type IgPriceCalculationPayload = {
 };
 
 export const IgprsPriceCalculation = () => {
-  return useMutation(
-    [queryKeys.igprsPriceCalculation],
-    async (payload: IgPriceCalculationPayload) => {
+  return useMutation({
+    mutationKey: [queryKeys.igprsPriceCalculation],
+    mutationFn: async (payload: IgPriceCalculationPayload) => {
       const path =
         (apiendpoints as any)?.igprsPriceCalculation;
       const { data } = await axiosInstance.post(path, payload);
       return data;
-    }
-  );
+    },
+  });
 };
 
 export const GetIgprsReport = (
@@ -58,9 +62,9 @@ export const GetIgprsReport = (
   endDay?: any,
   userId?: any
 ) => {
-  return useQuery(
-    [queryKeys.getIgprsReport, startDay, endDay, userId],
-    async () => {
+  return useQuery({
+    queryKey: [queryKeys.getIgprsReport, startDay, endDay, userId],
+    queryFn: async () => {
       const { data } = await axiosInstance.get(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}${apiendpoints.getIgprsReport(
           startDay,
@@ -70,8 +74,6 @@ export const GetIgprsReport = (
       );
       return data;
     },
-    {
-      enabled: !!startDay && !!endDay,
-    }
-  );
+    enabled: !!startDay && !!endDay,
+  });
 };

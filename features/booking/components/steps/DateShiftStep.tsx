@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { BookingState, Shift, Season } from '../../types/booking.types';
-import { useSpecificCharges, useShiftsAndTicketTypes, useAsiTicketTypes, useSaveUserSteps, useObmsPlaceId, useSeason } from '../../hooks/useBookingApi';
+import { useSpecificCharges, useShiftsAndTicketTypes, useAsiTicketTypes,usePackageTicketTypes, useSaveUserSteps, useObmsPlaceId, useSeason } from '../../hooks/useBookingApi';
 import { SPECIFIC_CHARGES } from '@/utils/constants/common.constants';
 import { getBookingDateEpochIST } from '@/utils/common.utils';
 import LoadingSpinner from '../shared/LoadingSpinner';
@@ -21,6 +21,7 @@ export default function DateShiftStep({ state, onUpdate, onNext }: Props) {
   const { data: specificCharges = [], isLoading: loadingCharges } = useSpecificCharges();
   const shiftsMutation = useShiftsAndTicketTypes();
   const asiMutation = useAsiTicketTypes();
+  const packageTicketsMutation = usePackageTicketTypes();
   const saveUserSteps = useSaveUserSteps();
   const obmsPlaceMutation = useObmsPlaceId();
   const seasonMutation = useSeason();
@@ -43,6 +44,7 @@ export default function DateShiftStep({ state, onUpdate, onNext }: Props) {
 
   useEffect(() => {
     if (!config.locationId) return;
+    if (config.category === 'package') return;
     const locationKey = String(config.locationId);
     if (lastResolvedLocationRef.current === locationKey) return;
 
@@ -154,12 +156,19 @@ export default function DateShiftStep({ state, onUpdate, onNext }: Props) {
 
     try {
       let result: any;
+      const isPackage = config.category === 'package';
       if (isAsi) {
         result = await asiMutation.mutateAsync({
           placeId: config.placeId,
           date: dateMs,
           specificChargeId,
           type: config.asiType ?? '',
+        });
+      } else if (isPackage) {
+        result = await packageTicketsMutation.mutateAsync({  // ✅ calls /package/management/tickets
+          packageId: config.placeId,
+          date: dateMs,
+          specificChargeId,
         });
       } else {
         result = await shiftsMutation.mutateAsync({

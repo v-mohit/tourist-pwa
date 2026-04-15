@@ -39,9 +39,9 @@ export const GetAsiBookingDetails = ({
   startDay?: any;
   endDay?: any;
 }) => {
-  return useQuery(
-    [queryKeys.getAsiBookingDetails, { dateFilter, isOld, bookingId, isRefund, searchKey, isPublic, status, size, startDay, endDay }],
-    async () => {
+  return useQuery({
+    queryKey: [queryKeys.getAsiBookingDetails, { dateFilter, isOld, bookingId, isRefund, searchKey, isPublic, status, size, startDay, endDay }],
+    queryFn: async () => {
       const { data } = await axiosInstance.get(
         `${apiendpoints.getAsiBookingDetails}`,
         {
@@ -59,30 +59,21 @@ export const GetAsiBookingDetails = ({
           },
         },
       );
+      setLoading(false);
       return data;
     },
-    {
-      enabled: !!callApi,
-      retry: false,
-
-      onSuccess: () => {
-        setLoading(false);
-        // queryClient.invalidateQueries([queryKeys.getAllUser]);
-      },
-      onError: () => {
-        setLoading(false);
-      },
-    },
-  );
+    enabled: !!callApi,
+    retry: false,
+  });
 };
 
 export const GetAsiPalceAvail = (
   placeId?: any,
   startDay?: any
 ) => {
-  return useQuery(
-    [queryKeys.getAsiPalceAvail, startDay, placeId],
-    async () => {
+  return useQuery({
+    queryKey: [queryKeys.getAsiPalceAvail, startDay, placeId],
+    queryFn: async () => {
       const { data } = await axiosInstance.get(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}${apiendpoints.getAsiPalceAvail(
           placeId,
@@ -91,16 +82,14 @@ export const GetAsiPalceAvail = (
       );
       return data;
     },
-    {
-      enabled: !!startDay && !!placeId,
-    }
-  );
+    enabled: !!startDay && !!placeId,
+  });
 };
 
 export const GetAsiTicketDetailByPlace = () => {
-  return useMutation(
-    [queryKeys.getAsiTicketDetailByPlace],
-    async ({
+  return useMutation({
+    mutationKey: [queryKeys.getAsiTicketDetailByPlace],
+    mutationFn: async ({
       placeId,
       date,
       specificChargeId,
@@ -111,24 +100,19 @@ export const GetAsiTicketDetailByPlace = () => {
       );
       return data;
     },
-    {
-      retry: false,
-      onSuccess: () => {
-        // queryClient.invalidateQueries([queryKeys.getAllUser]);
-      },
-      onError: (error: any) => {
-        showErrorToastMessage(error.response.data.message);
-      },
+    retry: false,
+    onError: (error: any) => {
+      showErrorToastMessage(error.response.data.message);
     },
-  );
+  });
 };
 
 export const GetAsiBookingPdf = (
   bookingId:any
 ) => {
-  return useQuery(
-    [queryKeys.getAsiBookingPdf, bookingId],
-    async () => {
+  return useQuery({
+    queryKey: [queryKeys.getAsiBookingPdf, bookingId],
+    queryFn: async () => {
       const { data } = await axiosInstance.get(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}${apiendpoints.getAsiBookingPdf(
           bookingId
@@ -136,16 +120,14 @@ export const GetAsiBookingPdf = (
       );
       return data;
     },
-    {
-      enabled: !!bookingId,
-    }
-  );
+    enabled: !!bookingId,
+  });
 };
 
 export const GenerateTicketPDF = () => {
-  return useMutation(
-    ["generateTicketPDF"],
-    async (html: string) => {
+  return useMutation({
+    mutationKey: ["generateTicketPDF"],
+    mutationFn: async (html: string) => {
       const { data } = await axiosInstance.post(
         `${apiendpoints.generateTicketPDF}`,
         { html },
@@ -156,11 +138,9 @@ export const GenerateTicketPDF = () => {
 
       return data;
     },
-    {
-      retry: false,
-      onError: (error: any) => {
-        showErrorToastMessage(error.response?.data?.message || "PDF generation failed");
-      },
-    }
-  );
+    retry: false,
+    onError: (error: any) => {
+      showErrorToastMessage(error.response?.data?.message || "PDF generation failed");
+    },
+  });
 };

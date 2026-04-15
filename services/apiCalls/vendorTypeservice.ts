@@ -18,8 +18,8 @@ export const GetVendorTypeAllStatus = (
     verifiedUser:any
   ) => {
     let page = (pageNumber || 1) - 1;
-    return useQuery(
-      [
+    return useQuery({
+      queryKey: [
         queryKeys.getVendorTypeAllStatus,,
         page,
         searchKey,
@@ -29,34 +29,25 @@ export const GetVendorTypeAllStatus = (
         vendorDetailId,
         verifiedUser
       ],
-      async () => {
+      queryFn: async () => {
         const { data } = await axiosInstance.get(
           `${apiendpoints.getVendorTypeAllStatus}?offSet=${page}&searchKey=${searchKey}&size=${size}&status=${status}&userId=${userId}&vendorDetailId=${vendorDetailId}&verifiedUser=${verifiedUser}`
         );
         return data;
       },
-      {
-        enabled: !!userId ,
-        onSuccess: (response: any) => {
-          // showSuccessToastMessage(response?.message);
-        },
-        onError: (error: any) => {
-          showErrorToastMessage(error.response.data.message);
-        },
-  
-        retry: false,
-        refetchOnWindowFocus: false,
-        refetchOnMount: true,
-        // keepPreviousData: true,
-      }
-    );
+      enabled: !!userId ,
+      retry: false,
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
+      // keepPreviousData: true,
+    });
   };
   
   
 export const GetVendorTypeById = (id: string) => {
-    return useQuery(
-      [queryKeys.getVendorTypeById, id],
-      async () => {
+    return useQuery({
+      queryKey: [queryKeys.getVendorTypeById, id],
+      queryFn: async () => {
         try {
           const { data } = await axiosInstance.get(
             `${apiendpoints.getVendorTypeById}/${id}`
@@ -69,45 +60,35 @@ export const GetVendorTypeById = (id: string) => {
           throw error;
         }
       },
-      {
-        enabled: !!id,
-        onSuccess: (response: any) => {
-          console.log(response);
-          // queryClient.invalidateQueries([queryKeys.getContentManagmentList]);
-          // showSuccessToastMessage(response.message);
-        },
-        retry: false
-      }
-    );
+      enabled: !!id,
+      retry: false
+    });
   };
   
 export const CreateNewVendor = (
     successCallback: () => void,
     failureCallback: () => void
   ) => {
-    return useMutation(
-      [queryKeys.createNewVendor],
-      async (detail: object) => {
+    return useMutation({
+      mutationKey: [queryKeys.createNewVendor],
+      mutationFn: async (detail: object) => {
         const { data } = await axiosInstance.post(
           `${apiendpoints.createNewVendor}`,
           detail
         );
         return data;
       },
-      {
-        onSuccess: (response: any) => {
-            queryClient.invalidateQueries([queryKeys.getVendorTypeAllStatus]);
-          //  queryClient.invalidateQueries([queryKeys.contentCreate]);
-          showSuccessToastMessage(response.message);
-          successCallback();
-        },
-        onError: (error: any) => {
-          showErrorToastMessage(error.response.data.message);
-          failureCallback();
-        },
-       
-      }
-    );
+      onSuccess: (response: any) => {
+          queryClient.invalidateQueries({ queryKey: [queryKeys.getVendorTypeAllStatus] });
+        //  queryClient.invalidateQueries([queryKeys.contentCreate]);
+        showSuccessToastMessage(response.message);
+        successCallback();
+      },
+      onError: (error: any) => {
+        showErrorToastMessage(error.response.data.message);
+        failureCallback();
+      },
+    });
   };
   
    
@@ -120,8 +101,8 @@ export const GetMasterVendorType = (
     status: any
   ) => {
     let page = (pageNumber || 1) - 1;
-    return useQuery(
-      [
+    return useQuery({
+      queryKey: [
         queryKeys.getMasterVendorType,
         bookingType,
         page,
@@ -130,26 +111,17 @@ export const GetMasterVendorType = (
         size,
         status,
       ],
-      async () => {
+      queryFn: async () => {
         const { data } = await axiosInstance.get(
           `${apiendpoints.getMasterVendorType}?bookingType=${bookingType}&offSet=${pageNumber}&pagination=${pagination}&searchKey=${searchKey}&size=${size}&status=${status}`
         );
         return data;
       },
-      {
-        onSuccess: (response: any) => {
-          // showSuccessToastMessage(response?.message);
-        },
-        onError: (error: any) => {
-          showErrorToastMessage(error.response.data.message);
-        },
-  
-        retry: false,
-        refetchOnWindowFocus: false,
-        refetchOnMount: true,
-        // keepPreviousData: true,
-      }
-    );
+      retry: false,
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
+      // keepPreviousData: true,
+    });
   };
   
    
@@ -157,28 +129,25 @@ export const ApproveRejectVendor = (
     successCallback: () => void,
     failureCallback: () => void
   ) => {
-    return useMutation(
-      [queryKeys.approveRejectVendor],
-      async (detail: object) => {
+    return useMutation({
+      mutationKey: [queryKeys.approveRejectVendor],
+      mutationFn: async (detail: object) => {
         const { data } = await axiosInstance.post(
           `${apiendpoints.approveRejectVendor}`,
           detail
         );
         return data;
       },
-      {
-        onSuccess: (response: any) => {
-          queryClient.invalidateQueries([queryKeys.getVendorTypeAllStatus]);
-          //  queryClient.invalidateQueries([queryKeys.contentCreate]);
-          showSuccessToastMessage(response.message);
-          successCallback();
-        },
-        onError: (error: any) => {
-          showErrorToastMessage(error.response.data.message);
-          failureCallback();
-        },
-       
-      }
-    );
+      onSuccess: (response: any) => {
+        queryClient.invalidateQueries({ queryKey: [queryKeys.getVendorTypeAllStatus] });
+        //  queryClient.invalidateQueries([queryKeys.contentCreate]);
+        showSuccessToastMessage(response.message);
+        successCallback();
+      },
+      onError: (error: any) => {
+        showErrorToastMessage(error.response.data.message);
+        failureCallback();
+      },
+    });
   };
   

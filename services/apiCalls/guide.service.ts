@@ -19,9 +19,9 @@ export const GetAllGuides = (
     date:any
   ) => {
     let page = (pageNumber || 1) - 1;
-    return useQuery(
-      [queryKeys.getAllGuides, page, totalRecords, search, placeId, zoneId, shiftId, date],
-      async () => {
+    return useQuery({
+      queryKey: [queryKeys.getAllGuides, page, totalRecords, search, placeId, zoneId, shiftId, date],
+      queryFn: async () => {
         const { data } = await axiosInstance.get(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}${apiendpoints.getAllGuides(
             page,
@@ -35,10 +35,5 @@ export const GetAllGuides = (
         );
         return data;
       },
-      {
-        onError: (error: any) => {
-          showErrorToastMessage(error?.response?.data?.message);
-        },
-      }
-    );
+    });
   };

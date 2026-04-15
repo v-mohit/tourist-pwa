@@ -586,6 +586,7 @@ function InventoryVisitorForms({ state, onUpdate, onNext, onBack }: Props) {
                       : (choiceGuides as any[]).map((item) => ({
                           id: item.id,
                           label: item.name ?? '',
+                          rosterId: item.rosterId,
                         }));
 
                     return (

@@ -13,145 +13,96 @@ export const UploadImageAPI = (
   uploadImageSuccessCallback: (res: any) => void,
   uploadImageFailureCallback: (res: any) => void,
 ) => {
-  return useMutation(
-    [queryKeys.uploadImage],
-    async (reviewData: any) => {
+  return useMutation({
+    mutationKey: [queryKeys.uploadImage],
+    mutationFn: async (reviewData: any) => {
       const { data } = await axiosInstance.post(
         `${apiendpoints.uploadReviewRating}`,
         reviewData,
         {
           headers: {
-            "Content-Type": "multipart/form-data", // Avoid setting this header manually
+            "Content-Type": "multipart/form-data",
           },
         }
       );
       return data;
     },
-    {
-      onSuccess: (response: any) => {
-        
-        showSuccessToastMessage('Image uploaded successfully');
-        uploadImageSuccessCallback(response.result)
-       
-      },
-      onError: (error: any) => {
-        //@ts-ignore
-        console.log("upload err-",error);
-        showErrorToastMessage(SOMETHING_WENT_WRONG_MES);
-        uploadImageFailureCallback(error);
-      },
+    onSuccess: (response: any) => {
+      showSuccessToastMessage('Image uploaded successfully');
+      uploadImageSuccessCallback(response.result)
     },
-  );
+    onError: (error: any) => {
+      console.log("upload err-",error);
+      showErrorToastMessage(SOMETHING_WENT_WRONG_MES);
+      uploadImageFailureCallback(error);
+    },
+  });
 };
 
 export const UploadVideoAPI = (
   uploadVideoSuccessCallback: (res: any) => void,
   uploadVideoFailureCallback: (res: any) => void,
 ) => {
-  return useMutation(
-    [queryKeys.uploadVideo],
-    async (reviewData: any) => {
+  return useMutation({
+    mutationKey: [queryKeys.uploadVideo],
+    mutationFn: async (reviewData: any) => {
       const { data } = await axiosInstance.post(
         `${apiendpoints.uploadVideo}`,
         reviewData,
         {
           headers: {
-            "Content-Type": "multipart/form-data", // Avoid setting this header manually
+            "Content-Type": "multipart/form-data",
           },
         }
       );
       return data;
     },
-    {
-      onSuccess: (response: any) => {
-        showSuccessToastMessage('Video uploaded successfully');
-        uploadVideoSuccessCallback(response.result)
-      },
-      onError: (error: any) => {
-        //@ts-ignore
-        console.log("upload err-",error);
-        showErrorToastMessage(SOMETHING_WENT_WRONG_MES);
-        uploadVideoFailureCallback(error)
-      },
+    onSuccess: (response: any) => {
+      showSuccessToastMessage('Video uploaded successfully');
+      uploadVideoSuccessCallback(response.result)
     },
-  );
+    onError: (error: any) => {
+      console.log("upload err-",error);
+      showErrorToastMessage(SOMETHING_WENT_WRONG_MES);
+      uploadVideoFailureCallback(error)
+    },
+  });
 };
 
-///file/uploadReviewRating
 export const AddEditReviewRating = () => {
-  return useMutation(
-    [queryKeys.addEditReviewRating],
-    async (reviewData: any) => {
+  return useMutation({
+    mutationKey: [queryKeys.addEditReviewRating],
+    mutationFn: async (reviewData: any) => {
       const { data } = await axiosInstance.post(
         `${apiendpoints.addEditReviewRating}`,
         reviewData,
       );
       return data;
     },
-    {
-      onSuccess: (response: any) => {
-        showSuccessToastMessage('Rating & Review added successfully');
-       
-      },
-      onError: (error: any, context) => {
-        //@ts-ignore
-        showErrorToastMessage(SOMETHING_WENT_WRONG_MES);
-       
-      },
+    onSuccess: (response: any) => {
+      showSuccessToastMessage('Rating & Review added successfully');
     },
-  );
+    onError: (error: any) => {
+      showErrorToastMessage(SOMETHING_WENT_WRONG_MES);
+    },
+  });
 };
 
-//   export const EditFeedback = (
-//     successCallback: (res: any) => void,
-//     failureCallback: (res: any) => void,
-//   ) => {
-//     return useMutation(
-//       [queryKeys.getShiftsAndTicketTypesByPlace],
-//       async (booking: any) => {
-//         const { data } = await axiosInstance.post(
-//           `${apiendpoints.createBookigByPlace}?onSite=${false}`,
-//           booking,
-//         );
-//         return data;
-//       },
-//       {
-//         onSuccess: (response: any) => {
-//           // queryClient.invalidateQueries([queryKeys.getTicketType]);
-//           // showSuccessToastMessage("Ticket Type deleted successfully");
-//           // showSuccessToastMessage(response.message);
-//           successCallback(response?.result);
-//         },
-//         onError: (error: any, context) => {
-//           //@ts-ignore
-//           showErrorToastMessage(error.response.data.message === "Invalid Data" ? "Server is busy.Please try again." : error.response.data.message);
-//           failureCallback(error);
-//         },
-//       },
-//     );
-//   };
-
 export const DeleteReviewRating = () => {
-  return useMutation(
-    [queryKeys.deleteReviewRating],
-    async ({ ticketBookingId }: { ticketBookingId: string }) => {
+  return useMutation({
+    mutationKey: [queryKeys.deleteReviewRating],
+    mutationFn: async ({ ticketBookingId }: { ticketBookingId: string }) => {
       const { data } = await axiosInstance.put(
         `${apiendpoints.deleteReviewRating}?id=${ticketBookingId}`,
       );
       return data;
     },
-    {
-      onSuccess: (response: any, context) => {
-
-        queryClient.invalidateQueries([queryKeys.GetBookingDetails]);
-        // showSuccessToastMessage("Ticket Type deleted successfully");
-        showSuccessToastMessage(response.message);
-        //successCallback(response?.result);
-      },
-      onError: (error: any, context) => {
-        showErrorToastMessage(error.response.data.message);
-        //failureCallback(error);
-      },
+    onSuccess: (response: any) => {
+      queryClient.invalidateQueries({ queryKey: [queryKeys.GetBookingDetails] });
+      showSuccessToastMessage(response.message);
     },
-  );
+    onError: (error: any) => {
+      showErrorToastMessage(error.response.data.message);
+    },
+  });
 };
