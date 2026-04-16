@@ -1115,7 +1115,7 @@ button {
   background: linear-gradient(to top, rgba(11, 26, 18, .9) 0%, rgba(11, 26, 18, .08) 55%, transparent 100%);
 }
 
-.wild-foot {
+/* .wild-foot {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -1151,7 +1151,7 @@ button {
 .wild-bar span {
   font-size: 9px;
   color: rgba(255, 255, 255, .55);
-}
+} */
 
 /* ── MUSEUMS ── */
 #museums {
@@ -4063,6 +4063,16 @@ button {
 }
 
 /* TAG */
+.sariska-tag {
+  position: absolute;
+  top: 12px;
+  background: #D4A017;
+  color: #000;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
 .tag {
   position: absolute;
   top: 12px;

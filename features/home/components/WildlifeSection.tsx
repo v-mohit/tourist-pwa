@@ -1,5 +1,6 @@
 import Link from "next/link";
 import BookNowButton from "@/features/booking/components/BookNowButton";
+import Image from "next/image";
 
 export default function WildlifeSection({ data }: any) {
   const places = data?.category?.data?.attributes?.places?.data || [];
@@ -45,8 +46,7 @@ export default function WildlifeSection({ data }: any) {
         <div
           className="dimg"
           style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1561731216-c3a4d99437d5?w=1400')",
+            backgroundImage: "url(./images/tiger.jpg)",
           }}
         />
         <div className="wild-hero-grad" />
@@ -54,11 +54,11 @@ export default function WildlifeSection({ data }: any) {
           className="wild-hero-body"
           style={{ position: "relative", zIndex: 1 }}
         >
-          <span className="tag tn">🐯 Project Tiger Reserve</span>
+          <span className="sariska-tag tn">🐯 Project Tiger Reserve</span>
           <h2>{heroName}</h2>
           <div className="wild-facts">
             <div className="wf">
-              <img
+              <Image
                 src="/icons/google-maps.png"
                 width={12}
                 height={12}
@@ -145,65 +145,63 @@ export default function WildlifeSection({ data }: any) {
 
           const fee =
             ticketBlock?.card?.[0]?.content?.find((c: any) =>
-              c.name.includes("Adult"),
+              c.name.includes("Indian"),
             )?.value || "50";
 
           return (
             <div
               key={item.id}
-              className="wild-card"
-              style={{
-                display: "block",
-                cursor: "pointer",
-                position: "relative",
-              }}
+              className="relative rounded-2xl overflow-hidden cursor-pointer group"
             >
+              {/* Full clickable layer */}
               <Link
                 href={`/place-detail/${placeSlug}`}
                 className="absolute inset-0 z-0"
-                aria-label={`View details for ${name}`}
               />
+
+              {/* Background Image */}
               <div
-                className="dimg"
+                className="h-[260px] w-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
                 style={{ backgroundImage: `url('${img}')` }}
               />
-              <div className="wild-grad" />
 
-              {/* Tag (static fallback) */}
-              <div className="wild-top">
-                <span className="tag tn" style={{ fontSize: 9 }}>
+              {/* Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+
+              {/* Top Tag */}
+              <div className="absolute top-3 right-3 z-10">
+                <span className="bg-yellow-400 text-black text-[10px] px-2 py-1 rounded-full font-semibold">
                   🐾 Wildlife
                 </span>
               </div>
 
-              <div
-                className="wild-foot"
-                style={{ position: "relative", zIndex: 1 }}
-              >
-                <h4>{name}</h4>
+              {/* Bottom Content */}
+              <div className="absolute bottom-0 left-0 w-full p-4 z-10 text-white">
+                <h4 className="text-sm font-semibold">{name}</h4>
 
-                {/* Meta (dynamic + fallback mix) */}
-                <div className="wild-bar">
+                <div className="text-xs opacity-90 mt-1 flex items-center gap-1">
+                  <Image
+                    src="/icons/google-maps.png"
+                    width={12}
+                    height={12}
+                    alt="Location"
+                  />
                   <span>
-                    <img
-                      src="/icons/google-maps.png"
-                      width={12}
-                      height={12}
-                      alt="Location"
-                      className="loc-ico mr-1"
-                    />
                     {city} · ⏰ {time} · ₹{fee}
                   </span>
                 </div>
 
-                <div
-                  style={{
-                    marginTop: 12,
-                    display: "flex",
-                    gap: 8,
-                    flexWrap: "wrap",
-                  }}
-                >
+                {/* Actions */}
+                <div className="mt-3 flex items-center justify-between">
+                  {/* LEFT → View Details */}
+                  <Link
+                    href={`/place-detail/${placeSlug}`}
+                    className="border border-white text-white text-xs px-3 py-1 rounded-full backdrop-blur-sm"
+                  >
+                    View Details
+                  </Link>
+
+                  {/* RIGHT → Book Safari */}
                   {locationId ? (
                     <BookNowButton
                       config={{
@@ -213,23 +211,16 @@ export default function WildlifeSection({ data }: any) {
                         locationId,
                       }}
                       label="Book Safari →"
-                      className="btn-p"
+                      className="bg-orange-500 text-white text-xs px-3 py-1 rounded-full"
                     />
                   ) : (
                     <button
-                      className="btn-p opacity-40 cursor-not-allowed"
+                      className="bg-orange-500 text-white text-xs px-3 py-1 rounded-full opacity-40 cursor-not-allowed"
                       disabled
                     >
                       Book Safari →
                     </button>
                   )}
-                  <Link
-                    href={`/place-detail/${placeSlug}`}
-                    className="btn-g"
-                    style={{ position: "relative", zIndex: 1 }}
-                  >
-                    View Details
-                  </Link>
                 </div>
               </div>
             </div>
