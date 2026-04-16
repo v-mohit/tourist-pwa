@@ -1,61 +1,66 @@
-'use client'
+"use client";
 
-import { useState, useRef, useEffect } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import clsx from 'clsx'
-import { useAuth } from '@/features/auth/context/AuthContext'
-import { GetUserDetails } from '@/services/apiCalls/login.service'
+import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import clsx from "clsx";
+import { useAuth } from "@/features/auth/context/AuthContext";
+import { GetUserDetails } from "@/services/apiCalls/login.service";
 
 export default function Header() {
-  const router = useRouter()
-  const [mounted, setMounted] = useState(false)
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-  const [activeLink, setActiveLink] = useState('')
-  const [userMenuOpen, setUserMenuOpen] = useState(false)
-  const userMenuRef = useRef<HTMLDivElement>(null)
-  const { user, openLoginModal, logout } = useAuth()
+  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [activeLink, setActiveLink] = useState("");
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const { user, openLoginModal, logout } = useAuth();
 
-  useEffect(() => { setMounted(true) }, [])
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Fetch full user profile using `sub` from JWT cookie
-const { data: userDetailData } = GetUserDetails(user?.sub) as any;
+  const { data: userDetailData } = GetUserDetails(user?.sub) as any;
 
-const displayName =
-  user?.ssoid ??
-  userDetailData?.data?.result?.displayName ??
-  user?.displayName ??
-  user?.fullName ??
-  user?.email ??
-  "";
+  const displayName =
+    user?.ssoid ??
+    userDetailData?.result?.displayName ??
+    user?.displayName ??
+    user?.fullName ??
+    user?.email ??
+    "";
 
   const navLinks = [
-    { label: 'Explore', href: '#destinations' },
-    { label: 'Packages', href: '#packages' },
-    { label: 'Monuments', href: '#monuments' },
-    { label: 'Wildlife', href: '#wildlife' },
-    { label: 'RTDC Hotels', href: '#rtdc' },
-    { label: 'JKK', href: '#venues' },
-    { label: 'Parks', href: '#parks' },
-    { label: 'App', href: '#app' },
-    { label: 'Reviews', href: '#feedback' },
-  ]
+    { label: "Explore", href: "#destinations" },
+    { label: "Packages", href: "#packages" },
+    { label: "Monuments", href: "#monuments" },
+    { label: "Wildlife", href: "#wildlife" },
+    { label: "RTDC Hotels", href: "#rtdc" },
+    { label: "JKK", href: "#venues" },
+    { label: "Parks", href: "#parks" },
+    { label: "App", href: "#app" },
+    { label: "Reviews", href: "#feedback" },
+  ];
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
-        setUserMenuOpen(false)
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(e.target as Node)
+      ) {
+        setUserMenuOpen(false);
       }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleNavClick = (href: string) => {
-    setActiveLink(href)
-    setIsDrawerOpen(false)
-  }
+    setActiveLink(href);
+    setIsDrawerOpen(false);
+  };
 
   return (
     <>
@@ -84,8 +89,10 @@ const displayName =
               href={link.href}
               onClick={() => handleNavClick(link.href)}
               className={clsx(
-                'text-sm font-medium transition-colors duration-200',
-                activeLink === link.href ? 'text-[#E8631A]' : 'text-[#7A6A58] hover:text-[#E8631A]'
+                "text-sm font-medium transition-colors duration-200",
+                activeLink === link.href
+                  ? "text-[#E8631A]"
+                  : "text-[#7A6A58] hover:text-[#E8631A]",
               )}
             >
               {link.label}
@@ -105,7 +112,13 @@ const displayName =
                 onClick={() => setUserMenuOpen((prev) => !prev)}
                 className="flex items-center gap-2 px-4 py-2 bg-[#E8631A] text-white text-[13px] font-semibold rounded-full transition-all hover:opacity-90 shadow-[0_2px_8px_rgba(232,99,26,0.3)]"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 448 512" fill="currentColor">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 448 512"
+                  fill="currentColor"
+                >
                   <path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z" />
                 </svg>
                 <span className="max-w-[110px] truncate">{displayName}</span>
@@ -115,28 +128,46 @@ const displayName =
                   height="12"
                   viewBox="0 0 24 24"
                   fill="none"
-                  style={{ transform: userMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }}
+                  style={{
+                    transform: userMenuOpen ? "rotate(180deg)" : "rotate(0deg)",
+                    transition: "transform 0.2s ease",
+                  }}
                 >
-                  <path d="M6 9L12 15L18 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path
+                    d="M6 9L12 15L18 9"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </button>
 
               {userMenuOpen && (
                 <ul className="absolute right-0 mt-2 min-w-[170px] overflow-hidden rounded-xl border border-[#E8DAC5] bg-white shadow-[0_8px_24px_rgba(24,18,14,0.12)] z-[1200]">
                   <li
-                    onClick={() => { setUserMenuOpen(false); router.push('/my-bookings') }}
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      router.push("/my-bookings");
+                    }}
                     className="px-4 py-2.5 text-[13px] text-[#18120E] cursor-pointer hover:bg-[#F5E8CC]"
                   >
                     My Bookings
                   </li>
                   <li
-                    onClick={() => { setUserMenuOpen(false); router.push('/my-grievance') }}
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      router.push("/my-grievance");
+                    }}
                     className="px-4 py-2.5 text-[13px] text-[#18120E] cursor-pointer hover:bg-[#F5E8CC]"
                   >
                     My Grievance
                   </li>
                   <li
-                    onClick={() => { setUserMenuOpen(false); logout() }}
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      logout();
+                    }}
                     className="px-4 py-2.5 text-[13px] text-[#18120E] cursor-pointer hover:bg-[#F5E8CC]"
                   >
                     Logout
@@ -165,9 +196,24 @@ const displayName =
             aria-controls="drawer"
             aria-label="Open navigation menu"
           >
-            <span className={clsx('block w-5.5 h-0.5 bg-[#2C2017] rounded transition-all duration-300', isDrawerOpen ? 'rotate-45 translate-y-[13px]' : '')} />
-            <span className={clsx('block w-5.5 h-0.5 bg-[#2C2017] rounded transition-all duration-300', isDrawerOpen ? 'opacity-0' : '')} />
-            <span className={clsx('block w-5.5 h-0.5 bg-[#2C2017] rounded transition-all duration-300', isDrawerOpen ? '-rotate-45 -translate-y-[13px]' : '')} />
+            <span
+              className={clsx(
+                "block w-5.5 h-0.5 bg-[#2C2017] rounded transition-all duration-300",
+                isDrawerOpen ? "rotate-45 translate-y-[13px]" : "",
+              )}
+            />
+            <span
+              className={clsx(
+                "block w-5.5 h-0.5 bg-[#2C2017] rounded transition-all duration-300",
+                isDrawerOpen ? "opacity-0" : "",
+              )}
+            />
+            <span
+              className={clsx(
+                "block w-5.5 h-0.5 bg-[#2C2017] rounded transition-all duration-300",
+                isDrawerOpen ? "-rotate-45 -translate-y-[13px]" : "",
+              )}
+            />
           </button>
         </div>
       </nav>
@@ -176,8 +222,10 @@ const displayName =
       <div
         id="drawer"
         className={clsx(
-          'lg:hidden fixed top-16 left-0 right-0 bg-white border-b border-[#E8DAC5] px-6 py-4 z-290 flex flex-col gap-0.5 shadow-[0_12px_48px_rgba(24,18,14,0.16)] transition-all duration-300 origin-top',
-          isDrawerOpen ? 'opacity-100 visible scale-y-100' : 'opacity-0 invisible scale-y-95'
+          "lg:hidden fixed top-16 left-0 right-0 bg-white border-b border-[#E8DAC5] px-6 py-4 z-290 flex flex-col gap-0.5 shadow-[0_12px_48px_rgba(24,18,14,0.16)] transition-all duration-300 origin-top",
+          isDrawerOpen
+            ? "opacity-100 visible scale-y-100"
+            : "opacity-0 invisible scale-y-95",
         )}
       >
         {navLinks.map((link) => (
@@ -200,19 +248,28 @@ const displayName =
                 👤 {displayName}
               </span>
               <button
-                onClick={() => { setIsDrawerOpen(false); router.push('/my-bookings') }}
+                onClick={() => {
+                  setIsDrawerOpen(false);
+                  router.push("/my-bookings");
+                }}
                 className="px-4 py-2.5 text-[13px] text-left text-[#18120E] rounded-[10px] hover:bg-[#F5E8CC] transition-colors"
               >
                 My Bookings
               </button>
               <button
-                onClick={() => { setIsDrawerOpen(false); router.push('/my-grievance') }}
+                onClick={() => {
+                  setIsDrawerOpen(false);
+                  router.push("/my-grievance");
+                }}
                 className="px-4 py-2.5 text-[13px] text-left text-[#18120E] rounded-[10px] hover:bg-[#F5E8CC] transition-colors"
               >
                 My Grievance
               </button>
               <button
-                onClick={() => { setIsDrawerOpen(false); logout() }}
+                onClick={() => {
+                  setIsDrawerOpen(false);
+                  logout();
+                }}
                 className="px-4 py-2.5 text-[13px] text-left text-[#18120E] rounded-[10px] hover:bg-[#F5E8CC] transition-colors"
               >
                 Logout
@@ -220,7 +277,10 @@ const displayName =
             </>
           ) : (
             <button
-              onClick={() => { openLoginModal(); setIsDrawerOpen(false) }}
+              onClick={() => {
+                openLoginModal();
+                setIsDrawerOpen(false);
+              }}
               className="w-full px-4 py-2.75 bg-[#E8631A] text-white text-sm font-bold rounded-full transition-all duration-200 hover:bg-[#C04E0A]"
             >
               Login
@@ -232,5 +292,5 @@ const displayName =
       {/* Spacer for fixed nav */}
       <div className="h-16 md:h-[66px]" />
     </>
-  )
+  );
 }
