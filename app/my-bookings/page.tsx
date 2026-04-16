@@ -343,7 +343,10 @@ export default function MyBookingsPage() {
                           <span className={`booking-status ${statusClass}`}>{statusLabel}</span>
                         </div>
                         <div className="booking-name">{b.name}</div>
-                        <div className="booking-loc">📍 {b.location}</div>
+                        <div className="booking-loc">
+                          <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
+                          {b.location}
+                        </div>
 
                         <div className="booking-meta">
                           <div className="bm-item">
@@ -519,7 +522,10 @@ export default function MyBookingsPage() {
                     <div className="drawer-img-grad" />
                     <div className="drawer-img-foot">
                       <h2>{selectedBooking.name}</h2>
-                      <p>📍 {selectedBooking.city}, {selectedBooking.state}</p>
+                      <p>
+                        <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
+                        {selectedBooking.city}, {selectedBooking.state}
+                      </p>
                     </div>
                   </div>
 

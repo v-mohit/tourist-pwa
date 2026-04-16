@@ -133,7 +133,10 @@ export default function TopDestinations({
               <div className="dest-foot">
                 <h3>{name}</h3>
                 <div className="dest-meta">
-                  <span>📍 Rajasthan, India</span>
+                  <span>
+                    <img src="/icons/google-maps.png" width={10} height={10} alt="Location" className="loc-ico mr-1" />
+                    Rajasthan, India
+                  </span>
                   <span>🏛 Must Visit</span>
                 </div>
               </div>

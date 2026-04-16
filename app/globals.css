@@ -150,6 +150,13 @@ button {
   border: 1px solid rgba(212, 160, 23, .38);
 }
 
+.loc-ico {
+  display: inline-block;
+  vertical-align: middle;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .tw {
   background: rgba(255, 255, 255, .2);
   color: #fff;
@@ -2075,6 +2082,8 @@ button {
 .pd-map-pin {
   font-size: 40px;
   margin-bottom: 12px;
+  display: flex;
+  justify-content: center;
 }
 
 .pd-book-card {

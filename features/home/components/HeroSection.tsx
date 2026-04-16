@@ -37,7 +37,7 @@ const SLIDES = [
   },
   {
     id: 4,
-    title1: 'Lakes City',
+    title1: 'Udaipur',
     title2: 'City of Lakes',
     sub: "Lose yourself in the Venice of the East, where white marble palaces float on tranquil waters under the watchful Aravali hills.",
     img: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=1920&auto=format&fit=crop&q=90',

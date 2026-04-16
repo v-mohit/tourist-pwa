@@ -33,24 +33,47 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
 
   const places = city.places?.data || [];
   
-  // Categorize places for stats and filtering
+  // Dynamically derive categories from places
+  const categories = React.useMemo(() => {
+    const catSet = new Set<string>();
+    places.forEach((p: any) => {
+      p.attributes.categories?.data?.forEach((c: any) => {
+        if (c.attributes.Name) catSet.add(c.attributes.Name);
+      });
+    });
+    return ['All', ...Array.from(catSet)].sort((a, b) => {
+      if (a === 'All') return -1;
+      if (b === 'All') return 1;
+      return a.localeCompare(b);
+    });
+  }, [places]);
+
+  const getCatIcon = (cat: string) => {
+    const lower = cat.toLowerCase();
+    if (lower === 'all') return '';
+    if (lower.includes('museum')) return '🏛 ';
+    if (lower.includes('wildlife')) return '🌿 ';
+    if (lower.includes('monument')) return '🏯 ';
+    if (lower.includes('park')) return '🌳 ';
+    if (lower.includes('cafeteria')) return '☕ ';
+    if (lower.includes('hotel') || lower.includes('rtdc')) return '🏨 ';
+    if (lower.includes('fort')) return '🏰 ';
+    return '✦ ';
+  };
+
+  // Categorize places for stats
   const museums = places.filter((p: any) => 
     p.attributes.categories?.data?.some((c: any) => c.attributes.Name.toLowerCase().includes('museum'))
   );
   const wildlife = places.filter((p: any) => 
     p.attributes.categories?.data?.some((c: any) => c.attributes.Name.toLowerCase().includes('wildlife'))
   );
-  const monuments = places.filter((p: any) => 
-    p.attributes.categories?.data?.some((c: any) => c.attributes.Name.toLowerCase().includes('monument'))
-  );
 
-  const categories = ['All', 'Museums', 'Wildlife', 'Monuments', 'Parks'];
-  
   const filteredPlaces = activeCategory === 'All' 
     ? places 
     : places.filter((p: any) => 
         p.attributes.categories?.data?.some((c: any) => 
-          c.attributes.Name.toLowerCase().includes(activeCategory.toLowerCase().replace('s', ''))
+          c.attributes.Name === activeCategory
         )
       );
 
@@ -75,7 +98,10 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
           <div className="cc-hero-foot">
             <div className="cc-city-name">{cityName} — <em>{nickname}</em></div>
             <div className="cc-meta-row">
-              <span className="cc-meta-pill">📍 Rajasthan</span>
+              <span className="cc-meta-pill">
+                <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
+                Rajasthan
+              </span>
               <span className="cc-meta-pill">⭐ 4.9 Rated</span>
               <span className="cc-meta-pill">🏛 {places.length} Bookable Places</span>
             </div>
@@ -105,7 +131,10 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
                 )}
                 {!reach.planeRoute && !reach.trainRoute && !reach.carRoute && (
                   <span className="cc-reach">
-                    <span className="cc-reach-ico">📍</span> Well connected to major cities
+                    <span className="cc-reach-ico">
+                      <img src="/icons/google-maps.png" width={14} height={14} alt="Location" className="loc-ico" />
+                    </span>{' '}
+                    Well connected to major cities
                   </span>
                 )}
               </div>
@@ -130,7 +159,10 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
         {/* Places Header + Filter */}
         <div className="cc-places-hd">
           <div>
-            <div className="cc-places-title">📍 Places to Visit &amp; Book</div>
+            <div className="cc-places-title">
+              <img src="/icons/google-maps.png" width={16} height={16} alt="Location" className="loc-ico mr-1" />
+              Places to Visit &amp; Book
+            </div>
             <div className="cc-places-sub">Bookable attractions around {cityName}</div>
           </div>
         </div>
@@ -143,7 +175,7 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
               className={`cc-cat ${activeCategory === cat ? 'active' : ''}`}
               onClick={() => setActiveCategory(cat)}
             >
-              {cat === 'All' ? '' : cat === 'Museums' ? '🏛 ' : cat === 'Wildlife' ? '🌿 ' : cat === 'Monuments' ? '🏯 ' : '🌳 '}{cat}
+              {getCatIcon(cat)}{cat}
             </button>
           ))}
         </div>
@@ -176,7 +208,10 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
                 <div className="cc-pc-body">
                   {/* <div className="cc-pc-type">Government</div> */}
                   <div className="cc-pc-name">{attr.name}</div>
-                  <div className="cc-pc-loc">📍 {cityName}</div>
+                  <div className="cc-pc-loc">
+                    <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
+                    {cityName}
+                  </div>
                   {/* <span className="bookable-badge">✓ Bookable</span> */}
                   <div className="cc-pc-foot">
                     <span className="cc-pc-fee">starting from ₹50</span>

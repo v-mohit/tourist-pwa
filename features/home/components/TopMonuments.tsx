@@ -88,7 +88,10 @@ export default function TopMonuments({ data }: any) {
               {/* Body */}
               <div className="mon-body">
                 <div className="mon-name">{name}</div>
-                <div className="mon-loc">📍 {loc}</div>
+                <div className="mon-loc">
+                  <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
+                  {loc}
+                </div>
 
                 {/* Static chips (since API doesn't provide) */}
                 <div className="mon-chips">

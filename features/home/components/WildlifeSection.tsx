@@ -36,7 +36,10 @@ export default function WildlifeSection({ data }: any) {
           <span className="tag tn">🐯 Project Tiger Reserve</span>
           <h2>Sariska Tiger Reserve</h2>
           <div className="wild-facts">
-            <div className="wf">📍 <b>Alwar</b></div>
+            <div className="wf">
+              <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
+              <b>Alwar</b>
+            </div>
             <div className="wf">🌿 <b>800 km²</b></div>
             <div className="wf">🐯 <b>30+ Tigers</b></div>
             <div className="wf">📅 <b>Oct–Jun</b></div>
@@ -114,7 +117,8 @@ export default function WildlifeSection({ data }: any) {
                 {/* Meta (dynamic + fallback mix) */}
                 <div className="wild-bar">
                   <span>
-                    📍 {city} · ⏰ {time} · ₹{fee}
+                    <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
+                    {city} · ⏰ {time} · ₹{fee}
                   </span>
                 </div>
               </div>

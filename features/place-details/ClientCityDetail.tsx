@@ -164,7 +164,10 @@ function PlaceDetailContent({ placeData, contentData }: { placeData: any; conten
         <div className="pd-left">
           <span className="pd-tag">{placeData?.categories?.data?.[0]?.attributes?.Name || mockPlace.tag}</span>
           <h1 className="pd-title">{name}</h1>
-          <div className="pd-loc">📍 {loc}</div>
+          <div className="pd-loc">
+            <img src="/icons/google-maps.png" width={16} height={16} alt="Location" className="loc-ico mr-1 align-text-bottom" />
+            {loc}
+          </div>
           <div className="pd-meta-row">
             <span className="pd-meta-badge">⭐ {mockPlace.rating}</span>
             <span className="pd-meta-badge">🎟 Entry: {entryFee}</span>
@@ -252,7 +255,9 @@ function PlaceDetailContent({ placeData, contentData }: { placeData: any; conten
 
           <div className={activeTab === 'location' ? '' : 'pd-tab-hidden'}>
             <div className="pd-map-placeholder">
-              <div className="pd-map-pin">📍</div>
+              <div className="pd-map-pin">
+                <img src="/icons/google-maps.png" width={40} height={40} alt="Location" className="loc-ico" />
+              </div>
               <p>{overviewBlock?.overview?.address || 'Interactive map coming soon.'}</p>
               <p style={{ fontSize: '12px', color: 'var(--mu)', marginTop: '4px' }}>Use Google Maps for directions</p>
               <a className="btn-sm" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + ' ' + loc)}`} target="_blank" rel="noopener noreferrer" style={{ marginTop: '12px', display: 'inline-flex' }}>
@@ -296,7 +301,9 @@ function PlaceDetailContent({ placeData, contentData }: { placeData: any; conten
             <div className="pd-nearby-grid">
               {nearby.filter(n => n !== name).slice(0, 8).map((n: string, i: number) => (
                 <div key={i} className="pd-nearby-card">
-                  <div className="pd-nearby-ico">📍</div>
+                  <div className="pd-nearby-ico">
+                    <img src="/icons/google-maps.png" width={16} height={16} alt="Location" className="loc-ico" />
+                  </div>
                   <div className="pd-nearby-name">{n}</div>
                 </div>
               ))}

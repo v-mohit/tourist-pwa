@@ -167,7 +167,10 @@ const PackageSeeAll = ({ packageData }: any) => {
               <div className="pkg-body">
                 <h3>{pkg.name}</h3>
                 <div className="pkg-info" style={{ marginTop: '12px' }}>
-                  <div className="pkg-ii">📍 {pkg.city}</div>
+                  <div className="pkg-ii">
+                    <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
+                    {pkg.city}
+                  </div>
                   {pkg.infos.slice(1).map((info: string) => (
                     <div key={info} className="pkg-ii">{info}</div>
                   ))}
