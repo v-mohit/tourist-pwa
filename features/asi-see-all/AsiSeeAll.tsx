@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState } from 'react';
 import Link from 'next/link';
 
@@ -93,7 +92,10 @@ const AsiSeeAll = ({ data }: any) => {
                 <div className="sa-body">
                   <div className="sa-cat">Historic Monument</div>
                   <h4 className="sa-name text-ellipsis overflow-hidden">{attr.name}</h4>
-                  <div className="sa-loc">📍 {cityName}</div>
+                  <div className="sa-loc">
+                    <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
+                    {cityName}
+                  </div>
                   <div className="sa-desc">
                     Explore one of Rajasthan's nationally protected heritage sites. Managed by the Archaeological Survey of India.
                   </div>

@@ -202,7 +202,10 @@ const TouristAttraction: React.FC<TouristAttractionProps> = ({ data }) => {
                   </div>
                   <div className="sa-img-foot">
                     <div className="sa-name">{attr.name}</div>
-                    <div className="sa-nickname">📍 {cityName}</div>
+                    <div className="sa-nickname">
+                      <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
+                      {cityName}
+                    </div>
                   </div>
                 </div>
                 <div className="sa-body">

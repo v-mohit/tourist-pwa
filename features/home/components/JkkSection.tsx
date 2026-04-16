@@ -145,10 +145,13 @@ const JkkSection = ({
                       "Experience a soulful cultural evening at JKK."}
                   </p>
 
-                  <div className="event-meta">
-                    <span>⏰ {attr?.eventTime || "6:00 PM"}</span>
-                    <span>📍 {attr?.sectionName || "Rangayan Hall"}</span>
-                  </div>
+                    <div className="event-meta">
+                      <span>⏰ {attr?.eventTime || "6:00 PM"}</span>
+                      <span>
+                        <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
+                        {attr?.sectionName || "Rangayan Hall"}
+                      </span>
+                    </div>
 
                   {attr?.isFeatured && <span className="tag">Featured</span>}
                 </div>

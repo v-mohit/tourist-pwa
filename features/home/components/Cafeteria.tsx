@@ -140,7 +140,10 @@ const Cafeteria = ({ data }: { data?: any }) => {
                 <p>{desc}</p>
 
                 <div className="cafe-row">
-                  <span className="cafe-ri">📍 {location}</span>
+                  <span className="cafe-ri">
+                    <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
+                    {location}
+                  </span>
                   <span className="cafe-ri">⭐ {fallback.rating}</span>
                 </div>
 

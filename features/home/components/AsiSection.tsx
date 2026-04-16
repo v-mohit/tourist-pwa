@@ -116,7 +116,10 @@ const AsiSection = ({ data }: any) => {
                   </div>
                   <div className="asi-body">
                     <div className="asi-name text-ellipsis overflow-hidden whitespace-nowrap" title={attr.name}>{attr.name}</div>
-                    <div className="asi-loc">📍 {cityName}</div>
+                    <div className="asi-loc">
+                      <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
+                      {cityName}
+                    </div>
                     <div className="asi-foot">
                       <span className="asi-time">⏰ {timing}</span>
                       <span className="asi-entry">{entryFee}</span>

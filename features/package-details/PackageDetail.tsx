@@ -156,7 +156,10 @@ const PackageDetail = ({ data }: any) => {
                       )}
                       <div className="place-body">
                         <h3 className="place-name uppercase">{placeName}</h3>
-                        <div className="place-loc">📍 {pAttr.city?.data?.attributes?.name || ''}</div>
+                        <div className="place-loc">
+                          <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
+                          {pAttr.city?.data?.attributes?.name || ''}
+                        </div>
                         <div className="mb-4">
                           {pCats.slice(0, 2).map((c: any, i: number) => (
                             <span key={i} className="text-[9px] text-[var(--mu)] bg-[var(--sand)] px-2 py-0.5 rounded-full mr-1">
