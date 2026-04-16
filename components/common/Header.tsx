@@ -19,14 +19,15 @@ export default function Header() {
   useEffect(() => { setMounted(true) }, [])
 
   // Fetch full user profile using `sub` from JWT cookie
-  const { data: userDetailData } = GetUserDetails(user?.sub)
-  const displayName =
-    user?.ssoid ||
-    userDetailData?.data?.result?.displayName ||
-    user?.displayName ||
-    user?.fullName ||
-    user?.email ||
-    ''
+const { data: userDetailData } = GetUserDetails(user?.sub) as any;
+
+const displayName =
+  user?.ssoid ??
+  userDetailData?.data?.result?.displayName ??
+  user?.displayName ??
+  user?.fullName ??
+  user?.email ??
+  "";
 
   const navLinks = [
     { label: 'Explore', href: '#destinations' },

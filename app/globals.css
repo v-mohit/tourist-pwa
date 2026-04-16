@@ -1,5 +1,56 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Playfair Display */
+@font-face {
+  font-family: 'Playfair Display';
+  src: url('/fonts/playfair/PlayfairDisplay-Regular.ttf') format('truetype');
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Playfair Display';
+  src: url('/fonts/playfair/PlayfairDisplay-Bold.ttf') format('truetype');
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Playfair Display';
+  src: url('/fonts/playfair/PlayfairDisplay-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+}
+
+/* Inter */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter/Inter-Light-BETA.ttf') format('truetype');
+  font-weight: 300;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter/Inter-Regular.ttf') format('truetype');
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter/Inter-Medium.ttf') format('truetype');
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter/Inter-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter/Inter-Bold.ttf') format('truetype');
+  font-weight: 700;
+}
+
 
 :root {
   /* Color Variables */
