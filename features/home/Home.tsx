@@ -1,22 +1,48 @@
-import { Suspense } from "react";
-import { useMemo } from "react";
+import dynamic from "next/dynamic";
+import { Suspense, useMemo } from "react";
 import HeroSection from "./components/HeroSection";
 import StatsBar from "./components/StatsBar";
 import TabsBar from "./components/TabsBar";
 import TopDestinations from "./components/TopDestinations";
-import PackagesSection from "./components/PackagesSection";
-import FeaturesSection from "./components/FeaturesSection";
-import TopMonuments from "./components/TopMonuments";
-import WildlifeSection from "./components/WildlifeSection";
-import MuseumsSection from "./components/MuseumsSection";
-import HomeClient from "./HomeClient";
-import JkkSection from "./components/JkkSection";
-import HotelSection from "../hotels/hotelSection";
-import ParkSection from "./components/ParkSection";
-import TouristStats from "./components/TouristStats";
-import LightSoundShow from "./components/Light&SoundShow";
-import Cafeteria from "./components/Cafeteria";
-import AsiSection from "./components/AsiSection";
+const PackagesSection = dynamic(() => import("./components/PackagesSection"), {
+  loading: () => <div className="min-h-[420px] bg-[#f8f3e8] animate-pulse" />,
+});
+const FeaturesSection = dynamic(() => import("./components/FeaturesSection"), {
+  loading: () => <div className="min-h-[240px] bg-[#f8f3e8] animate-pulse" />,
+});
+const TopMonuments = dynamic(() => import("./components/TopMonuments"), {
+  loading: () => <div className="min-h-[340px] bg-[#f8f3e8] animate-pulse" />,
+});
+const WildlifeSection = dynamic(() => import("./components/WildlifeSection"), {
+  loading: () => <div className="min-h-[340px] bg-[#f8f3e8] animate-pulse" />,
+});
+const MuseumsSection = dynamic(() => import("./components/MuseumsSection"), {
+  loading: () => <div className="min-h-[340px] bg-[#f8f3e8] animate-pulse" />,
+});
+const HomeClient = dynamic(() => import("./HomeClient"), {
+  loading: () => <div className="min-h-[280px] bg-[#f8f3e8] animate-pulse" />,
+});
+const JkkSection = dynamic(() => import("./components/JkkSection"), {
+  loading: () => <div className="min-h-[260px] bg-[#f8f3e8] animate-pulse" />,
+});
+const HotelSection = dynamic(() => import("../hotels/hotelSection"), {
+  loading: () => <div className="min-h-[260px] bg-[#f8f3e8] animate-pulse" />,
+});
+const ParkSection = dynamic(() => import("./components/ParkSection"), {
+  loading: () => <div className="min-h-[240px] bg-[#f8f3e8] animate-pulse" />,
+});
+const TouristStats = dynamic(() => import("./components/TouristStats"), {
+  loading: () => <div className="min-h-[240px] bg-[#f8f3e8] animate-pulse" />,
+});
+const LightSoundShow = dynamic(() => import("./components/Light&SoundShow"), {
+  loading: () => <div className="min-h-[320px] bg-[#f8f3e8] animate-pulse" />,
+});
+const Cafeteria = dynamic(() => import("./components/Cafeteria"), {
+  loading: () => <div className="min-h-[260px] bg-[#f8f3e8] animate-pulse" />,
+});
+const AsiSection = dynamic(() => import("./components/AsiSection"), {
+  loading: () => <div className="min-h-[260px] bg-[#f8f3e8] animate-pulse" />,
+});
 
 interface HomeProps {
   data?: any;
@@ -39,9 +65,8 @@ export default function Home({
 }: HomeProps) {
   const sections = data?.home?.data?.attributes?.home || [];
   const updatedDepartmentData = departmentData?.departments?.data?.find(
-  (dept: any) =>
-    dept?.attributes?.Name === "Archaeological Survey of India"
-)?.attributes;
+    (dept: any) => dept?.attributes?.Name === "Archaeological Survey of India",
+  )?.attributes;
 
   const sectionMap = useMemo(() => {
     return sections.reduce((acc: any, section: any) => {
@@ -73,7 +98,7 @@ export default function Home({
       <HotelSection />
       <ParkSection data={sectionMap["ComponentHomeParks"]} />
       <TouristStats />
-      <AsiSection  data={updatedDepartmentData}/>
+      <AsiSection data={updatedDepartmentData} />
       <FeaturesSection />
       <HomeClient />
     </div>

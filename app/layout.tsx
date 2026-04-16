@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-import ThemeRegistry from "./ThemeRegistry";
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
 import AppLoader from "@/components/common/AppLoader";
@@ -41,21 +40,19 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-[#FDF8F1]">
         <AuthProvider>
           <BookingProvider>
-            <ThemeRegistry>
-              <Providers>
-                <Header />
-                <main className="flex-1">
-                  <AppLoader>{children}</AppLoader>
-                </main>
-                <Footer />
-                {/* Auth modal — always mounted */}
-                <AuthModal />
-                {/* Booking modal — always mounted, opens on demand */}
-                <BookingModal />
-                {/* Closes all modals and opens login on any 401 response */}
-                <UnauthorizedHandler />
-              </Providers>
-            </ThemeRegistry>
+            <Providers>
+              <Header />
+              <main className="flex-1">
+                <AppLoader>{children}</AppLoader>
+              </main>
+              <Footer />
+              {/* Auth modal — always mounted */}
+              <AuthModal />
+              {/* Booking modal — always mounted, opens on demand */}
+              <BookingModal />
+              {/* Closes all modals and opens login on any 401 response */}
+              <UnauthorizedHandler />
+            </Providers>
           </BookingProvider>
         </AuthProvider>
       </body>
