@@ -33,6 +33,9 @@ export default async function Page() {
     graphqlClient.request(FetchDepartmentDataDocument, {}),
   ]);
 
+console.log("data >>>>>>>>>>",departmentData);
+
+
   const props = {
     data,
     cityData,

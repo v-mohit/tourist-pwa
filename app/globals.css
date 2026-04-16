@@ -1442,6 +1442,112 @@ button {
   color: var(--mu);
 }
 
+/* ── PARTNERS ── */
+#partners {
+  background: var(--cream);
+}
+
+.partners-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.partner-card {
+  background: #fff;
+  border-radius: var(--rl);
+  padding: 30px 24px;
+  text-align: center;
+  box-shadow: var(--sh0);
+  border: 1px solid var(--bdr);
+  transition: transform .3s, box-shadow .3s;
+}
+
+.partner-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--sh1);
+}
+
+.partner-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+.partner-icon-img {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 6px 18px rgba(24, 18, 14, 0.12);
+  border: 1px solid rgba(232, 99, 26, 0.12);
+}
+
+.partner-card h4 {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ch);
+  margin-bottom: 14px;
+  line-height: 1.4;
+}
+
+.partner-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 52px;
+  font-weight: 700;
+  color: var(--sf);
+  line-height: 1;
+}
+
+.partner-lbl {
+  font-size: 11px;
+  color: var(--mu);
+  margin-top: 4px;
+}
+
+/* Places list inside card (added for dynamic requirement) */
+.partner-places {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.partner-place {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--bdr);
+  background: #fff;
+  text-decoration: none;
+  transition: transform .2s, border-color .2s, background .2s;
+}
+
+.partner-place:hover {
+  transform: translateY(-1px);
+  border-color: rgba(232, 99, 26, 0.35);
+  background: rgba(232, 99, 26, 0.04);
+}
+
+.partner-place-name {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ch);
+  line-height: 1.35;
+}
+
+.partner-place-city {
+  display: block;
+  font-size: 10px;
+  color: var(--mu);
+  margin-top: 2px;
+}
+
 /* ── TOAST ── */
 .toast {
   position: fixed;
@@ -1532,7 +1638,8 @@ button {
   .pkg-grid,
   .mus-grid,
   .cafe-grid,
-  .ls-grid {
+  .ls-grid,
+  .partners-grid {
     grid-template-columns: 1fr 1fr;
   }
 
@@ -1577,7 +1684,8 @@ button {
   .pkg-grid,
   .mus-grid,
   .cafe-grid,
-  .ls-grid {
+  .ls-grid,
+  .partners-grid {
     grid-template-columns: 1fr;
   }
 

@@ -4,6 +4,7 @@ import HeroSection from "./components/HeroSection";
 import StatsBar from "./components/StatsBar";
 import TabsBar from "./components/TabsBar";
 import TopDestinations from "./components/TopDestinations";
+import Departments from "./components/Departments";
 const PackagesSection = dynamic(() => import("./components/PackagesSection"), {
   loading: () => <div className="min-h-[420px] bg-[#f8f3e8] animate-pulse" />,
 });
@@ -96,6 +97,7 @@ export default function Home({
         upcomingEventsData={upcomingEventsData}
       />
       <HotelSection />
+      <Departments data={departmentData}/>
       <ParkSection data={sectionMap["ComponentHomeParks"]} />
       <TouristStats />
       <AsiSection data={updatedDepartmentData} />
