@@ -147,7 +147,10 @@ function handleSelect(item: any) {
                     onClick={() => handleSelect(item)}
                   >
                     <strong>{item.name}</strong>
-                    <span>{item.city}</span>
+                    <span>
+                      <img src="/icons/google-maps.png" width={10} height={10} alt="Location" className="loc-ico mr-1" />
+                      {item.city}
+                    </span>
                   </div>
                 ))}
               </div>

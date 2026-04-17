@@ -1,93 +1,101 @@
-'use client'
+"use client";
 
-import { useState, useEffect, useRef } from 'react'
-import Link from 'next/link'
-import SearchBar, { type SearchBarHandle } from './SearchBar'
+import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import SearchBar, { type SearchBarHandle } from "./SearchBar";
 
 const SLIDES = [
   {
     id: 1,
-    title1: 'Pink City',
-    title2: 'Hawa Mahal',
+    title1: "Pink City",
+    title2: "Hawa Mahal",
     sub: "Wander through the vibrant streets of Jaipur, where every wall tells a story of royal hospitality and timeless architectural brilliance.",
-    img: 'https://images.unsplash.com/photo-1603262110263-fb0112e7cc33?w=1920&auto=format&fit=crop&q=90',
-    thumbImg: 'https://images.unsplash.com/photo-1603262110263-fb0112e7cc33?w=600&auto=format&fit=crop&q=80',
-    label: 'Hawa Mahal',
-    tag: 'Jaipur · Pink City',
+    img: "https://images.unsplash.com/photo-1603262110263-fb0112e7cc33?w=1920&auto=format&fit=crop&q=90",
+    thumbImg:
+      "https://images.unsplash.com/photo-1603262110263-fb0112e7cc33?w=600&auto=format&fit=crop&q=80",
+    label: "Hawa Mahal",
+    tag: "Jaipur · Pink City",
   },
   {
     id: 2,
-    title1: 'Blue City',
-    title2: 'Mehrangarh',
+    title1: "Blue City",
+    title2: "Mehrangarh",
     sub: "Behold the mighty Sun Fortress guarding the indigo horizon of Jodhpur, an imposing testament to Marwar's valor and artistic heritage.",
-    img: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=1920&auto=format&fit=crop&q=90',
-    thumbImg: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=600&auto=format&fit=crop&q=80',
-    label: 'Mehrangarh Fort',
-    tag: 'Jodhpur · Blue City',
+    img: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=1920&auto=format&fit=crop&q=90",
+    thumbImg:
+      "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=600&auto=format&fit=crop&q=80",
+    label: "Mehrangarh Fort",
+    tag: "Jodhpur · Blue City",
   },
   {
     id: 3,
-    title1: 'Golden City',
-    title2: 'Jaisalmer Fort',
+    title1: "Golden City",
+    title2: "Jaisalmer Fort",
     sub: "Experience the living fort rising from the Thar Desert like a giant sandcastle, shimmering with the warm glow of yellow sandstone.",
-    img: 'https://images.unsplash.com/photo-1593693397690-362cb9666fc2?w=1920&auto=format&fit=crop&q=90',
-    thumbImg: 'https://images.unsplash.com/photo-1593693397690-362cb9666fc2?w=600&auto=format&fit=crop&q=80',
-    label: 'Jaisalmer Fort',
-    tag: 'Jaisalmer · Golden City',
+    img: "https://images.unsplash.com/photo-1593693397690-362cb9666fc2?w=1920&auto=format&fit=crop&q=90",
+    thumbImg:
+      "https://images.unsplash.com/photo-1593693397690-362cb9666fc2?w=600&auto=format&fit=crop&q=80",
+    label: "Jaisalmer Fort",
+    tag: "Jaisalmer · Golden City",
   },
   {
     id: 4,
-    title1: 'Lakes City',
+    title1: 'Udaipur',
     title2: 'City of Lakes',
     sub: "Lose yourself in the Venice of the East, where white marble palaces float on tranquil waters under the watchful Aravali hills.",
-    img: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=1920&auto=format&fit=crop&q=90',
-    thumbImg: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=600&auto=format&fit=crop&q=80',
-    label: 'City of Lakes',
-    tag: 'Udaipur · Lakeside',
+    img: "https://images.unsplash.com/photo-1599661046289-e31897846e41?w=1920&auto=format&fit=crop&q=90",
+    thumbImg:
+      "https://images.unsplash.com/photo-1599661046289-e31897846e41?w=600&auto=format&fit=crop&q=80",
+    label: "City of Lakes",
+    tag: "Udaipur · Lakeside",
   },
-]
+];
 
 const BADGES = [
-  { label: '🏆 SKOCH Award 2024', cls: 'hkb-gold' },
-  { label: 'Official Govt. Portal', cls: 'hkb-white' },
-  { label: '⭐ Incredible India', cls: 'hkb-white' },
-]
+  { label: "🏆 SKOCH Award 2024", cls: "hkb-gold" },
+  { label: "Official Govt. Portal", cls: "hkb-white" },
+  { label: "⭐ Incredible India", cls: "hkb-white" },
+];
 
 const PILLS = [
-  '🐯 Tiger Safari',
-  '🏜 Jaisalmer',
-  '🌊 Udaipur',
-  '🏨 RTDC Hotels',
-  '✨ Light & Sound',
-]
+  "🐯 Tiger Safari",
+  "🏜 Jaisalmer",
+  "🌊 Udaipur",
+  "🏨 RTDC Hotels",
+  "✨ Light & Sound",
+];
 
 export default function HeroSection() {
-  const [activeIndex, setActiveIndex] = useState(0)
-  const searchRef = useRef<SearchBarHandle>(null)
-  const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const [activeIndex, setActiveIndex] = useState(0);
+  const searchRef = useRef<SearchBarHandle>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const startTimer = () => {
-    if (timerRef.current) clearInterval(timerRef.current)
+    if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % SLIDES.length)
-    }, 5000)
-  }
+      setActiveIndex((prev) => (prev + 1) % SLIDES.length);
+    }, 5000);
+  };
 
   useEffect(() => {
-    startTimer()
+    startTimer();
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current)
-    }
-  }, [])
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
 
   const handleSlideChange = (index: number) => {
-    setActiveIndex(index)
-    startTimer()
-  }
+    setActiveIndex(index);
+    startTimer();
+  };
 
   const handlePillClick = (pill: string) => {
-    searchRef.current?.setValue(pill.replace(/^[\u{1F000}-\u{1FFFF}\u{2600}-\u{27FF}][\uFE0F]?\s*/u, '').trim())
-  }
+    searchRef.current?.setValue(
+      pill
+        .replace(/^[\u{1F000}-\u{1FFFF}\u{2600}-\u{27FF}][\uFE0F]?\s*/u, "")
+        .trim(),
+    );
+  };
 
   return (
     <section className="hero" id="hero">
@@ -96,7 +104,7 @@ export default function HeroSection() {
         {SLIDES.map((slide, idx) => (
           <div
             key={idx}
-            className={`hero-slide ${idx === activeIndex ? 'active' : ''}`}
+            className={`hero-slide ${idx === activeIndex ? "active" : ""}`}
             style={{ backgroundImage: `url('${slide.img}')` }}
           />
         ))}
@@ -113,7 +121,8 @@ export default function HeroSection() {
         </div> */}
 
         <h1 className="hero-ttl">
-          {SLIDES[activeIndex].title1}<br />
+          {SLIDES[activeIndex].title1}
+          <br />
           <em>{SLIDES[activeIndex].title2}</em>
         </h1>
 
@@ -122,7 +131,9 @@ export default function HeroSection() {
         <p className="hero-sub">{SLIDES[activeIndex].sub}</p>
 
         <div className="hero-search-wrap">
-          <div className="hero-search-lbl">Search destinations, monuments, safaris…</div>
+          <div className="hero-search-lbl">
+            Search destinations, monuments, safaris…
+          </div>
           <SearchBar ref={searchRef} />
           <div className="hero-pills">
             {PILLS.map((pill) => (
@@ -152,7 +163,7 @@ export default function HeroSection() {
         {SLIDES.map((slide, idx) => (
           <div
             key={idx}
-            className={`hero-thumb ${idx === activeIndex ? 'active' : ''}`}
+            className={`hero-thumb ${idx === activeIndex ? "active" : ""}`}
             onClick={() => handleSlideChange(idx)}
           >
             <div
@@ -175,7 +186,7 @@ export default function HeroSection() {
           {SLIDES.map((_, idx) => (
             <div
               key={idx}
-              className={`hero-dot ${idx === activeIndex ? 'active' : ''}`}
+              className={`hero-dot ${idx === activeIndex ? "active" : ""}`}
               onClick={() => handleSlideChange(idx)}
             />
           ))}
@@ -191,5 +202,5 @@ export default function HeroSection() {
         <div className="scroll-ring" />
       </div>
     </section>
-  )
+  );
 }

@@ -40,12 +40,12 @@ const StatItem: React.FC<Stat> = ({ icon, num, label, suffix = "" }) => {
   return (
     <div className="si">
       {/* 🖼 icon (image or emoji) */}
-      {icon.startsWith("http") ? (
+      {(icon.startsWith("http") || icon.startsWith("/")) ? (
         <img
           src={icon}
           alt={label}
           className="si-ico"
-          style={{ height: "20px", width: "20px" }}
+          style={{ height: "20px", width: "20px", objectFit: 'contain' }}
         />
       ) : (
         <span className="si-ico">{icon}</span>
@@ -83,7 +83,7 @@ const StatsBar: React.FC<{ categoryCountsData: any }> = ({
         num: count,
         icon: iconUrl
           ? `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL}${iconUrl}`
-          : "📍", // fallback emoji
+          : "/icons/google-maps.png", // fallback icon
         suffix: "+",
       };
     })

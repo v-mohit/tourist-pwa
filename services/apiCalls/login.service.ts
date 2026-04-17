@@ -177,6 +177,9 @@ export const GuestLogin = () => {
         return data;
       },
       enabled: !!id,
+      staleTime: 1000 * 60 * 5, // cache for 5 minutes
+      cacheTime: 1000 * 60 * 10, // keep cached data for 10 minutes
+      keepPreviousData: true,
     });
   };
 

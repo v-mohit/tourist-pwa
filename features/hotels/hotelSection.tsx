@@ -92,7 +92,10 @@ const HotelSection = () => {
             </div>
             <div className="rtdc-body">
               <h4>{hotel.name}</h4>
-              <div className="rtdc-loc">📍 {hotel.loc}</div>
+              <div className="rtdc-loc">
+                <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
+                {hotel.loc}
+              </div>
               <div className="rtdc-tags">
                 {hotel.tags.map((tag, idx) => (
                   <span className="rtdc-tag" key={idx}>{tag}</span>

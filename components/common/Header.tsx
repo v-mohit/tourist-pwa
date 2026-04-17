@@ -22,7 +22,7 @@ export default function Header() {
   const { data: userDetailData } = GetUserDetails(user?.sub)
   const displayName =
     user?.ssoid ||
-    userDetailData?.result?.displayName ||
+    userDetailData?.data?.result?.displayName ||
     user?.displayName ||
     user?.fullName ||
     user?.email ||
