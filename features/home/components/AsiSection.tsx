@@ -36,7 +36,7 @@ const AsiSection = ({ data }: any) => {
       <div className="sec-hd rv in">
         <div>
           <div className="sec-lbl">✦ {deptName}</div>
-          <h2 className="sec-ttl">ASI Protected Sites<br />in Rajasthan</h2>
+          <h2 className="sec-ttl">ASI Protected Sites in Rajasthan </h2>
         </div>
         <Link 
           href="/asi" 

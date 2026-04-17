@@ -20,9 +20,9 @@ export default function PackagesSection({ data }: any) {
         <div>
           <div className="sec-lbl text-[var(--gold)]">✦ Popular Packages</div>
           <h2 className="sec-ttl sec-ttl-w">
-            Curated Darshan
+            Curated Darshan Experiences
             <br />
-            Experiences
+            
           </h2>
         </div>
         <Link href="/packageseeall" className="see-all sag">
