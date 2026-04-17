@@ -3,7 +3,7 @@ import { FetchDepartmentDataDocument } from "@/generated/graphql";
 import { graphqlClient } from "@/services/client";
 
 type DepartmentPlace = {
-  id?: string;
+  id?: string | null;
   attributes?: {
     name?: string;
     city?: { data?: { attributes?: { name?: string } } };
@@ -12,7 +12,7 @@ type DepartmentPlace = {
 };
 
 type Department = {
-  id?: string;
+  id?: string | null;
   attributes?: {
     Name?: string;
     icon?: { data?: { attributes?: { url?: string } } };
@@ -40,7 +40,7 @@ export const revalidate = 60;
 
 export default async function DepartmentsPage() {
   const departmentData = await graphqlClient.request(FetchDepartmentDataDocument, {});
-  const departments: Department[] = departmentData?.departments?.data || [];
+  const departments = departmentData?.departments?.data || [];
 
   if (!departments.length) {
     return (
@@ -64,7 +64,7 @@ export default async function DepartmentsPage() {
       <div className="sec-hd">
         <div>
           <div className="sec-lbl">✦ All Departments</div>
-          <h1 className="sec-ttl">Departments & Onboarded Places</h1>
+          <h1 className="sec-ttl">Government Departments</h1>
         </div>
         <Link href="/" className="see-all">
           ← Back to Home
@@ -72,7 +72,7 @@ export default async function DepartmentsPage() {
       </div>
 
       <div className="partners-grid">
-        {departments.map((dept: Department, idx: number) => {
+        {departments.map((dept: any, idx: number) => {
           const attr = dept?.attributes || {};
           const name = attr?.Name || "Department";
           const places: DepartmentPlace[] = attr?.places?.data || [];
@@ -87,9 +87,12 @@ export default async function DepartmentsPage() {
             name.toLowerCase().includes("jkk")
               ? "Venue Onboarded"
               : "Tourist Sites Onboarded";
-
           return (
-            <div className="partner-card" key={dept?.id || `${name}-${idx}`}>
+            <Link
+              key={dept?.id || `${name}-${idx}`}
+              href={`/departments/${dept?.id}`}
+              className="partner-card"
+            >
               <div className="partner-icon">
                 {iconUrl ? (
                   <img
@@ -106,37 +109,10 @@ export default async function DepartmentsPage() {
               <h4>{name}</h4>
               <div className="partner-num">{count}</div>
               <div className="partner-lbl">{label}</div>
-
-              {places.length ? (
-                <div className="partner-places">
-                  {places.map((p: DepartmentPlace, pIdx: number) => {
-                    const pAttr = p?.attributes || {};
-                    const pName = pAttr?.name || "Place";
-                    const pCity =
-                      pAttr?.city?.data?.attributes?.name || "Rajasthan";
-                    const slug =
-                      pAttr?.placeDetail?.data?.attributes?.slug ||
-                      p?.id ||
-                      `${dept?.id}-${pIdx}`;
-
-                    return (
-                      <Link
-                        key={p?.id || `${slug}-${pIdx}`}
-                        href={`/place-detail/${slug}`}
-                        className="partner-place"
-                      >
-                        <span className="partner-place-name">{pName}</span>
-                        <span className="partner-place-city">📍 {pCity}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              ) : null}
-            </div>
+            </Link>
           );
         })}
       </div>
     </section>
   );
 }
-
