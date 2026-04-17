@@ -35,16 +35,26 @@ export default function DateShiftStep({ state, onUpdate, onNext }: Props) {
   const lastFetchRef = useRef('');
   const lastResolvedLocationRef = useRef('');
 
-  function mapPlaceTypeToCategory(placeType: unknown) {
+  function mapPlaceTypeToCategory(placeType: unknown, placeName?: string, asi?: boolean) {
     const normalized = Array.isArray(placeType) ? placeType[0] : placeType;
+    const name = (placeName ?? '').toLowerCase();
+
+    // JKK and IGPRS are INVENTORY places but have their own booking flows
+    if (name.includes('jawahar') || name.includes('jkk')) return 'jkk' as const;
+    if (name.includes('indira gandhi') || name.includes('igpr')) return 'igprs' as const;
+
     if (normalized === 'INVENTORY') return 'inventory' as const;
-    if (normalized === 'NON_INVENTORY') return 'standard' as const;
+    if (normalized === 'NON_INVENTORY') {
+      return asi ? 'asi' as const : 'standard' as const;
+    }
     return null;
   }
 
   useEffect(() => {
     if (!config.locationId) return;
     if (config.category === 'package') return;
+    // Skip OBMS resolution for JKK/IGPRS — they use their own API flows
+    if (config.category === 'jkk' || config.category === 'igprs') return;
     const locationKey = String(config.locationId);
     if (lastResolvedLocationRef.current === locationKey) return;
 
@@ -55,7 +65,7 @@ export default function DateShiftStep({ state, onUpdate, onNext }: Props) {
       .then((place) => {
         if (!place) return;
 
-        const nextCategory = mapPlaceTypeToCategory(place.placeType) ?? config.category;
+        const nextCategory = mapPlaceTypeToCategory(place.placeType, config.placeName, place.asi) ?? config.category;
         const nextPlaceId = place.id ?? config.placeId;
 
         onUpdate({

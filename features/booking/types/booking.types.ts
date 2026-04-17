@@ -303,8 +303,8 @@ export function createInitialBookingState(config: PlaceBookingConfig): BookingSt
       ticketConfigs: [],
       bankDetails: null,
       calculatedPrice: null,
-      bookingStartDate: today,
-      bookingEndDate: today,
+      bookingStartDate: '',
+      bookingEndDate: '',
     },
     igprs: {
       categories: [],

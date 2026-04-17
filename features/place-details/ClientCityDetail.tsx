@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import BookNowButton from '@/features/booking/components/BookNowButton';
+import CheckAvailabilityModal from '@/features/booking/components/CheckAvailabilityModal';
+import { useObmsPlaceId } from '@/features/booking/hooks/useBookingApi';
 import type { PlaceBookingConfig } from '@/features/booking/types/booking.types';
 
 // Mock data based on the HTML file
@@ -75,24 +77,26 @@ const nearbyPlaces: Record<string, string[]> = {
 };
 
 function inferBookingCategory(placeData: any, fallbackName: string): PlaceBookingConfig['category'] {
-  const categoryName = placeData?.categories?.data?.[0]?.attributes?.Name?.toLowerCase?.() ?? '';
   const placeName = fallbackName.toLowerCase();
 
-  if (
-    categoryName.includes('wildlife') ||
-    categoryName.includes('safari') ||
-    placeName.includes('tiger reserve') ||
-    placeName.includes('leopard reserve') ||
-    placeName.includes('national park') ||
-    placeName.includes('wildlife')
-  ) {
-    return 'inventory';
+  // JKK detection (same as old project)
+  if (placeName.includes('jawahar') || placeName.includes('jkk')) {
+    return 'jkk';
   }
 
+  // IGPRS detection
+  if (placeName.includes('indira gandhi') || placeName.includes('igpr')) {
+    return 'igprs';
+  }
+
+  // The actual booking category (inventory vs standard vs asi) will be
+  // resolved dynamically by DateShiftStep via the /place/get API.
+  // We return 'standard' as default — it gets overridden once the OBMS
+  // place data is fetched.
   return 'standard';
 }
 
-function PlaceDetailContent({ placeData, contentData }: { placeData: any; contentData: any }) {
+function PlaceDetailContent({ placeData, contentData, placeEntityId }: { placeData: any; contentData: any; placeEntityId?: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const params = useParams();
@@ -102,6 +106,23 @@ function PlaceDetailContent({ placeData, contentData }: { placeData: any; conten
   const activeId = slugFromUrl || idFromQuery || 'hawa-mahal';
 
   const [activeTab, setActiveTab] = useState('overview');
+  const [availModalOpen, setAvailModalOpen] = useState(false);
+  const [resolvedObmsId, setResolvedObmsId] = useState('');
+  const [placeType, setPlaceType] = useState('');
+  const obmsPlaceMutation = useObmsPlaceId();
+  const resolvedRef = useRef(false);
+
+  // Resolve OBMS place ID + placeType on mount
+  useEffect(() => {
+    if (resolvedRef.current || !placeEntityId) return;
+    resolvedRef.current = true;
+    obmsPlaceMutation.mutateAsync(placeEntityId)
+      .then((place: any) => {
+        if (place?.id) setResolvedObmsId(place.id);
+        if (place?.placeType) setPlaceType(place.placeType);
+      })
+      .catch(() => { resolvedRef.current = false; });
+  }, [placeEntityId]);
 
   // Find mock data based on slug if available, else name match
   const mockPlace = placesData[activeId] || placesData['hawa-mahal'];
@@ -132,7 +153,7 @@ function PlaceDetailContent({ placeData, contentData }: { placeData: any; conten
   const description = overviewBlock?.overview?.description || placeData?.description || mockPlace.desc;
   const bookingCategory = inferBookingCategory(placeData, name);
   const obmsPlaceId = placeData?.obmsId ?? placeData?.ObmsId ?? placeData?.placeId ?? null;
-  const locationId = placeData?.id ?? null;
+  const locationId = placeEntityId ?? placeData?.id ?? null;
 
   const nearby = nearbyPlaces[loc] || nearbyPlaces[mockPlace.nearbyCity] || [];
 
@@ -270,15 +291,27 @@ function PlaceDetailContent({ placeData, contentData }: { placeData: any; conten
               Secure your tickets online. Skip the queue at the entrance.
             </p>
             {locationId ? (
-              <BookNowButton
-                config={{
-                  placeId: obmsPlaceId ?? locationId,
-                  placeName: name,
-                  category: bookingCategory,
-                  locationId,
-                } as PlaceBookingConfig}
-                className="w-full py-3 bg-[#E8631A] text-white font-bold rounded-full hover:bg-[#C04E0A] transition-all duration-200 text-sm inline-flex items-center justify-center"
-              />
+              <div className="space-y-2">
+                {/* Check Availability — shown for INVENTORY places (same as old project) */}
+                {(placeType === 'INVENTORY' || bookingCategory === 'jkk' || bookingCategory === 'igprs') && (
+                  <button
+                    type="button"
+                    onClick={() => setAvailModalOpen(true)}
+                    className="w-full py-3 border-2 border-[#E8631A] text-[#E8631A] font-bold rounded-full hover:bg-[#FFF5EE] transition-all duration-200 text-sm inline-flex items-center justify-center"
+                  >
+                    Check Availability
+                  </button>
+                )}
+                <BookNowButton
+                  config={{
+                    placeId: obmsPlaceId ?? locationId,
+                    placeName: name,
+                    category: bookingCategory,
+                    locationId,
+                  } as PlaceBookingConfig}
+                  className="w-full py-3 bg-[#E8631A] text-white font-bold rounded-full hover:bg-[#C04E0A] transition-all duration-200 text-sm inline-flex items-center justify-center"
+                />
+              </div>
             ) : (
               <button
                 type="button"
@@ -304,6 +337,14 @@ function PlaceDetailContent({ placeData, contentData }: { placeData: any; conten
           </div>
         </div>
       </div>
+
+      {/* Check Availability Modal */}
+      <CheckAvailabilityModal
+        open={availModalOpen}
+        onClose={() => setAvailModalOpen(false)}
+        obmsPlaceId={resolvedObmsId}
+        placeName={name}
+      />
     </div>
   );
 }
@@ -314,6 +355,8 @@ export default function PlaceDetailPage({ data }: { data: any }) {
   const attributes = data?.placeDetails?.data?.[0]?.attributes;
   const placeFromApi = attributes?.place?.data?.attributes;
   const contentFromApi = attributes?.content;
+  // Strapi entity ID is at data level, not inside attributes
+  const placeEntityId = attributes?.place?.data?.id;
 
   if (!attributes) {
     console.warn("No place detail data found in GraphQL response. Check slug and filters.");
@@ -321,9 +364,10 @@ export default function PlaceDetailPage({ data }: { data: any }) {
 
   return (
     <Suspense fallback={<div className="p-10 text-center">Loading...</div>}>
-      <PlaceDetailContent 
-        placeData={placeFromApi} 
-        contentData={contentFromApi} 
+      <PlaceDetailContent
+        placeData={placeFromApi}
+        contentData={contentFromApi}
+        placeEntityId={placeEntityId}
       />
     </Suspense>
   );

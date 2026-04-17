@@ -557,6 +557,36 @@ export function useJkkBankDetails() {
   });
 }
 
+export function useJkkCalendarAvailability() {
+  return useMutation({
+    mutationFn: async (payload: any) => {
+      const { data } = await axiosInstance.post('/jkk/calender/availability', payload);
+      return data?.result;
+    },
+    onError: (err: any) => showErrorToastMessage(err?.response?.data?.message || 'Availability check failed'),
+  });
+}
+
+export function useJkkAdvanceAvailability() {
+  return useMutation({
+    mutationFn: async (payload: any) => {
+      const { data } = await axiosInstance.post('/jkk/calender/advanceAvailabilityWithCategory', payload);
+      return data?.result;
+    },
+    onError: (err: any) => showErrorToastMessage(err?.response?.data?.message || 'Availability check failed'),
+  });
+}
+
+export function useJkkCheckAvailability() {
+  return useMutation({
+    mutationFn: async (payload: any) => {
+      const { data } = await axiosInstance.post('/jkk/check/availability', payload);
+      return data?.result;
+    },
+    onError: (err: any) => showErrorToastMessage(err?.response?.data?.message || 'Shift availability check failed'),
+  });
+}
+
 export function useCreateJkkBooking() {
   return useMutation({
     mutationFn: async (payload: any) => {
@@ -634,5 +664,67 @@ export function useConfirmIgprsBooking() {
       return data?.result;
     },
     onError: (err: any) => showErrorToastMessage(err?.response?.data?.message || 'IGPRS confirmation failed'),
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CHECK AVAILABILITY
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function usePlaceAvailabilityMonthWise(placeId: string, month: string, year: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['placeAvailabilityMonthWise', placeId, month, year],
+    queryFn: async () => {
+      const { data } = await axiosInstance.get(
+        `/booking/placeAvailabilityMothWise?placeId=${placeId}&month=${month}&year=${year}`,
+      );
+      return data?.result;
+    },
+    enabled: enabled && !!placeId && !!month && !!year,
+  });
+}
+
+export function useJkkAvailabilityWithCategory() {
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await axiosInstance.post('/jkk/calender/advanceAvailabilityWithCategory', { auth: false });
+      return data?.result;
+    },
+  });
+}
+
+export function useJkkProgramDetails() {
+  return useMutation({
+    mutationFn: async (payload: { startDate: number; endDate: number; subCategoryId: number | string }) => {
+      const { data } = await axiosInstance.post('/jkk/programDetails', payload);
+      return data?.result ?? data;
+    },
+  });
+}
+
+export function useIgprsAvailabilityWithCategory() {
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await axiosInstance.post('/igprgvs/calender/advanceAvailabilityWithCategory', { auth: false });
+      return data?.result;
+    },
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FILE UPLOAD
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function useFileUpload() {
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('image', file);
+      const { data } = await axiosInstance.post('/file/uploadProfile', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return data?.result;
+    },
+    onError: (err: any) => showErrorToastMessage(err?.response?.data?.message || 'File upload failed'),
   });
 }

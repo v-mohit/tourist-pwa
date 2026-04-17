@@ -197,14 +197,14 @@ function BookingModalBody({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-[rgba(24,18,14,0.72)] backdrop-blur-[6px] z-[400] transition-opacity duration-300"
+        className="fixed inset-0 bg-[rgba(24,18,14,0.72)] backdrop-blur-[6px] z-[9990] transition-opacity duration-300"
         onClick={closeBookingModal}
         aria-hidden="true"
       />
 
       {/* Modal */}
       <div
-        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[500] w-full max-w-md px-4"
+        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9991] w-full max-w-md px-4"
         role="dialog"
         aria-modal="true"
         aria-label={`Book ${config.placeName}`}
@@ -262,17 +262,17 @@ function BookingModalBody({
 }
 
 export default function BookingModal() {
-  const { isOpen, bookingState, closeBookingModal, updateBookingState } = useBooking();
+  const { isOpen, bookingState, closeBookingModal, updateBookingState, openBookingModal } = useBooking();
   const { user, openLoginModal, setPostLoginAction } = useAuth();
 
   // If modal is open but user is not logged in — prompt login first
   useEffect(() => {
     if (!isOpen || !bookingState) return;
     if (!user) {
-      // Queue the booking modal to reopen after login
+      const savedConfig = bookingState.config;
       setPostLoginAction(() => {
-        // Booking state is kept in context; the modal will reopen via the button
-        // For now just close so the user re-clicks after login
+        // Reopen the booking modal with the same config after login
+        setTimeout(() => openBookingModal(savedConfig), 200);
       });
       openLoginModal();
       closeBookingModal();
