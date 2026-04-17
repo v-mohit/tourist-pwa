@@ -1,6 +1,6 @@
 "use client";
 import { apiendpoints } from "@/utils/constants/api-endpoints.constants";
-import { useQuery, useQueries, useMutation } from "@tanstack/react-query";
+import { useQuery, useQueries, useMutation, keepPreviousData } from "@tanstack/react-query";
 import { queryKeys } from "@/utils/constants/react-query-keys.constants";
 import axiosInstance from "@/configs/axios.config";
 import {
@@ -178,8 +178,8 @@ export const GuestLogin = () => {
       },
       enabled: !!id,
       staleTime: 1000 * 60 * 5, // cache for 5 minutes
-      cacheTime: 1000 * 60 * 10, // keep cached data for 10 minutes
-      keepPreviousData: true,
+      gcTime: 1000 * 60 * 10, // keep cached data for 10 minutes
+      placeholderData: keepPreviousData, // keep previous data while fetching new data
     });
   };
 
