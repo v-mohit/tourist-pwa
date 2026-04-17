@@ -1,3 +1,5 @@
+'use client';
+
 import React from "react";
 import Link from "next/link";
 
@@ -41,15 +43,22 @@ export default function Departments({ data }: { data?: any }) {
 
   if (!departments.length) return null;
 
+  const visibleDepartments = departments.slice(0, 3);
+
   return (
     <section className="sec" id="partners" style={{ background: "var(--sand)" }}>
-      <div className="sec-ctr rv in">
-        <div className="sec-lbl">✦ Onboarded Partners</div>
-        <h2 className="sec-ttl">Trusted Government Partners</h2>
+      <div className="sec-hd rv in">
+        <div>
+          <div className="sec-lbl">✦ Onboarded Partners</div>
+          <h2 className="sec-ttl">Trusted Government Partners</h2>
+        </div>
+        <Link href="/departments" className="see-all sag">
+          View All →
+        </Link>
       </div>
 
       <div className="partners-grid rv in">
-        {departments.map((dept: Department, idx: number) => {
+        {visibleDepartments.map((dept: Department, idx: number) => {
           const attr = dept?.attributes || {};
           const name = attr?.Name || "Department";
           const places: DepartmentPlace[] = attr?.places?.data || [];
@@ -59,9 +68,11 @@ export default function Departments({ data }: { data?: any }) {
           const iconUrl = buildAssetUrl(iconRawUrl);
           const fallbackIcon = getDeptEmoji(name);
 
-          const label = name.toLowerCase().includes("kala kendra") || name.toLowerCase().includes("jkk")
-            ? "Venue Onboarded"
-            : "Tourist Sites Onboarded";
+          const label =
+            name.toLowerCase().includes("kala kendra") ||
+            name.toLowerCase().includes("jkk")
+              ? "Venue Onboarded"
+              : "Tourist Sites Onboarded";
 
           return (
             <div className="partner-card" key={dept?.id || `${name}-${idx}`}>
@@ -81,28 +92,6 @@ export default function Departments({ data }: { data?: any }) {
               <h4>{name}</h4>
               <div className="partner-num">{count}</div>
               <div className="partner-lbl">{label}</div>
-
-              {places.length ? (
-                <div className="partner-places">
-                  {places.slice(0, 4).map((p: DepartmentPlace, pIdx: number) => {
-                    const pAttr = p?.attributes || {};
-                    const pName = pAttr?.name || "Place";
-                    const pCity = pAttr?.city?.data?.attributes?.name || "Rajasthan";
-                    const slug = pAttr?.placeDetail?.data?.attributes?.slug || p?.id || `${dept?.id}-${pIdx}`;
-
-                    return (
-                      <Link
-                        key={p?.id || `${slug}-${pIdx}`}
-                        href={`/place-detail/${slug}`}
-                        className="partner-place"
-                      >
-                        <span className="partner-place-name">{pName}</span>
-                        <span className="partner-place-city">📍 {pCity}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              ) : null}
             </div>
           );
         })}
