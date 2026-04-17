@@ -41,19 +41,21 @@ export default function AppLoader({ children }: { children: React.ReactNode }) {
   
   const [tagIdx, setTagIdx] = useState(0);
   const [tagStyle, setTagStyle] = useState({ opacity: 1, transform: 'none', transition: 'all .4s ease' });
+  const [stars, setStars] = useState<{ id: number; size: number; top: number; left: number; delay: number; duration: number; opacity: number }[]>([]);
 
-  // Generate stars once
-  const [stars] = useState(() => {
-    return Array.from({ length: 60 }).map((_, i) => ({
-      id: i,
-      size: Math.random() * 2.5 + 1,
-      top: Math.random() * 95,
-      left: Math.random() * 100,
-      delay: Math.random() * 3,
-      duration: 1.5 + Math.random() * 2.5,
-      opacity: 0.4 + Math.random() * 0.6
-    }));
-  });
+  useEffect(() => {
+    setStars(
+      Array.from({ length: 60 }).map((_, i) => ({
+        id: i,
+        size: Math.random() * 2.5 + 1,
+        top: Math.random() * 95,
+        left: Math.random() * 100,
+        delay: Math.random() * 3,
+        duration: 1.5 + Math.random() * 2.5,
+        opacity: 0.4 + Math.random() * 0.6
+      }))
+    );
+  }, []);
 
   // Calculate orbit icon positions
   const orbitIconElements = ORBIT_ICONS.map((ico, i) => {

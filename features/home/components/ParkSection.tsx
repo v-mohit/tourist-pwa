@@ -40,7 +40,7 @@ const ParkSection = (data: any) => {
 
             image: attr?.images?.data?.[0]?.attributes?.url
               ? `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL}${attr.images.data[0].attributes.url}`
-              : "https://images.unsplash.com/photo-1501785888041-af3ef285b470",
+              : null,
 
             meta: [
               attr?.city?.data?.attributes?.name || "Unknown City",

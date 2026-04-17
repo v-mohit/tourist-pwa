@@ -50,7 +50,7 @@ const AsiSection = ({ data }: any) => {
         <div className="asi-badge-block">
           <div className="logo" style={{ fontSize: '52px', marginBottom: '12px' }}>🏛</div>
           <h3>{deptName}</h3>
-          <p>Preserving India's monumental heritage since 1861. {count > 0 ? count : 'Several'} premier Rajasthan sites onboarded on OBMS.</p>
+          <p>Preserving India&apos;s monumental heritage since 1861. {count > 0 ? count : 'Several'} premier Rajasthan sites onboarded on OBMS.</p>
           <div className="asi-count">{count}</div>
           <div className="asi-count-l">Sites Onboarded on OBMS</div>
           <Link href="/asi" className="btn-s" style={{ marginTop: '16px', width: '100%', justifyContent: 'center' }}>
@@ -60,11 +60,11 @@ const AsiSection = ({ data }: any) => {
         
         <div>
           <div className="asi-grid">
-            {places.map((place: any) => {
+            {places?.splice(0, 6)?.map((place: any) => {
               const attr = place.attributes;
               const imageUrl = attr.images?.data?.[0]?.attributes?.url 
                 ? `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL || ''}${attr.images.data[0].attributes.url}`
-                : 'https://images.unsplash.com/photo-1477587458883-47145ed31f5e?w=400&auto=format&fit=crop&q=80';
+                :null;
               
               const cityName = attr.city?.data?.attributes?.name || 'Rajasthan';
               
