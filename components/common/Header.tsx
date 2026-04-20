@@ -65,7 +65,7 @@ export default function Header() {
   return (
     <>
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-300 h-16 md:h-[66px] flex items-center justify-between px-6 md:px-8 bg-[rgba(253,248,241,0.96)] backdrop-blur-[24px] border-b border-[rgba(212,160,23,0.14)] shadow-[0_1px_6px_rgba(24,18,14,0.06)]">
+      <nav className="fixed top-0 left-0 right-0 z-[5000] h-16 md:h-[66px] flex items-center justify-between px-6 md:px-8 bg-[rgba(253,248,241,0.96)] backdrop-blur-[24px] border-b border-[rgba(212,160,23,0.14)] shadow-[0_1px_6px_rgba(24,18,14,0.06)]">
         {/* Brand */}
         <Link href="/" className="flex items-center gap-2.5 no-underline">
           <div className="w-9 h-9 rounded-[10px] bg-gradient-to-br from-[#E8631A] to-[#D4A017] flex items-center justify-center text-lg shadow-[0_4px_12px_rgba(232,99,26,0.3)] flex-shrink-0">
@@ -144,7 +144,7 @@ export default function Header() {
               </button>
 
               {userMenuOpen && (
-                <ul className="absolute right-0 mt-2 min-w-[170px] overflow-hidden rounded-xl border border-[#E8DAC5] bg-white shadow-[0_8px_24px_rgba(24,18,14,0.12)] z-[1200]">
+                <ul className="absolute right-0 mt-2 min-w-[170px] overflow-hidden rounded-xl border border-[#E8DAC5] bg-white shadow-[0_8px_24px_rgba(24,18,14,0.12)] z-[5001]">
                   <li
                     onClick={() => {
                       setUserMenuOpen(false);
