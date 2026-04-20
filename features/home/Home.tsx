@@ -44,6 +44,12 @@ const Cafeteria = dynamic(() => import("./components/Cafeteria"), {
 const AsiSection = dynamic(() => import("./components/AsiSection"), {
   loading: () => <div className="min-h-[260px] bg-[#f8f3e8] animate-pulse" />,
 });
+const MobileSection = dynamic(() => import("./components/MobileSection"), {
+  loading: () => <div className="min-h-[260px] bg-[#f8f3e8] animate-pulse" />,
+});
+
+
+
 
 interface HomeProps {
   data?: any;
@@ -100,6 +106,7 @@ export default function Home({
       <Departments data={departmentData}/>
       <ParkSection data={sectionMap["ComponentHomeParks"]} />
       <TouristStats />
+      <MobileSection />
       <AsiSection data={updatedDepartmentData} />
       <FeaturesSection />
       <HomeClient />
