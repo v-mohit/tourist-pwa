@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import BookNowButton from '@/features/booking/components/BookNowButton';
 import CheckAvailabilityModal from '@/features/booking/components/CheckAvailabilityModal';
@@ -159,9 +160,9 @@ function PlaceDetailContent({ placeData, contentData, placeEntityId }: { placeDa
 
   return (
     <div className="pd-panel" style={{ position: 'relative', minHeight: '100vh' }}>
-      <button className="pd-close" onClick={() => router.back()}>
-        ✕ Close
-      </button>
+      <Link href="/" className="see-all-back">
+        ← Back to Home
+      </Link>
       
       {/* Hero gallery */}
       <div className="pd-hero-wrap">

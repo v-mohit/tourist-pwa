@@ -65,11 +65,11 @@ const ExploreSeeAll = ({ cityData }: any) => {
   return (
     <div className="sa-panel" style={{ minHeight: '100vh', position: 'relative' }}>
       {/* Header */}
+      <Link href="/" className="see-all-back">
+        ← Back to Home
+      </Link>
       <div className="sa-header">
         <div className="sa-header-bg">
-          <Link href="/" className="sa-close" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>
-            ✕
-          </Link>
           <div className="sa-header-body">
             <h2>All <em>Cities</em></h2>
             <p>Explore every destination in Rajasthan</p>

@@ -5,6 +5,8 @@ import StatsBar from "./components/StatsBar";
 import TabsBar from "./components/TabsBar";
 import TopDestinations from "./components/TopDestinations";
 import Departments from "./components/Departments";
+import FeedbackSection from "./components/FeedbackSection";
+import MobileSection from "./components/MobileSection";
 const PackagesSection = dynamic(() => import("./components/PackagesSection"), {
   loading: () => <div className="min-h-[420px] bg-[#f8f3e8] animate-pulse" />,
 });
@@ -96,12 +98,13 @@ export default function Home({
         JkkplaceDetailsData={JkkplaceDetailsData}
         upcomingEventsData={upcomingEventsData}
       />
-      <HotelSection />
-      <Departments data={departmentData}/>
-      <ParkSection data={sectionMap["ComponentHomeParks"]} />
-      <TouristStats />
       <AsiSection data={updatedDepartmentData} />
+      <ParkSection data={sectionMap["ComponentHomeParks"]} />
+      <HotelSection />
+      <TouristStats />
+      <FeedbackSection />
       <FeaturesSection />
+      <Departments data={departmentData} />
       <HomeClient />
     </div>
   );

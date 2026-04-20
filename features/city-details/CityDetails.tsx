@@ -27,12 +27,12 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
   const cityName = city.name || 'Rajasthan City';
   const nickname = city.nickname || 'Land of Kings';
   const description = city.description || 'Welcome to one of the most vibrant cities in Rajasthan.';
-  const mainImage = city.image?.data?.attributes?.url 
+  const mainImage = city.image?.data?.attributes?.url
     ? `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL}${city.image.data.attributes.url}`
     : 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=1200&auto=format&fit=crop&q=85';
 
   const places = city.places?.data || [];
-  
+
   // Dynamically derive categories from places
   const categories = React.useMemo(() => {
     const catSet = new Set<string>();
@@ -62,33 +62,35 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
   };
 
   // Categorize places for stats
-  const museums = places.filter((p: any) => 
+  const museums = places.filter((p: any) =>
     p.attributes.categories?.data?.some((c: any) => c.attributes.Name.toLowerCase().includes('museum'))
   );
-  const wildlife = places.filter((p: any) => 
+  const wildlife = places.filter((p: any) =>
     p.attributes.categories?.data?.some((c: any) => c.attributes.Name.toLowerCase().includes('wildlife'))
   );
 
-  const filteredPlaces = activeCategory === 'All' 
-    ? places 
-    : places.filter((p: any) => 
-        p.attributes.categories?.data?.some((c: any) => 
-          c.attributes.Name === activeCategory
-        )
-      );
+  const filteredPlaces = activeCategory === 'All'
+    ? places
+    : places.filter((p: any) =>
+      p.attributes.categories?.data?.some((c: any) =>
+        c.attributes.Name === activeCategory
+      )
+    );
 
   const reach = city.howToReachHere || {};
 
   return (
     <div className="page-bg">
       {/* <span className="demo-label">OBMS · Explore City</span> */}
-
+      <Link href="/" className="see-all-back">
+        ← Back to Home
+      </Link>
       <div className="city-card">
         {/* Hero Section */}
         <div className="cc-hero">
-          <div 
-            className="cc-hero-img" 
-            style={{ backgroundImage: `url('${mainImage}')` }} 
+          <div
+            className="cc-hero-img"
+            style={{ backgroundImage: `url('${mainImage}')` }}
           />
           <div className="cc-hero-grad"></div>
           <div className="cc-hero-top">
@@ -170,7 +172,7 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
         {/* Category Chips */}
         <div className="cc-cats">
           {categories.map(cat => (
-            <button 
+            <button
               key={cat}
               className={`cc-cat ${activeCategory === cat ? 'active' : ''}`}
               onClick={() => setActiveCategory(cat)}
@@ -187,20 +189,20 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
             const placeImg = attr.images?.data?.[0]?.attributes?.url
               ? `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL}${attr.images.data[0].attributes.url}`
               : 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=400&auto=format&fit=crop&q=80';
-            
+
             const category = attr.categories?.data?.[0]?.attributes?.Name || 'Attraction';
             const slug = attr.placeDetail?.data?.attributes?.slug;
 
             return (
-              <Link 
-                key={place.id} 
+              <Link
+                key={place.id}
                 href={slug ? `/place-detail/${slug}` : '#'}
                 className="cc-place-card block"
               >
                 <div className="cc-pc-img">
-                  <div 
-                    className="cc-pc-img-bg" 
-                    style={{ backgroundImage: `url('${placeImg}')` }} 
+                  <div
+                    className="cc-pc-img-bg"
+                    style={{ backgroundImage: `url('${placeImg}')` }}
                   />
                   <div className="cc-pc-img-grad"></div>
                   <span className="cc-pc-cat-tag">{category}</span>
