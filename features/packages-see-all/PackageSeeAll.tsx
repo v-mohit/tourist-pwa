@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 const PackageSeeAll = ({ packageData }: any) => {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCity, setSelectedCity] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -78,9 +80,14 @@ const PackageSeeAll = ({ packageData }: any) => {
   return (
     <div className="sa-panel sa-panel--page" style={{ background: 'var(--ch)', color: '#fff' }}>
       {/* Header */}
-      <Link href="/" className="see-all-back">
-        ← Back to Home
-      </Link>
+      <button 
+        type="button"
+        onClick={() => (window.history.length > 1 ? router.back() : router.push('/'))} 
+        className="see-all-back"
+        style={{ cursor: 'pointer', background: 'none', border: 'none', borderBottom: '1px solid currentColor', paddingLeft: '5px', paddingBottom: '2px', color: '#fff' }}
+      >
+        ← Back
+      </button>
       <div className="sa-header" style={{ position: 'sticky', top: 0, zIndex: 100, backgroundColor: 'rgba(24, 18, 14, 0.95)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
         <div className="sa-header-bg" style={{ background: 'transparent' }}>
           <div className="sa-header-body">

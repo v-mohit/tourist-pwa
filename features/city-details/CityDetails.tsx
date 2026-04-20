@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 interface CityDetailsProps {
@@ -8,6 +9,7 @@ interface CityDetailsProps {
 }
 
 const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
+  const router = useRouter();
   const cityDetail = cityDetailData?.cityDetails?.data?.[0]?.attributes;
   const city = cityDetail?.city?.data?.attributes;
 
@@ -82,9 +84,14 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
   return (
     <div className="page-bg">
       {/* <span className="demo-label">OBMS · Explore City</span> */}
-      <Link href="/" className="see-all-back">
-        ← Back to Home
-      </Link>
+      <button 
+        type="button"
+        onClick={() => (window.history.length > 1 ? router.back() : router.push('/'))} 
+        className="see-all-back"
+        style={{ cursor: 'pointer', background: 'none', border: 'none', borderBottom: '1px solid currentColor', paddingLeft: '5px', paddingBottom: '2px' }}
+      >
+        ← Back
+      </button>
       <div className="city-card">
         {/* Hero Section */}
         <div className="cc-hero">
