@@ -1,4 +1,8 @@
-query FetchHomeSearch($searchKey: String, $page: Int = 1, $pageSize: Int = 999) {
+query FetchHomeSearch(
+  $searchKey: String
+  $page: Int = 1
+  $pageSize: Int = 999
+) {
   places(
     pagination: { page: $page, pageSize: $pageSize }
     filters: {
@@ -9,11 +13,13 @@ query FetchHomeSearch($searchKey: String, $page: Int = 1, $pageSize: Int = 999) 
     }
   ) {
     data {
+    id
       attributes {
         name
 
         placeDetail {
           data {
+          id
             attributes {
               slug
             }
@@ -40,13 +46,13 @@ query FetchHomeSearch($searchKey: String, $page: Int = 1, $pageSize: Int = 999) 
           data {
             attributes {
               name
-image{
-  data{
-  attributes{
-  url
-  }
-  }
-}
+              image {
+                data {
+                  attributes {
+                    url
+                  }
+                }
+              }
               cityDetail {
                 data {
                   attributes {
