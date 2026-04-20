@@ -30,9 +30,9 @@ function BookingModalBody({
   updateBookingState: ReturnType<typeof useBooking>['updateBookingState'];
   userId: string;
 }) {
-  const [stepIndex, setStepIndex] = useState(0);
   const { config } = bookingState;
   const steps = BOOKING_STEPS[config.category] ?? [];
+  const [stepIndex, setStepIndex] = useState(config.startAtStep ?? 0);
 
   function goNext() { setStepIndex((i) => Math.min(i + 1, steps.length - 1)); }
   function goBack() {

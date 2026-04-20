@@ -341,7 +341,9 @@ export default function ReviewPayStep({ state, onBack }: Props) {
         isComposite: isPackage,
       });
 
-      if (!confirmResult?.ENCDATA || !confirmResult?.MERCHANTCODE || !confirmResult?.SERVICEID) {
+      console.log('Confirm booking result:', JSON.stringify(confirmResult));
+
+      if (!confirmResult) {
         showErrorToastMessage('Payment gateway data is incomplete. Please try again.');
         setProcessing(false);
         setStatusMessage('');
@@ -352,7 +354,7 @@ export default function ReviewPayStep({ state, onBack }: Props) {
       handlePaymentRedirect(confirmResult);
 
       // If redirect didn't happen (e.g. free ticket), close gracefully
-      setTimeout(() => setProcessing(false), 3000);
+      setTimeout(() => setProcessing(false), 5000);
     } catch {
       setProcessing(false);
       setStatusMessage('');

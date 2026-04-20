@@ -10,6 +10,9 @@ import {
 import { graphqlClient } from "@/services/client";
 import { FetchHomeSearchDocument } from "@/generated/graphql";
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic';
+
+const VoiceBookingFlow = dynamic(() => import('@/features/voice-booking/VoiceBookingFlow'), { ssr: false });
 
 export interface SearchBarHandle {
   setValue: (value: string) => void;
@@ -21,6 +24,7 @@ const SearchBar = forwardRef<SearchBarHandle>((_, ref) => {
   const [results, setResults] = useState<any>({});
   const [showDropdown, setShowDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [voiceOpen, setVoiceOpen] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -122,8 +126,30 @@ function handleSelect(item: any) {
           onFocus={() => query && setShowDropdown(true)}
         />
 
+        <button
+          type="button"
+          onClick={() => setVoiceOpen(true)}
+          className="hero-mic-btn"
+          title="Voice booking — speak to book"
+          aria-label="Voice booking"
+          style={{
+            width: 44, height: 44, borderRadius: '50%',
+            background: '#E8631A', color: '#fff', border: 'none',
+            fontSize: 18, cursor: 'pointer', display: 'flex',
+            alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0, marginLeft: 4,
+            transition: 'background 0.2s',
+          }}
+          onMouseOver={(e) => (e.currentTarget.style.background = '#C04E0A')}
+          onMouseOut={(e) => (e.currentTarget.style.background = '#E8631A')}
+        >
+          🎤
+        </button>
         <button className="hero-sbtn">Search</button>
       </div>
+
+      {/* Voice Booking Modal */}
+      <VoiceBookingFlow open={voiceOpen} onClose={() => setVoiceOpen(false)} />
 
       {/* ✅ Dropdown */}
       {showDropdown && (

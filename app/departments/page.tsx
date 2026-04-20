@@ -40,7 +40,7 @@ export const revalidate = 60;
 
 export default async function DepartmentsPage() {
   const departmentData = await graphqlClient.request(FetchDepartmentDataDocument, {});
-  const departments: Department[] = departmentData?.departments?.data || [];
+  const departments = (departmentData?.departments?.data || []) as Department[];
 
   if (!departments.length) {
     return (

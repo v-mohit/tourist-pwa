@@ -10,23 +10,24 @@ import { CURRENT_EMITRA_ENV_URL } from '@/utils/constants/common.constants';
 export function redirectToPaymentGateway(
   action: string,
   params: Record<string, unknown>,
-  target?: string,
 ) {
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = action;
-  if (target) form.target = target;
+  console.log('redirectToPaymentGateway - action:', action);
+  console.log('redirectToPaymentGateway - params:', JSON.stringify(params));
 
-  Object.entries(params).forEach(([key, value]) => {
-    if (value === undefined || value === null) return;
+  // Match old project's openPostPage exactly
+  const form = document.createElement('form');
+  document.body.appendChild(form);
+  form.method = 'post';
+  form.action = action;
+
+  for (const name in params) {
     const input = document.createElement('input');
     input.type = 'hidden';
-    input.name = key;
-    input.value = String(value);
+    input.name = name;
+    input.value = (params as any)[name];
     form.appendChild(input);
-  });
+  }
 
-  document.body.appendChild(form);
   form.submit();
   document.body.removeChild(form);
 }
@@ -39,9 +40,16 @@ export function redirectToPaymentGateway(
  *
  * Falls back to window.open if no POST params found.
  */
-export function handlePaymentRedirect(confirmResult: any, target?: string) {
-  if (!confirmResult) return;
+export function handlePaymentRedirect(confirmResult: any) {
+  if (!confirmResult) {
+    console.error('Payment redirect: confirmResult is null/undefined');
+    return;
+  }
 
+  console.log('Payment redirect - raw confirmResult:', JSON.stringify(confirmResult));
+  console.log('Payment redirect - EMITRA URL:', CURRENT_EMITRA_ENV_URL);
+
+  // Check at the top level first (hook already unwraps data.result)
   if (
     typeof confirmResult === 'object' &&
     !Array.isArray(confirmResult) &&
@@ -49,13 +57,40 @@ export function handlePaymentRedirect(confirmResult: any, target?: string) {
     confirmResult.MERCHANTCODE &&
     confirmResult.SERVICEID
   ) {
-    redirectToPaymentGateway(CURRENT_EMITRA_ENV_URL, confirmResult as Record<string, unknown>, target);
+    console.log('Payment redirect: Found ENCDATA at top level, redirecting via form POST');
+    redirectToPaymentGateway(CURRENT_EMITRA_ENV_URL, { ...confirmResult });
+    return;
+  }
+
+  // Check nested .result (in case hook didn't unwrap)
+  const nested = confirmResult?.result;
+  if (
+    nested &&
+    typeof nested === 'object' &&
+    nested.ENCDATA &&
+    nested.MERCHANTCODE &&
+    nested.SERVICEID
+  ) {
+    console.log('Payment redirect: Found ENCDATA in .result, redirecting via form POST');
+    redirectToPaymentGateway(CURRENT_EMITRA_ENV_URL, { ...nested });
+    return;
+  }
+
+  // Some APIs return a paymentUrl or url field
+  const url = confirmResult?.paymentUrl ?? confirmResult?.url ?? nested?.paymentUrl ?? nested?.url;
+  if (typeof url === 'string' && url.startsWith('http')) {
+    console.log('Payment redirect: Found paymentUrl, opening:', url);
+    window.location.href = url;
     return;
   }
 
   if (typeof confirmResult === 'string' && confirmResult.startsWith('http')) {
-    window.open(confirmResult, target || '_blank', 'noopener,noreferrer');
+    console.log('Payment redirect: confirmResult is URL string, opening:', confirmResult);
+    window.location.href = confirmResult;
+    return;
   }
+
+  console.error('Payment redirect: Could not determine payment method from:', confirmResult);
 }
 
 /**

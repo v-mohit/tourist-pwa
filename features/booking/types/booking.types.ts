@@ -17,6 +17,10 @@ export interface PlaceBookingConfig {
   asiType?: string;
   /** Strapi/graphql location ID if different from OBMS placeId */
   locationId?: string | number;
+  /** Skip to a specific step (0-based) when opening the modal */
+  startAtStep?: number;
+  /** Pre-filled booking state to merge into initial state */
+  prefilled?: Partial<BookingState>;
 }
 
 // ─── Specific Charges ─────────────────────────────────────────────────────────
@@ -317,6 +321,7 @@ export function createInitialBookingState(config: PlaceBookingConfig): BookingSt
     },
     bookingId: null,
     paymentData: null,
+    ...(config.prefilled ?? {}),
   };
 }
 
