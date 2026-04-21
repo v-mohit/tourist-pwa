@@ -1,6 +1,8 @@
 "use client";
+import { GetTouristStats } from "@/services/apiCalls/common.services";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+
 
 const statCards = [
   {
@@ -80,6 +82,56 @@ const TouristStats = () => {
   const [barRef, barInView] = useInView(0.2);
   const [awardRef, awardInView] = useInView(0.2);
 
+  const { data: touristStats } = GetTouristStats();
+
+  // Format number to Cr/L format
+  const formatNumber = (num: number): string => {
+    if (num >= 10000000) return (num / 10000000).toFixed(1) + " Cr+";
+    if (num >= 100000) return (num / 100000).toFixed(1) + " L+";
+    return num.toLocaleString();
+  };
+
+  // Dynamic stat cards from API
+  const dynamicStatCards = touristStats?.result ? [
+    {
+      ico: "✈️",
+      num: formatNumber(touristStats.result.totalVisitors),
+      lbl: "Total Tourists",
+      sub: "Annual FY 2025–26",
+    },
+    {
+      ico: "🌍",
+      num: formatNumber(touristStats.result.totalTicketCount?.Foreigner || 0),
+      lbl: "Foreign Tourists",
+      sub: "International Arrivals",
+    },
+    {
+      ico: "🇮🇳",
+      num: formatNumber(touristStats.result.totalTicketCount?.Domestic || 0),
+      lbl: "Domestic Tourists",
+      sub: "Within India Visitors",
+    },
+    {
+      ico: "💰",
+      num: "₹" + (touristStats.result.totalAmount / 10000000).toFixed(2) + " Cr",
+      lbl: "Tourism Revenue",
+      sub: "Gross state contribution",
+    },
+  ] : statCards;
+
+  // Dynamic bar data from API districtWiseReports
+  const dynamicBarData = touristStats?.result?.districtWiseReports && touristStats.result.districtWiseReports.length > 0
+    ? (() => {
+        const reports = touristStats.result.districtWiseReports;
+        const maxVisitors = Math.max(...reports.map((r:any) => r.totalVisitors));
+        return reports.map((r:any) => ({
+          label: r.districteName,
+          w: (r.totalVisitors / maxVisitors) * 100,
+          val: formatNumber(r.totalVisitors),
+        }));
+      })()
+    : barData;
+
   return (
     <div className="ts-root">
       {/* ════ TOURIST STATS ════ */}
@@ -93,7 +145,7 @@ const TouristStats = () => {
             by the Numbers
           </h2>
           <p className="ts-sec-sub">
-            Annual tourist data &amp; trends — FY 2023–24
+            Annual tourist data &amp; trends — FY 2025–26
           </p>
         </div>
 
@@ -102,7 +154,7 @@ const TouristStats = () => {
           ref={statsRef}
           className={`ts-stats-grid ts-rv${statsInView ? " ts-in" : ""}`}
         >
-          {statCards.map((s, i) => (
+          {dynamicStatCards.map((s, i) => (
             <div className="ts-stat-card" key={i}>
               <span className="ts-stat-ico">{s.ico}</span>
               <div className="ts-stat-num">{s.num}</div>
@@ -119,9 +171,9 @@ const TouristStats = () => {
         >
           <div className="ts-bar-title">Top Visited Destinations</div>
           <div className="ts-bar-sub">
-            Share of total tourist footfall — FY 2023–24
+            Share of total tourist footfall — FY 2025–26
           </div>
-          {barData.map((row, i) => (
+          {dynamicBarData.map((row:any, i:any) => (
             <div className="ts-bar-row" key={i}>
               <span className="ts-bar-label">{row.label}</span>
               <div className="ts-bar-track">

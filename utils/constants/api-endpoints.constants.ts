@@ -144,5 +144,6 @@ export const apiendpoints = {
       getAsiTicketDetailByPlace:"/booking/asiTickets",
       getAsiBookingPdf: (bookingId: any) => `/asi/pdf?bookingId=${bookingId}`,
       getAsiBookingDetails : "/asi/ticket",
-      generateTicketPDF: "asi/generate-ticket-pdf"
+      generateTicketPDF: "asi/generate-ticket-pdf",
+      getTouristStats : "/home/district-report",
     };
