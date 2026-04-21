@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 const PackageSeeAll = ({ packageData }: any) => {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCity, setSelectedCity] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -12,9 +14,9 @@ const PackageSeeAll = ({ packageData }: any) => {
 
   // Process packages from graphQL data
   const packages = useMemo(() => {
-    const rawList = packageData?.data?.topPackage?.data?.attributes?.package || 
-                    packageData?.topPackage?.data?.attributes?.package || 
-                    [];
+    const rawList = packageData?.data?.topPackage?.data?.attributes?.package ||
+      packageData?.topPackage?.data?.attributes?.package ||
+      [];
 
     return rawList.map((item: any, index: number) => {
       const pkgAttr = item?.package?.data?.attributes;
@@ -35,14 +37,14 @@ const PackageSeeAll = ({ packageData }: any) => {
 
       // Dummy data for missing fields to match premium UI reqs
       const dummyInfos = [
-        '🏯 10 Places', 
-        days ? `🕐 ${days} ${days > 1 ? 'Days' : 'Day'}` : '🕐 Full Day', 
-        '🚌 Transport Incl.', 
+        '🏯 10 Places',
+        days ? `🕐 ${days} ${days > 1 ? 'Days' : 'Day'}` : '🕐 Full Day',
+        '🚌 Transport Incl.',
         '🎟 Entry Tickets'
       ];
       const dummyTag = index % 3 === 0 ? 'COMPOSITE' : (index % 2 === 0 ? 'PREMIUM' : 'HERITAGE');
       const dummyDesc = `Experience the best of Rajasthan with our curated ${pkgAttr.name}. This package includes visits to major landmarks, guided tours, and comfortable local transport arrangements.`;
-      
+
       return {
         id: slug || index.toString(),
         name: pkgAttr.name,
@@ -78,11 +80,16 @@ const PackageSeeAll = ({ packageData }: any) => {
   return (
     <div className="sa-panel sa-panel--page" style={{ background: 'var(--ch)', color: '#fff' }}>
       {/* Header */}
+      <button 
+        type="button"
+        onClick={() => (window.history.length > 1 ? router.back() : router.push('/'))} 
+        className="see-all-back"
+        style={{ cursor: 'pointer', background: 'none', border: 'none', borderBottom: '1px solid currentColor', paddingLeft: '5px', paddingBottom: '2px', color: '#fff' }}
+      >
+        ← Back
+      </button>
       <div className="sa-header" style={{ position: 'sticky', top: 0, zIndex: 100, backgroundColor: 'rgba(24, 18, 14, 0.95)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
         <div className="sa-header-bg" style={{ background: 'transparent' }}>
-          <Link href="/" className="sa-close">
-            ✕
-          </Link>
           <div className="sa-header-body">
             <h2>Darshan <em>Packages</em></h2>
             <p style={{ color: 'rgba(255,255,255,0.6)' }}>Explore curated Rajasthan travel experiences</p>

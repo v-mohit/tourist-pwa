@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 const ExploreSeeAll = ({ cityData }: any) => {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRegion, setSelectedRegion] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -65,11 +67,16 @@ const ExploreSeeAll = ({ cityData }: any) => {
   return (
     <div className="sa-panel" style={{ minHeight: '100vh', position: 'relative' }}>
       {/* Header */}
+      <button 
+        type="button"
+        onClick={() => (window.history.length > 1 ? router.back() : router.push('/'))} 
+        className="see-all-back"
+        style={{ cursor: 'pointer', background: 'none', border: 'none', borderBottom: '1px solid currentColor', paddingLeft: '5px', paddingBottom: '2px' }}
+      >
+        ← Back
+      </button>
       <div className="sa-header">
         <div className="sa-header-bg">
-          <Link href="/" className="sa-close" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>
-            ✕
-          </Link>
           <div className="sa-header-body">
             <h2>All <em>Cities</em></h2>
             <p>Explore every destination in Rajasthan</p>

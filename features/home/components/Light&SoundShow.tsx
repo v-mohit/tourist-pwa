@@ -52,8 +52,8 @@ const LightSoundShow = ({ data }: any) => {
             History Comes Alive at Night
           </h2>
         </div>
-        <a   href={`/tourist-attraction?categoryId=${data?.category?.data?.id}`} 
-        className="see-all sag">
+        <a href={`/tourist-attraction?categoryId=${data?.category?.data?.id}`}
+          className="see-all sag">
           See all →
         </a>
       </div>
@@ -110,7 +110,7 @@ const LightSoundShow = ({ data }: any) => {
           const extraWithIcon = hasLeadingEmoji
             ? extraText
             : extraText.toLowerCase().includes("cap") ||
-                extraText.toLowerCase().includes("capacity")
+              extraText.toLowerCase().includes("capacity")
               ? `👥 ${extraText}`
               : `🏯 ${extraText}`;
 
@@ -126,7 +126,7 @@ const LightSoundShow = ({ data }: any) => {
               <div className="ls-grad"></div>
 
               <div className="ls-top">
-                <span className="tag to">✨ Light & Sound</span>
+                {/* <span className="tag to">✨ Light & Sound</span> */}
                 <span className={`tag ${isNew ? "tw" : "tg"}`}>
                   {isNew ? "🌟" : "⭐"} {tag}
                 </span>

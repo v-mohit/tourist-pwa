@@ -112,6 +112,9 @@ const TouristAttraction: React.FC<TouristAttractionProps> = ({ data }) => {
   return (
     <div className="sa-panel" style={{ minHeight: '100vh', position: 'relative' }}>
       {/* Header */}
+      <Link href="/" className="see-all-back">
+        ← Back to Home
+      </Link>
       <div className="sa-header">
         <div className="sa-header-bg" style={{
           backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('${headerBg}')`,
@@ -123,9 +126,7 @@ const TouristAttraction: React.FC<TouristAttractionProps> = ({ data }) => {
           flexDirection: 'column',
           justifyContent: 'flex-end'
         }}>
-          <Link href="/" className="sa-close" style={{
-            position: 'absolute', top: '24px', left: 'max(22px, 5vw)', color: '#fff', fontSize: '20px'
-          }}>✕</Link>
+
           <div className="sa-header-body">
             <p style={{ color: 'var(--gold)', fontWeight: 700, fontSize: '12px', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px' }}>
               ✦ {categoryName || 'Explore'}
