@@ -5,8 +5,7 @@ import StatsBar from "./components/StatsBar";
 import TabsBar from "./components/TabsBar";
 import TopDestinations from "./components/TopDestinations";
 import Departments from "./components/Departments";
-import FeedbackSection from "./components/FeedbackSection";
-import MobileSection from "./components/MobileSection";
+
 const PackagesSection = dynamic(() => import("./components/PackagesSection"), {
   loading: () => <div className="min-h-[420px] bg-[#f8f3e8] animate-pulse" />,
 });
@@ -49,7 +48,9 @@ const AsiSection = dynamic(() => import("./components/AsiSection"), {
 const MobileSection = dynamic(() => import("./components/MobileSection"), {
   loading: () => <div className="min-h-[260px] bg-[#f8f3e8] animate-pulse" />,
 });
-
+const FeedbackSection = dynamic(() => import("./components/FeedbackSection"), {
+  loading: () => <div className="min-h-[260px] bg-[#f8f3e8] animate-pulse" />,
+});
 
 
 

@@ -62,12 +62,12 @@ const PackageDetail = ({ data }: any) => {
 
     // 1. Extract Price patterns (e.g. Indian Citizen-450)
     const priceLabels = ['Indian Citizen', 'Indian Student', 'Foreigner Citizen', 'Foreigner Student'];
-    let extractedPrices: string[] = [];
+    const extractedPrices: string[] = [];
     let workingText = text;
 
     priceLabels.forEach(label => {
       const regex = new RegExp(`${label}\\s*-\\s*\\d+`, 'gi');
-      workingText = workingText.replace(regex, (match) => {
+      workingText = workingText.replace(regex, (match:any) => {
         extractedPrices.push(match.trim());
         return "";
       });
@@ -78,14 +78,14 @@ const PackageDetail = ({ data }: any) => {
     workingText = workingText.replace(/[,/\\]\s*$/, '').trim();
 
     // 2. Split into paragraphs
-    let paragraphs = workingText.split(/\r?\n\r?\n|\r?\n/).map(p => p.trim()).filter(p => p && p !== '\\');
+    let paragraphs = workingText.split(/\r?\n\r?\n|\r?\n/).map((p: any) => p.trim()).filter((p: string) => p && p !== '\\');
     
     if (paragraphs.length === 1 && workingText.includes('. ')) {
       const splits = workingText.split(/(?<=museums\.)|(?<=unseen\.)|(?<=booking\.)/i);
       if (splits.length > 1) {
-        paragraphs = splits.map(s => s.trim()).filter(s => s && s !== '\\');
+        paragraphs = splits.map((s: any) => s.trim()).filter((s: string) => s && s !== '\\');
       } else {
-        paragraphs = workingText.split(/(?<=\. )/).map(p => p.trim()).filter(p => p && p !== '\\');
+        paragraphs = workingText.split(/(?<=\. )/).map((p: any) => p.trim()).filter((p: string) => p && p !== '\\');
       }
     }
 
@@ -158,7 +158,7 @@ const PackageDetail = ({ data }: any) => {
         <div className="pkg-overview">
           <h2 className="mt-8 text-xl font-bold text-[var(--ch)] mb-6">Overview</h2>
           <div className="pkg-desc" style={{ fontSize: '14px', lineHeight: '1.8', color: 'var(--mu)' }}>
-            {parsed.paragraphs.map((p, i) => (
+            {parsed.paragraphs.map((p:any, i:any) => (
               <p key={i} style={{ marginBottom: '20px' }}>{p}</p>
             ))}
             
