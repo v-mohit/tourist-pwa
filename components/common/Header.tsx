@@ -32,15 +32,15 @@ export default function Header() {
     "";
 
   const navLinks = [
-    { label: "Explore", href: "#destinations" },
-    { label: "Packages", href: "#packages" },
-    { label: "Monuments", href: "#monuments" },
-    { label: "Wildlife", href: "#wildlife" },
-    { label: "RTDC Hotels", href: "#rtdc" },
-    { label: "JKK", href: "#venues" },
-    { label: "Parks", href: "#parks" },
-    { label: "App", href: "#app" },
-    { label: "Reviews", href: "#feedback" },
+    { label: "Explore", href: "/#destinations" },
+    { label: "Packages", href: "/#packages" },
+    { label: "Monuments", href: "/#monuments" },
+    { label: "Wildlife", href: "/#wildlife" },
+    { label: "RTDC Hotels", href: "/#rtdc" },
+    { label: "JKK", href: "/#venues" },
+    { label: "Parks", href: "/#parks" },
+    { label: "App", href: "/#app" },
+    { label: "Reviews", href: "/#feedback" },
   ];
 
   // Close dropdown when clicking outside
