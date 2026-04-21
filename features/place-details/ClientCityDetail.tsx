@@ -194,12 +194,14 @@ function PlaceDetailContent({
 
   // ---------------- UI ----------------
   return (
-    <div
-      className="pd-panel"
-      style={{ position: "relative", minHeight: "100vh" }}
-    >
-      <button className="pd-close" onClick={() => router.back()}>
-        ✕ Close
+     <div className="pd-panel" style={{ position: 'relative', minHeight: '100vh' }}>
+      <button 
+        type="button"
+        onClick={() => (window.history.length > 1 ? router.back() : router.push('/'))} 
+        className="see-all-back"
+        style={{ cursor: 'pointer', background: 'none', border: 'none', borderBottom: '1px solid currentColor', paddingLeft: '5px', paddingBottom: '2px' }}
+      >
+        ← Back
       </button>
 
       {/* Hero */}

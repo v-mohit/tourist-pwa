@@ -5,6 +5,8 @@ import StatsBar from "./components/StatsBar";
 import TabsBar from "./components/TabsBar";
 import TopDestinations from "./components/TopDestinations";
 import Departments from "./components/Departments";
+import FeedbackSection from "./components/FeedbackSection";
+import MobileSection from "./components/MobileSection";
 const PackagesSection = dynamic(() => import("./components/PackagesSection"), {
   loading: () => <div className="min-h-[420px] bg-[#f8f3e8] animate-pulse" />,
 });
@@ -44,6 +46,12 @@ const Cafeteria = dynamic(() => import("./components/Cafeteria"), {
 const AsiSection = dynamic(() => import("./components/AsiSection"), {
   loading: () => <div className="min-h-[260px] bg-[#f8f3e8] animate-pulse" />,
 });
+const MobileSection = dynamic(() => import("./components/MobileSection"), {
+  loading: () => <div className="min-h-[260px] bg-[#f8f3e8] animate-pulse" />,
+});
+
+
+
 
 interface HomeProps {
   data?: any;
@@ -96,12 +104,14 @@ export default function Home({
         JkkplaceDetailsData={JkkplaceDetailsData}
         upcomingEventsData={upcomingEventsData}
       />
-      <HotelSection />
-      <Departments data={departmentData}/>
-      <ParkSection data={sectionMap["ComponentHomeParks"]} />
-      <TouristStats />
       <AsiSection data={updatedDepartmentData} />
+      <ParkSection data={sectionMap["ComponentHomeParks"]} />
+      <HotelSection />
+      <TouristStats />
+      <MobileSection />
+      <FeedbackSection />
       <FeaturesSection />
+      <Departments data={departmentData} />
       <HomeClient />
     </div>
   );
