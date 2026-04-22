@@ -25,6 +25,7 @@ query FetchTopPackage {
                     id
                     attributes {
                       slug
+                      days
                     }
                   }
                 }

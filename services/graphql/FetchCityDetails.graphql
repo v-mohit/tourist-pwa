@@ -15,30 +15,49 @@ query FetchCityDetails($slug: String) {
                 }
               }
               description
-              places(pagination:{pageSize:999}){
+              places(pagination: { pageSize: 999 }) {
                 data {
                   id
                   attributes {
                     name
-                        categories {
-                          data {
-                            attributes {
-                              Name
+                    categories {
+                      data {
+                        attributes {
+                          Name
 
-                              icon {
-                                data {
-                                  attributes {
-                                    url
-                                  }
-                                }
+                          icon {
+                            data {
+                              attributes {
+                                url
                               }
                             }
                           }
                         }
+                      }
+                    }
                     placeDetail {
                       data {
                         attributes {
                           slug
+                          content {
+                            __typename
+                            ... on ComponentPlaceDetailPlacetickets {
+                              id
+                              title1
+                              title2
+                              information {
+                                title
+                                description
+                              }
+                              card {
+                                title
+                                content {
+                                  name
+                                  value
+                                }
+                              }
+                            }
+                          }
                         }
                       }
                     }
@@ -53,7 +72,7 @@ query FetchCityDetails($slug: String) {
                   }
                 }
               }
-              festivalsAndFairs(pagination:{pageSize:999}) {
+              festivalsAndFairs(pagination: { pageSize: 999 }) {
                 data {
                   id
                   attributes {
@@ -69,7 +88,7 @@ query FetchCityDetails($slug: String) {
                   }
                 }
               }
-              activities(pagination:{pageSize:999}) {
+              activities(pagination: { pageSize: 999 }) {
                 data {
                   id
                   attributes {
