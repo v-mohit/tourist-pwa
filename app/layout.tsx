@@ -10,6 +10,7 @@ import AuthModal from "@/features/auth/components/AuthModal";
 import { BookingProvider } from "@/features/booking/context/BookingContext";
 import BookingModal from "@/features/booking/components/BookingModal";
 import UnauthorizedHandler from "@/components/common/UnauthorizedHandler";
+import FloatingHelpdesk from "@/components/helpdesk/FloatingHelpdesk";
 
 const geistSans = localFont({
   src: [
@@ -69,6 +70,8 @@ export default function RootLayout({
               <BookingModal />
               {/* Closes all modals and opens login on any 401 response */}
               <UnauthorizedHandler />
+              {/* Floating Helpdesk Widget */}
+              <FloatingHelpdesk />
             </Providers>
           </BookingProvider>
         </AuthProvider>

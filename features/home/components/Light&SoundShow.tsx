@@ -59,7 +59,7 @@ const LightSoundShow = ({ data }: any) => {
       </div>
 
       <div className="ls-grid rv in">
-        {places.map((item: any, index: number) => {
+        {places?.splice(0,2)?.map((item: any, index: number) => {
           // Handle API + fallback structure
           const attributes = item?.attributes || item;
 
