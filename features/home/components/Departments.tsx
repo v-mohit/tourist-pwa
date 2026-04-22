@@ -43,7 +43,7 @@ export default function Departments({ data }: { data?: any }) {
 
   if (!departments.length) return null;
 
-  const visibleDepartments = departments.slice(0, 3);
+  const visibleDepartments = departments.slice(0, 4);
 
   return (
     <section className="sec" id="partners" style={{ background: "var(--sand)" }}>

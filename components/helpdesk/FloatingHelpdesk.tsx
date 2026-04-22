@@ -289,7 +289,7 @@ const FloatingHelpdesk = () => {
   return (
     <>
       <SosPopup isOpen={isSosOpen} setIsOpen={setIsSosOpen} />
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4">
+      <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-4">
       {/* Helpdesk Modal */}
       {isOpen && (
         <div className="helpdesk-modal">
@@ -519,14 +519,14 @@ const FloatingHelpdesk = () => {
         
         <div className="flex items-end gap-3">
           {/* Scroll Indicator */}
-          <div className="flex flex-col items-center mr-2 mb-2">
+          {/* <div className="flex flex-col items-center mr-2 mb-2">
             <div className="scroll-indicator-fab">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E8631A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
             </div>
             <span className="text-white text-[12px] font-medium tracking-wide drop-shadow-md leading-tight text-center max-w-[80px]">
               Scroll Page to view more
             </span>
-          </div>
+          </div> */}
 
           {/* SOS Button */}
           <button 

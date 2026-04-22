@@ -4,7 +4,6 @@ import "./globals.css";
 import { Providers } from "./providers";
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
-import AppLoader from "@/components/common/AppLoader";
 import { AuthProvider } from "@/features/auth/context/AuthContext";
 import AuthModal from "@/features/auth/components/AuthModal";
 import { BookingProvider } from "@/features/booking/context/BookingContext";
@@ -61,7 +60,7 @@ export default function RootLayout({
             <Providers>
               <Header />
               <main className="flex-1">
-                <AppLoader>{children}</AppLoader>
+                {children}
               </main>
               <Footer />
               {/* Auth modal — always mounted */}
