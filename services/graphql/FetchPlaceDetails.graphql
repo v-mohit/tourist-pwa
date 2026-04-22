@@ -9,20 +9,20 @@ query FetchPlaceDetails($slug: String) {
               name
               link
               bookable
-               categories(pagination: { limit: 999 }) {
-          data {
-            attributes {
-              Name
-              icon {
+              categories(pagination: { limit: 999 }) {
                 data {
                   attributes {
-                    url
+                    Name
+                    icon {
+                      data {
+                        attributes {
+                          url
+                        }
+                      }
+                    }
                   }
                 }
               }
-            }
-          }
-        }
               images {
                 data {
                   attributes {
@@ -127,7 +127,7 @@ query FetchPlaceDetails($slug: String) {
             }
           }
 
-           ... on ComponentPlaceDetailPlaceTime {
+          ... on ComponentPlaceDetailPlaceTime {
             id
             tabName
             card(pagination: { limit: 100 }) {
@@ -180,22 +180,22 @@ query FetchPlaceDetails($slug: String) {
             }
           }
           ... on ComponentPlaceDetailDynamicprice {
-  id
-  cats {
-    name
-    title
-    places {
-      name
-      priceType
-      remark
-      prices {
-        title
-        price
-        note
-      }
-    }
-  }
-}
+            id
+            cats {
+              name
+              title
+              places {
+                name
+                priceType
+                remark
+                prices {
+                  title
+                  price
+                  note
+                }
+              }
+            }
+          }
         }
         categories {
           name
