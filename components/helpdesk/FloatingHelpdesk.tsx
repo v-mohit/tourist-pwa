@@ -4,25 +4,195 @@ import React, { useState, useRef, useEffect } from 'react';
 import { sendChatMessage } from '@/app/actions/chat';
 import SosPopup from '@/components/modals/SosPopup';
 import { useAuth } from '@/features/auth/context/AuthContext';
+import { getCookie } from 'cookies-next';
+import { AUTHENTICATION_TOKEN } from '@/utils/constants/common.constants';
+import { 
+  ChatBotBookingAction, 
+  GetChatBotCancelledData, 
+  GetChatBotTranstactionData 
+} from '@/services/apiCalls/booking.services';
+import { showErrorToastMessage } from '@/utils/toast.utils';
 
 const FloatingHelpdesk = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'FAQ' | 'Contact' | 'Chat' | 'ChatbotAI'>('Chat');
+  const [chatMessages, setChatMessages] = useState<{sender: 'user'|'bot', text: string, isTxn?: boolean, txnId?: string}[]>([{sender: 'bot', text: 'Hi! How can I help you?'}]);
   const [messages, setMessages] = useState<{sender: 'user'|'bot', text: string}[]>([{sender: 'bot', text: 'Hi! I am your AI assistant. How can I help you today?'}]);
   const [inputValue, setInputValue] = useState('');
+  const [chatInputValue, setChatInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isChatLoading, setIsChatLoading] = useState(false);
   const [isSosOpen, setIsSosOpen] = useState(false);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
-  const { isAuthenticated, openLoginModal } = useAuth();
+  const chatTabEndRef = useRef<HTMLDivElement>(null);
+  const { isAuthenticated, openLoginModal, user } = useAuth();
+
+  const [selectedIntent, setSelectedIntent] = useState<string | null>(null);
+  const [bookingPrompt, setBookingPrompt] = useState(false);
+  const [showMainOptions, setShowMainOptions] = useState(true);
+  const [txnFlow, setTxnFlow] = useState(false);
+  const [subFlow, setSubFlow] = useState(false);
+  const [selectedTxnId, setSelectedTxnId] = useState<string | null>(null);
+  const [subOptions, setSubOptions] = useState<{label: string, value: string}[]>([]);
+
+  const userId = user?.sub || "";
+
+  // ChatBot Services
+  const { mutate: chatBotMutate } = ChatBotBookingAction(
+    (res: any) => {
+      setIsChatLoading(false);
+      if (res?.ticketBookingDetailDtos?.length) {
+        setChatMessages(prev => [...prev, { sender: 'bot', text: "Ticket details found. Processing your request..." }]);
+      } else if (res?.finalResponse) {
+        setChatMessages(prev => [...prev, { sender: 'bot', text: `Payment Status - ${res?.finalResponse.eMitraStatus}` }]);
+      } else {
+        setChatMessages(prev => [...prev, { sender: 'bot', text: "Booking Id not found or something went wrong." }]);
+      }
+    },
+    () => {
+      setIsChatLoading(false);
+      setChatMessages(prev => [...prev, { sender: 'bot', text: "Something went wrong while processing your request." }]);
+    }
+  );
+
+  const { mutate: chatBotTransactionMutate } = GetChatBotTranstactionData(
+    (res: any) => {
+      setIsChatLoading(false);
+      if (res?.length > 0) {
+        const txnMsgs = res.slice(0, 5).map((txn: any, idx: number) => ({
+          sender: 'bot',
+          text: `${idx + 1}. Booking ID: ${txn.bookingId}\nStatus: ${txn.paymentStatus}\nDate: ${new Date(txn.bookingDate).toLocaleDateString()}`,
+          isTxn: true,
+          txnId: txn.bookingId
+        }));
+        setChatMessages(prev => [...prev, ...txnMsgs]);
+        setTxnFlow(true);
+      } else {
+        setChatMessages(prev => [...prev, { sender: 'bot', text: "No transactions found." }]);
+      }
+    },
+    () => {
+      setIsChatLoading(false);
+      setChatMessages(prev => [...prev, { sender: 'bot', text: "Failed to fetch transactions." }]);
+    }
+  );
+
+  const { mutate: chatBotCancelledMutate } = GetChatBotCancelledData(
+    (res: any) => {
+      setIsChatLoading(false);
+      if (res?.length > 0) {
+        const txnMsgs = res.map((txn: any, idx: number) => ({
+          sender: 'bot',
+          text: `${idx + 1}. Booking ID: ${txn.bookingId}\nStatus: Cancelled\nDate: ${new Date(txn.bookingDate).toLocaleDateString()}`,
+          isTxn: true,
+          txnId: txn.bookingId
+        }));
+        setChatMessages(prev => [...prev, ...txnMsgs]);
+        setTxnFlow(true);
+      } else {
+        setChatMessages(prev => [...prev, { sender: 'bot', text: "No cancelled data found." }]);
+      }
+    },
+    () => {
+      setIsChatLoading(false);
+      setChatMessages(prev => [...prev, { sender: 'bot', text: "Failed to fetch cancelled data." }]);
+    }
+  );
+
+  const handleOptionSelect = (option: {label: string, value: string}) => {
+    if (!isAuthenticated) {
+      openLoginModal();
+      return;
+    }
+
+    setChatMessages(prev => [...prev, { sender: 'user', text: option.label }]);
+    setSelectedIntent(option.value);
+    setShowMainOptions(false);
+
+    if (option.value === 'last_5_transaction') {
+      setIsChatLoading(true);
+      chatBotTransactionMutate({ userId });
+    } else if (option.value === 'view_cancelled_data') {
+      setIsChatLoading(true);
+      chatBotCancelledMutate({ userId });
+    } else if (option.value === 'grievance') {
+      window.location.href = '/query-tickets';
+    } else {
+      setChatMessages(prev => [...prev, { sender: 'bot', text: 'Please enter Booking Id' }]);
+      setBookingPrompt(true);
+    }
+  };
+
+  const handleTxnClick = (txnId: string) => {
+    setChatMessages(prev => [...prev, { sender: 'user', text: `Selected Booking Id - ${txnId}` }]);
+    setSelectedTxnId(txnId);
+    setTxnFlow(false);
+    
+    // In a real app, you might fetch specific options for this txn
+    const dynamicOptions = [
+      { label: 'Download Ticket', value: 'download_ticket' },
+      { label: 'Refund Status', value: 'refund_status' }
+    ];
+    setSubOptions(dynamicOptions);
+    setSubFlow(true);
+  };
+
+  const handleSubOptionSelect = (option: {label: string, value: string}) => {
+    setChatMessages(prev => [...prev, { sender: 'user', text: option.label }]);
+    setIsChatLoading(true);
+    chatBotMutate({ 
+      userId, 
+      action: option.value, 
+      bookingId: selectedTxnId || "" 
+    });
+    setSubFlow(false);
+  };
+
+  const handleChatSendMessage = () => {
+    if (!chatInputValue.trim() || !bookingPrompt) return;
+    
+    const userMsg = chatInputValue.trim();
+    setChatMessages(prev => [...prev, { sender: 'user', text: userMsg }]);
+    setChatInputValue('');
+    setBookingPrompt(false);
+    setIsChatLoading(true);
+
+    chatBotMutate({ 
+      userId, 
+      action: selectedIntent || "", 
+      bookingId: userMsg 
+    });
+  };
 
   const handleQueryClick = (query: string) => {
     if (!isAuthenticated) {
       openLoginModal();
       return;
     }
-    // Logic for handling queries after login will go here
-    console.log(`Handling query: ${query}`);
+    
+    const option = [
+      { label: 'View Last 5 Transaction', value: 'last_5_transaction' },
+      { label: 'Download Ticket', value: 'download_ticket' },
+      { label: 'Download Boarding Pass', value: 'download_boarding_pass' },
+      { label: 'View Cancelled Data', value: 'view_cancelled_data' },
+      { label: 'Refund Status', value: 'refund_status' },
+      { label: 'Grievance', value: 'grievance' },
+    ].find(o => o.label === query);
+
+    if (option) handleOptionSelect(option);
+  };
+
+  const clearChat = () => {
+    setChatMessages([{sender: 'bot', text: 'Hi! How can I help you?'}]);
+    setMessages([{sender: 'bot', text: 'Hi! I am your AI assistant. How can I help you today?'}]);
+    setShowMainOptions(true);
+    setTxnFlow(false);
+    setSubFlow(false);
+    setBookingPrompt(false);
+    setChatInputValue('');
+    setInputValue('');
+    setExpandedFaq(null);
   };
 
   const faqs = [
@@ -86,8 +256,10 @@ const FloatingHelpdesk = () => {
   useEffect(() => {
     if (activeTab === 'ChatbotAI') {
       chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    } else if (activeTab === 'Chat') {
+      chatTabEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, activeTab]);
+  }, [messages, chatMessages, activeTab]);
 
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
@@ -125,7 +297,11 @@ const FloatingHelpdesk = () => {
           <div className="helpdesk-header">
             <h3 className="font-bold text-lg">Helpdesk Support</h3>
             <div className="flex gap-4">
-              <button className="hover:opacity-80 transition-opacity">
+              <button 
+                onClick={clearChat}
+                className="hover:opacity-80 transition-opacity"
+                title="Clear Chat"
+              >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
               </button>
               <button onClick={toggleModal} className="hover:opacity-80 transition-opacity">
@@ -150,50 +326,100 @@ const FloatingHelpdesk = () => {
           {/* Content */}
           <div className="helpdesk-content">
             {activeTab === 'Chat' && (
-              <>
-                <div className="helpdesk-chat-bubble-bot">
-                  Hi! How can I help you?
+              <div className="flex flex-col h-full">
+                <div className="flex-1 overflow-y-auto pr-1 space-y-3 flex flex-col">
+                  {chatMessages.map((msg, idx) => (
+                    <div 
+                      key={idx} 
+                      onClick={() => msg.isTxn && msg.txnId && handleTxnClick(msg.txnId)}
+                      className={msg.sender === 'user' ? "helpdesk-chat-bubble-user" : "helpdesk-chat-bubble-bot"}
+                      style={msg.isTxn ? { cursor: 'pointer', border: '1px solid #E8631A', backgroundColor: '#FFF5F0' } : {}}
+                    >
+                      {msg.text}
+                    </div>
+                  ))}
+                  
+                  {isChatLoading && (
+                    <div className="helpdesk-typing-indicator">
+                      <span className="helpdesk-typing-dot"></span>
+                      <span className="helpdesk-typing-dot delay-100"></span>
+                      <span className="helpdesk-typing-dot delay-200"></span>
+                    </div>
+                  )}
+
+                  {showMainOptions && !isChatLoading && (
+                    <div className="flex flex-col gap-2 mt-2">
+                      {[
+                        { label: 'View Last 5 Transaction', value: 'last_5_transaction' },
+                        { label: 'Download Ticket', value: 'download_ticket' },
+                        { label: 'Download Boarding Pass', value: 'download_boarding_pass' },
+                        { label: 'View Cancelled Data', value: 'view_cancelled_data' },
+                        { label: 'Refund Status', value: 'refund_status' },
+                        { label: 'Grievance', value: 'grievance' },
+                      ].map((option, idx) => (
+                        <button 
+                          key={idx}
+                          onClick={() => handleOptionSelect(option)}
+                          className="helpdesk-quick-action-btn"
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {subFlow && !isChatLoading && (
+                    <div className="flex flex-col gap-2 mt-2">
+                      {subOptions.map((option, idx) => (
+                        <button 
+                          key={idx}
+                          onClick={() => handleSubOptionSelect(option)}
+                          className="helpdesk-quick-action-btn"
+                          style={{ backgroundColor: '#E0F7FA', borderColor: '#00ACC1', color: '#006064' }}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <div ref={chatTabEndRef} />
                 </div>
+
+                {!showMainOptions && !txnFlow && !subFlow && (
+                  <div className="helpdesk-chat-footer">
+                    <input 
+                      type="text" 
+                      value={chatInputValue}
+                      onChange={(e) => setChatInputValue(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleChatSendMessage()}
+                      placeholder={bookingPrompt ? "Enter Booking ID" : "Type message..."}
+                      className="helpdesk-chat-input"
+                    />
+                    <button 
+                      onClick={handleChatSendMessage}
+                      disabled={isChatLoading || !chatInputValue.trim()}
+                      className="helpdesk-chat-send-btn"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
+                  </div>
+                )}
                 
-                <div className="flex flex-col gap-3 mt-3">
+                {(txnFlow || subFlow || !showMainOptions) && (
                   <button 
-                    onClick={() => handleQueryClick('View Last 5 Transaction')}
-                    className="helpdesk-quick-action-btn"
+                    onClick={() => {
+                      setShowMainOptions(true);
+                      setTxnFlow(false);
+                      setSubFlow(false);
+                      setBookingPrompt(false);
+                    }}
+                    className="text-[12px] text-[#E8631A] font-bold mt-2 hover:underline self-center"
                   >
-                    View Last 5 Transaction
+                    Back to Menu
                   </button>
-                  <button 
-                    onClick={() => handleQueryClick('Download Ticket')}
-                    className="helpdesk-quick-action-btn"
-                  >
-                    Download Ticket
-                  </button>
-                  <button 
-                    onClick={() => handleQueryClick('Download Boarding Pass')}
-                    className="helpdesk-quick-action-btn"
-                  >
-                    Download Boarding Pass
-                  </button>
-                  <button 
-                    onClick={() => handleQueryClick('View Cancelled Data')}
-                    className="helpdesk-quick-action-btn"
-                  >
-                    View Cancelled Data
-                  </button>
-                  <button 
-                    onClick={() => handleQueryClick('Refund Status')}
-                    className="helpdesk-quick-action-btn"
-                  >
-                    Refund Status
-                  </button>
-                  <button 
-                    onClick={() => handleQueryClick('Grievance')}
-                    className="helpdesk-quick-action-btn"
-                  >
-                    Grievance
-                  </button>
-                </div>
-              </>
+                )}
+              </div>
             )}
             {activeTab === 'FAQ' && (
               <div className="flex flex-col">
@@ -279,7 +505,7 @@ const FloatingHelpdesk = () => {
       )}
 
       {/* Floating Buttons Group */}
-      <div className="flex flex-col items-end gap-4">
+      <div className="helpdesk-fab-container">
         
         {/* Chat Bot Button */}
         <button 
