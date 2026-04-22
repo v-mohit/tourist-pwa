@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useMemo, useState, useCallback, useEffect } from "react";
-
+import ReactMarkdown from "react-markdown";
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Single Strapi image entry */
 interface StrapiImageData {
   attributes: {
     url: string;
@@ -19,13 +18,6 @@ interface StrapiImageData {
   };
 }
 
-/**
- * CMS CategoryItem — comes from the `data` prop.
- * Each item maps to one category tab (Auditorium, Galleries, Venues).
- * - Name        → matches PriceCategory.name (case-insensitive)
- * - Description → paragraph shown below the category heading
- * - icon        → small icon shown next to heading
- */
 export interface CategoryItem {
   attributes: {
     Name: string;
@@ -38,28 +30,18 @@ export interface CategoryItem {
   };
 }
 
-/** One price row inside a place */
 export interface PriceEntry {
   title: string;
   price: string | null;
   note: string | null;
 }
 
-/**
- * One bookable place / venue.
- * `description`, `capacity`, and `images` are optional fields
- * that your API should include alongside the pricing data.
- */
 export interface PlaceItem {
   name: string;
   priceType: string | null;
-  /** Shown in the Pricing modal Note section */
   remark: string | null;
-  /** Paragraph body text shown inside the venue card */
   description?: string | null;
-  /** e.g. "210 persons" — rendered as bold "Seating Capacity: 210 persons" */
   capacity?: string | null;
-  /** Strapi media relation — venue photos for the carousel */
   images?: {
     data?: StrapiImageData[] | null;
   } | null;
@@ -67,9 +49,7 @@ export interface PlaceItem {
 }
 
 export interface PriceCategory {
-  /** Lowercase key — must match CategoryItem.attributes.Name (lowercased) */
   name: string;
-  /** Display title e.g. "Auditoriums" */
   title: string;
   places: PlaceItem[];
 }
@@ -93,9 +73,7 @@ export interface CategoryWiseGalleryNewProps {
   placeName: string;
   disclaimerOpen: boolean;
   bookNowClick: () => void;
-  /** CMS category list — provides Description, icon per category */
   data: CMSCategory[];
-  /** Full pricing + place data */
   prices: PriceCategory[] | null;
   placeCategory: string;
   isbookingData: boolean;
@@ -103,7 +81,26 @@ export interface CategoryWiseGalleryNewProps {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Env — single image base URL for everything
+// Responsive hook
+// ─────────────────────────────────────────────────────────────────────────────
+
+function useIsMobile(breakpoint = 640): boolean {
+  const [isMobile, setIsMobile] = useState<boolean>(
+    typeof window !== "undefined" ? window.innerWidth < breakpoint : false,
+  );
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < breakpoint);
+    window.addEventListener("resize", handler);
+    handler(); // run on mount
+    return () => window.removeEventListener("resize", handler);
+  }, [breakpoint]);
+
+  return isMobile;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Env
 // ─────────────────────────────────────────────────────────────────────────────
 
 const IMG_BASE = (process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL ?? "").replace(
@@ -111,13 +108,11 @@ const IMG_BASE = (process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL ?? "").replace(
   "",
 );
 
-/** Resolve any Strapi-relative path to an absolute URL. */
 function img(path: string | null | undefined): string | null {
   if (!path) return null;
   return path.startsWith("http") ? path : `${IMG_BASE}${path}`;
 }
 
-/** Pull an ordered list of image URLs out of a PlaceItem. */
 function placeImages(place: PlaceItem): string[] {
   return (place.images?.data ?? [])
     .map((d) => img(d.attributes.formats?.medium?.url ?? d.attributes.url))
@@ -155,8 +150,8 @@ const FilterTabs: React.FC<{
     style={{
       display: "flex",
       flexWrap: "wrap",
-      gap: "10px",
-      marginBottom: "32px",
+      gap: "8px",
+      marginBottom: "24px",
     }}
   >
     {tabs.map((tab) => {
@@ -166,8 +161,8 @@ const FilterTabs: React.FC<{
           key={tab.key}
           onClick={() => onChange(tab.key)}
           style={{
-            padding: "8px 22px",
-            fontSize: "13px",
+            padding: "8px 18px",
+            fontSize: "12px",
             fontWeight: 700,
             borderRadius: "99px",
             border: on ? "none" : "1.5px solid #C0B0A0",
@@ -176,6 +171,8 @@ const FilterTabs: React.FC<{
             cursor: "pointer",
             letterSpacing: "0.4px",
             transition: "all 0.18s",
+            // Ensure touch-friendly tap target
+            minHeight: "36px",
           }}
         >
           {tab.label.toUpperCase()}
@@ -195,6 +192,7 @@ const ImageCarousel: React.FC<{ images: string[]; alt: string }> = ({
 }) => {
   const [cur, setCur] = useState(0);
   const total = images.length;
+  const isMobile = useIsMobile();
 
   if (total === 0) {
     return (
@@ -202,7 +200,7 @@ const ImageCarousel: React.FC<{ images: string[]; alt: string }> = ({
         style={{
           borderRadius: "12px",
           background: "#F5DCE5",
-          minHeight: "260px",
+          minHeight: isMobile ? "220px" : "260px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -231,10 +229,10 @@ const ImageCarousel: React.FC<{ images: string[]; alt: string }> = ({
     background: "rgba(255,255,255,0.88)",
     border: "none",
     borderRadius: "50%",
-    width: "34px",
-    height: "34px",
+    width: "36px",
+    height: "36px",
     cursor: "pointer",
-    fontSize: "18px",
+    fontSize: "20px",
     fontWeight: 700,
     display: "flex",
     alignItems: "center",
@@ -242,6 +240,8 @@ const ImageCarousel: React.FC<{ images: string[]; alt: string }> = ({
     boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
     zIndex: 2,
     color: "#333",
+    // Bigger tap target on mobile
+    touchAction: "manipulation",
   };
 
   return (
@@ -250,7 +250,10 @@ const ImageCarousel: React.FC<{ images: string[]; alt: string }> = ({
         position: "relative",
         borderRadius: "12px",
         overflow: "hidden",
-        minHeight: "260px",
+        // Full width on mobile, natural height ratio
+        width: "100%",
+        aspectRatio: isMobile ? "4/3" : undefined,
+        minHeight: isMobile ? undefined : "260px",
         background: "#F5DCE5",
       }}
     >
@@ -259,7 +262,6 @@ const ImageCarousel: React.FC<{ images: string[]; alt: string }> = ({
         alt={`${alt} ${cur + 1}`}
         style={{
           width: "100%",
-          minHeight: "260px",
           height: "100%",
           objectFit: "cover",
           display: "block",
@@ -270,8 +272,8 @@ const ImageCarousel: React.FC<{ images: string[]; alt: string }> = ({
       <div
         style={{
           position: "absolute",
-          top: "12px",
-          right: "12px",
+          top: "10px",
+          right: "10px",
           background: "#E8631A",
           color: "#fff",
           fontSize: "11px",
@@ -284,20 +286,20 @@ const ImageCarousel: React.FC<{ images: string[]; alt: string }> = ({
         {cur + 1} / {total}
       </div>
 
-      {/* Arrows — only when multiple images */}
+      {/* Arrows */}
       {total > 1 && (
         <>
           <button
             onClick={prev}
             aria-label="Previous"
-            style={{ ...navBtn, left: "10px" }}
+            style={{ ...navBtn, left: "8px" }}
           >
             ‹
           </button>
           <button
             onClick={next}
             aria-label="Next"
-            style={{ ...navBtn, right: "10px" }}
+            style={{ ...navBtn, right: "8px" }}
           >
             ›
           </button>
@@ -333,29 +335,47 @@ const PricingModal: React.FC<{ place: PlaceItem; onClose: () => void }> = ({
         backdropFilter: "blur(4px)",
         zIndex: 2000,
         display: "flex",
-        alignItems: "center",
+        alignItems: "flex-end", // sheet from bottom on mobile
         justifyContent: "center",
-        padding: "20px",
+        padding: "0",
       }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
           background: "#fff",
-          borderRadius: "20px",
+          borderRadius: "20px 20px 0 0",
           width: "100%",
           maxWidth: "540px",
-          maxHeight: "82vh",
+          maxHeight: "88vh",
           overflowY: "auto",
-          boxShadow: "0 24px 64px rgba(24,18,14,0.22)",
+          boxShadow: "0 -8px 40px rgba(24,18,14,0.18)",
         }}
       >
+        {/* Drag handle */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            paddingTop: "10px",
+            paddingBottom: "4px",
+          }}
+        >
+          <div
+            style={{
+              width: "40px",
+              height: "4px",
+              borderRadius: "99px",
+              background: "#E0D0C8",
+            }}
+          />
+        </div>
+
         {/* Header */}
         <div
           style={{
             background: "linear-gradient(135deg,#E8631A,#FF69B4)",
-            borderRadius: "20px 20px 0 0",
-            padding: "20px 24px",
+            padding: "16px 20px",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "flex-start",
@@ -379,7 +399,7 @@ const PricingModal: React.FC<{ place: PlaceItem; onClose: () => void }> = ({
             </p>
             <h3
               style={{
-                fontSize: "18px",
+                fontSize: "17px",
                 fontWeight: 700,
                 color: "#fff",
                 margin: 0,
@@ -406,8 +426,8 @@ const PricingModal: React.FC<{ place: PlaceItem; onClose: () => void }> = ({
               background: "rgba(255,255,255,0.2)",
               border: "none",
               color: "#fff",
-              width: "32px",
-              height: "32px",
+              width: "34px",
+              height: "34px",
               borderRadius: "50%",
               cursor: "pointer",
               fontSize: "16px",
@@ -422,7 +442,7 @@ const PricingModal: React.FC<{ place: PlaceItem; onClose: () => void }> = ({
         </div>
 
         {/* Body */}
-        <div style={{ padding: "20px 24px 24px" }}>
+        <div style={{ padding: "16px 20px 32px" }}>
           {place.prices.length === 0 ? (
             <p
               style={{
@@ -445,7 +465,7 @@ const PricingModal: React.FC<{ place: PlaceItem; onClose: () => void }> = ({
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "flex-start",
-                    gap: "16px",
+                    gap: "12px",
                     padding: "10px 14px",
                     background: i % 2 === 0 ? "#FFF0F7" : "#fff",
                     borderRadius: "10px",
@@ -478,7 +498,6 @@ const PricingModal: React.FC<{ place: PlaceItem; onClose: () => void }> = ({
             </div>
           )}
 
-          {/* Note / remark */}
           {place.remark && (
             <div
               style={{
@@ -520,7 +539,7 @@ const PricingModal: React.FC<{ place: PlaceItem; onClose: () => void }> = ({
             style={{
               marginTop: "20px",
               width: "100%",
-              padding: "12px",
+              padding: "13px",
               background: "linear-gradient(135deg,#E8631A,#FF69B4)",
               color: "#fff",
               fontWeight: 700,
@@ -539,11 +558,11 @@ const PricingModal: React.FC<{ place: PlaceItem; onClose: () => void }> = ({
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ActionButtons — Book Now · Availability · Pricing
+// ActionButtons
 // ─────────────────────────────────────────────────────────────────────────────
 
 const pill: React.CSSProperties = {
-  padding: "9px 22px",
+  padding: "10px 22px",
   fontSize: "12px",
   fontWeight: 700,
   borderRadius: "99px",
@@ -553,6 +572,8 @@ const pill: React.CSSProperties = {
   color: "#fff",
   letterSpacing: "0.2px",
   transition: "opacity 0.18s, transform 0.18s",
+  minHeight: "40px", // touch-friendly
+  touchAction: "manipulation",
 };
 
 const ActionButtons: React.FC<{
@@ -563,6 +584,8 @@ const ActionButtons: React.FC<{
   onAvailability: (name: string) => void;
   onPricing: (place: PlaceItem) => void;
 }> = ({ place, isbookingData, obmsId, onBook, onAvailability, onPricing }) => {
+  const isMobile = useIsMobile();
+
   const over = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.currentTarget.style.opacity = "0.82";
     e.currentTarget.style.transform = "translateY(-1px)";
@@ -576,14 +599,21 @@ const ActionButtons: React.FC<{
     <div
       style={{
         display: "flex",
+        flexDirection: isMobile ? "column" : "row",
         flexWrap: "wrap",
         gap: "10px",
-        marginTop: "18px",
+        marginTop: "16px",
+        // On mobile make buttons full width
+        alignItems: isMobile ? "stretch" : "flex-start",
       }}
     >
       {isbookingData && (
         <button
-          style={pill}
+          style={{
+            ...pill,
+            width: isMobile ? "100%" : undefined,
+            textAlign: "center",
+          }}
           onMouseEnter={over}
           onMouseLeave={out}
           onClick={() => onBook(place.name)}
@@ -592,7 +622,11 @@ const ActionButtons: React.FC<{
         </button>
       )}
       <button
-        style={pill}
+        style={{
+          ...pill,
+          width: isMobile ? "100%" : undefined,
+          textAlign: "center",
+        }}
         onMouseEnter={over}
         onMouseLeave={out}
         onClick={() => onAvailability(place.name)}
@@ -601,7 +635,11 @@ const ActionButtons: React.FC<{
       </button>
       {place.prices.length > 0 && (
         <button
-          style={pill}
+          style={{
+            ...pill,
+            width: isMobile ? "100%" : undefined,
+            textAlign: "center",
+          }}
           onMouseEnter={over}
           onMouseLeave={out}
           onClick={() => onPricing(place)}
@@ -614,7 +652,7 @@ const ActionButtons: React.FC<{
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// VenueCard
+// VenueCard — responsive layout
 // ─────────────────────────────────────────────────────────────────────────────
 
 const VenueCard: React.FC<{
@@ -634,6 +672,7 @@ const VenueCard: React.FC<{
   onAvailability,
   onPricing,
 }) => {
+  const isMobile = useIsMobile();
   const isReverse = index % 2 !== 0;
   const images = placeImages(place);
 
@@ -645,13 +684,12 @@ const VenueCard: React.FC<{
         justifyContent: "center",
       }}
     >
-      {/* Venue name */}
       <h3
         style={{
-          fontSize: "15px",
+          fontSize: isMobile ? "14px" : "15px",
           fontWeight: 800,
           color: "#18120E",
-          margin: "0 0 12px",
+          margin: "0 0 10px",
           letterSpacing: "0.3px",
           textTransform: "uppercase",
           fontFamily: "playfair-display, serif",
@@ -660,21 +698,19 @@ const VenueCard: React.FC<{
         {place?.name}
       </h3>
 
-      {/* Venue description — from place.description field */}
       {place.description && (
         <p
           style={{
             fontSize: "13px",
             color: "#3A2E26",
-            lineHeight: 1.8,
+            lineHeight: 1.75,
             margin: "0 0 8px",
           }}
         >
-          {place?.description}
+          <ReactMarkdown>{place?.description}</ReactMarkdown>
         </p>
       )}
 
-      {/* Seating capacity — from place.capacity field */}
       {place.capacity && (
         <p
           style={{
@@ -706,30 +742,39 @@ const VenueCard: React.FC<{
       style={{
         background: "#FFE8F0",
         borderRadius: "16px",
-        padding: "24px",
-        marginBottom: "20px",
+        padding: isMobile ? "16px" : "24px",
+        marginBottom: "16px",
       }}
     >
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "24px",
-          alignItems: "center",
-        }}
-      >
-        {isReverse ? (
-          <>
-            {imageBlock}
-            {infoBlock}
-          </>
-        ) : (
-          <>
-            {infoBlock}
-            {imageBlock}
-          </>
-        )}
-      </div>
+      {isMobile ? (
+        // Mobile: always stack — image on top, info below
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          {imageBlock}
+          {infoBlock}
+        </div>
+      ) : (
+        // Desktop: alternating two-column layout
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "24px",
+            alignItems: "center",
+          }}
+        >
+          {isReverse ? (
+            <>
+              {imageBlock}
+              {infoBlock}
+            </>
+          ) : (
+            <>
+              {infoBlock}
+              {imageBlock}
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 };
@@ -755,15 +800,11 @@ const CategorySection: React.FC<{
   onAvailability,
   onPricing,
 }) => {
-  // Description comes from CMS data prop
   const description = categoryItem?.description;
-  // No icon in CMSCategory
-  const iconUrl = null;
 
   return (
-    <section style={{ marginBottom: "48px" }}>
-      {/* Category heading + description */}
-      <div style={{ marginBottom: "20px" }}>
+    <section style={{ marginBottom: "40px" }}>
+      <div style={{ marginBottom: "16px" }}>
         <div
           style={{
             display: "flex",
@@ -772,18 +813,9 @@ const CategorySection: React.FC<{
             marginBottom: description ? "8px" : "0",
           }}
         >
-          {iconUrl && (
-            <img
-              src={iconUrl}
-              alt={category.title}
-              width={24}
-              height={24}
-              style={{ objectFit: "contain", flexShrink: 0 }}
-            />
-          )}
           <h2
             style={{
-              fontSize: "clamp(18px, 2.5vw, 24px)",
+              fontSize: "clamp(16px, 2.5vw, 22px)",
               fontWeight: 700,
               color: "#18120E",
               margin: 0,
@@ -793,11 +825,10 @@ const CategorySection: React.FC<{
           </h2>
         </div>
 
-        {/* Category description from CMS */}
         {description && (
           <p
             style={{
-              fontSize: "14px",
+              fontSize: "13px",
               color: "#4A3F35",
               lineHeight: 1.8,
               margin: 0,
@@ -809,7 +840,6 @@ const CategorySection: React.FC<{
         )}
       </div>
 
-      {/* Venue cards */}
       {category.places.map((place, i) => (
         <VenueCard
           key={`${category.name}__${place.name}__${i}`}
@@ -841,9 +871,6 @@ const CategoryWiseGalleryNew: React.FC<CategoryWiseGalleryNewProps> = ({
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
   const [pricingPlace, setPricingPlace] = useState<PlaceItem | null>(null);
 
-  // console.log("cat-----", data);
-
-  // Build O(1) lookup: category name (lowercased) → CMSCategory
   const categoryLookup = useMemo<Record<string, CMSCategory>>(
     () =>
       (data ?? []).reduce<Record<string, CMSCategory>>((acc, item) => {
@@ -867,11 +894,9 @@ const CategoryWiseGalleryNew: React.FC<CategoryWiseGalleryNewProps> = ({
     return prices.filter((c) => c.name === activeTab);
   }, [prices, activeTab]);
 
-  // 🔥 Merge CMS + Pricing
   const mergedCategories = useMemo<PriceCategory[]>(() => {
     return visibleCategories.map((pCat) => {
       const cms = categoryLookup[pCat.name.toLowerCase()];
-
       return {
         ...pCat,
         title: cms?.title || pCat.title,
@@ -880,7 +905,6 @@ const CategoryWiseGalleryNew: React.FC<CategoryWiseGalleryNewProps> = ({
           const cmsPlace = cms?.places?.find(
             (c) => c.name.toLowerCase() === pl.name.toLowerCase(),
           );
-
           return {
             ...pl,
             description: cmsPlace?.description || pl.description,
@@ -892,13 +916,13 @@ const CategoryWiseGalleryNew: React.FC<CategoryWiseGalleryNewProps> = ({
   }, [visibleCategories, categoryLookup]);
 
   const handleBook = useCallback(
-    (name: string) => {
+    (_name: string) => {
       bookNowClick();
     },
     [bookNowClick],
   );
-  const handleAvailability = useCallback((name: string) => {
-    console.log("Availability:", name);
+  const handleAvailability = useCallback((_name: string) => {
+    console.log("Availability:", _name);
   }, []);
   const handlePricing = useCallback(
     (place: PlaceItem) => setPricingPlace(place),
