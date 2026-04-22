@@ -133,7 +133,7 @@ const TouristStats = () => {
     : barData;
 
   return (
-    <div className="ts-root">
+    <div className="ts-root" id="tourist-stats">
       {/* ════ TOURIST STATS ════ */}
       <section className="ts-stats-section">
         {/* Header */}
@@ -189,7 +189,7 @@ const TouristStats = () => {
       </section>
 
       {/* ════ OBMS / SKOCH AWARD ════ */}
-      <section className="ts-award-section">
+      <section className="ts-award-section" id="skoch-award">
         <div
           ref={awardRef}
           className={`ts-award-wrap ts-rv${awardInView ? " ts-in" : ""}`}

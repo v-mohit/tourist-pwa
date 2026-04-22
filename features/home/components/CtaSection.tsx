@@ -1,10 +1,15 @@
 'use client'
 
+import { useAuth } from '@/features/auth/context/AuthContext'
+
 interface CtaSectionProps {
   onBook: () => void
 }
 
 export default function CtaSection({ onBook }: CtaSectionProps) {
+  const { user } = useAuth()
+
+  if (user) return null
   return (
     <section
       className="text-center"

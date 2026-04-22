@@ -59,6 +59,12 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    const handleOpenSos = () => setIsSosOpen(true);
+    window.addEventListener("app:openSos", handleOpenSos);
+    return () => window.removeEventListener("app:openSos", handleOpenSos);
+  }, []);
+
   const handleNavClick = (href: string) => {
     setActiveLink(href);
     setIsDrawerOpen(false);

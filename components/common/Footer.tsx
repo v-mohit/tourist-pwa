@@ -113,27 +113,27 @@ export default function Footer() {
             <Link href="#" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
               HelpDesk
             </Link>
-            <Link href="#" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
+            <Link href="/faq" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
               FAQ
             </Link>
             <Link href="/about" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
               About OBMS
             </Link>
-            <Link href="#" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
+            <Link href="/#tourist-stats" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
               Tourist Statistics
             </Link>
-            <Link href="#" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
+            <Link href="/#skoch-award" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
               SKOCH Award
             </Link>
-            <Link href="#" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
+            <Link href="/#app" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
               Download App
             </Link>
-            <Link href="#" className="text-xs text-[rgba(255,255,255,0.4)] transition-colors hover:text-[#E8631A]">
-              Terms & Conditions
-            </Link>
-            <Link href="#" className="text-xs font-bold text-[#DC2626] transition-colors hover:text-[#E8631A]">
+            <button 
+              onClick={() => window.dispatchEvent(new CustomEvent('app:openSos'))}
+              className="text-xs font-bold text-[#DC2626] transition-colors hover:text-[#E8631A] text-left"
+            >
               🆘 SOS Emergency
-            </Link>
+            </button>
           </nav>
         </div>
       </div>

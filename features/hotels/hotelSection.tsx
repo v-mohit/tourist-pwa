@@ -71,7 +71,7 @@ const HotelSection = () => {
           <div className="sec-lbl">✦ RTDC Heritage Hotels</div>
           <h2 className="sec-ttl">Stay in a Royal Government Hotel</h2>
         </div>
-        <a href="#" className="see-all">View all hotels →</a>
+        {/* <a href="#" className="see-all">View all hotels →</a> */}
       </div>
 
       <div className="rtdc-grid">
