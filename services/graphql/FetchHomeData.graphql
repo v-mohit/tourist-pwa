@@ -78,6 +78,7 @@ query FetchHomeData {
                       attributes {
                         name
                         link
+                        bookable
                         images {
                       data {
                         attributes {
@@ -207,6 +208,7 @@ query FetchHomeData {
                       attributes {
                         name
                         link
+                        bookable
                         images {
                       data {
                         attributes {
@@ -293,6 +295,7 @@ query FetchHomeData {
                       attributes {
                         name
                         link
+                        bookable
                         images {
                           data {
                             attributes {
@@ -395,6 +398,7 @@ query FetchHomeData {
                       attributes {
                         name
                         link
+                        bookable
                         images {
                           data {
                             attributes {
@@ -480,6 +484,7 @@ query FetchHomeData {
                       attributes {
                         name
                         link
+                        bookable
                         images {
                           data {
                             attributes {
@@ -565,6 +570,7 @@ query FetchHomeData {
                       attributes {
                         name
                         link
+                        bookable
                         images {
                       data {
                         attributes {
@@ -650,6 +656,7 @@ query FetchHomeData {
                       attributes {
                         name
                         link
+                        bookable
                         images {
                       data {
                         attributes {
