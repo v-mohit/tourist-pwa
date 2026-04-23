@@ -289,220 +289,224 @@ const FloatingHelpdesk = () => {
   return (
     <>
       <SosPopup isOpen={isSosOpen} setIsOpen={setIsSosOpen} />
-      <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-4">
-      {/* Helpdesk Modal */}
+      {/* Helpdesk Modal - Vertically Centered on Right */}
       {isOpen && (
-        <div className="helpdesk-modal">
-          {/* Header */}
-          <div className="helpdesk-header">
-            <h3 className="font-bold text-lg">Helpdesk Support</h3>
-            <div className="flex gap-4">
-              <button 
-                onClick={clearChat}
-                className="hover:opacity-80 transition-opacity"
-                title="Clear Chat"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-              </button>
-              <button onClick={toggleModal} className="hover:opacity-80 transition-opacity">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-              </button>
+        <div className="helpdesk-modal-wrapper">
+          <div className="helpdesk-modal">
+            {/* Header */}
+            <div className="helpdesk-header">
+              <h3 className="font-bold text-lg">Helpdesk Support</h3>
+              <div className="flex gap-4">
+                <button 
+                  onClick={clearChat}
+                  className="hover:opacity-80 transition-opacity"
+                  title="Clear Chat"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                </button>
+                <button onClick={toggleModal} className="hover:opacity-80 transition-opacity">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+              </div>
             </div>
-          </div>
 
-          {/* Tabs */}
-          <div className="flex border-b border-gray-200 bg-white">
-            {['FAQ', 'Contact', 'Chat', 'ChatbotAI'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab as any)}
-                className={activeTab === tab ? "helpdesk-tab helpdesk-tab-active" : "helpdesk-tab"}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
+            {/* Tabs */}
+            <div className="flex border-b border-gray-200 bg-white">
+              {['FAQ', 'Contact', 'Chat', 'ChatbotAI'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab as any)}
+                  className={activeTab === tab ? "helpdesk-tab helpdesk-tab-active" : "helpdesk-tab"}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
 
-          {/* Content */}
-          <div className="helpdesk-content">
-            {activeTab === 'Chat' && (
-              <div className="flex flex-col h-full">
-                <div className="flex-1 overflow-y-auto pr-1 space-y-3 flex flex-col">
-                  {chatMessages.map((msg, idx) => (
-                    <div 
-                      key={idx} 
-                      onClick={() => msg.isTxn && msg.txnId && handleTxnClick(msg.txnId)}
-                      className={msg.sender === 'user' ? "helpdesk-chat-bubble-user" : "helpdesk-chat-bubble-bot"}
-                      style={msg.isTxn ? { cursor: 'pointer', border: '1px solid #E8631A', backgroundColor: '#FFF5F0' } : {}}
+            {/* Content */}
+            <div className="helpdesk-content">
+              {activeTab === 'Chat' && (
+                <div className="flex flex-col h-full">
+                  <div className="flex-1 overflow-y-auto pr-1 space-y-3 flex flex-col">
+                    {chatMessages.map((msg, idx) => (
+                      <div 
+                        key={idx} 
+                        onClick={() => msg.isTxn && msg.txnId && handleTxnClick(msg.txnId)}
+                        className={msg.sender === 'user' ? "helpdesk-chat-bubble-user" : "helpdesk-chat-bubble-bot"}
+                        style={msg.isTxn ? { cursor: 'pointer', border: '1px solid #E8631A', backgroundColor: '#FFF5F0' } : {}}
+                      >
+                        {msg.text}
+                      </div>
+                    ))}
+                    
+                    {isChatLoading && (
+                      <div className="helpdesk-typing-indicator">
+                        <span className="helpdesk-typing-dot"></span>
+                        <span className="helpdesk-typing-dot delay-100"></span>
+                        <span className="helpdesk-typing-dot delay-200"></span>
+                      </div>
+                    )}
+
+                    {showMainOptions && !isChatLoading && (
+                      <div className="flex flex-col gap-2 mt-2">
+                        {[
+                          { label: 'View Last 5 Transaction', value: 'last_5_transaction' },
+                          { label: 'Download Ticket', value: 'download_ticket' },
+                          { label: 'Download Boarding Pass', value: 'download_boarding_pass' },
+                          { label: 'View Cancelled Data', value: 'view_cancelled_data' },
+                          { label: 'Refund Status', value: 'refund_status' },
+                          { label: 'Grievance', value: 'grievance' },
+                        ].map((option, idx) => (
+                          <button 
+                            key={idx}
+                            onClick={() => handleOptionSelect(option)}
+                            className="helpdesk-quick-action-btn"
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {subFlow && !isChatLoading && (
+                      <div className="flex flex-col gap-2 mt-2">
+                        {subOptions.map((option, idx) => (
+                          <button 
+                            key={idx}
+                            onClick={() => handleSubOptionSelect(option)}
+                            className="helpdesk-quick-action-btn"
+                            style={{ backgroundColor: '#E0F7FA', borderColor: '#00ACC1', color: '#006064' }}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    
+                    <div ref={chatTabEndRef} />
+                  </div>
+
+                  {!showMainOptions && !txnFlow && !subFlow && (
+                    <div className="helpdesk-chat-footer">
+                      <input 
+                        type="text" 
+                        value={chatInputValue}
+                        onChange={(e) => setChatInputValue(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleChatSendMessage()}
+                        placeholder={bookingPrompt ? "Enter Booking ID" : "Type message..."}
+                        className="helpdesk-chat-input"
+                      />
+                      <button 
+                        onClick={handleChatSendMessage}
+                        disabled={isChatLoading || !chatInputValue.trim()}
+                        className="helpdesk-chat-send-btn"
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                      </button>
+                    </div>
+                  )}
+                  
+                  {(txnFlow || subFlow || !showMainOptions) && (
+                    <button 
+                      onClick={() => {
+                        setShowMainOptions(true);
+                        setTxnFlow(false);
+                        setSubFlow(false);
+                        setBookingPrompt(false);
+                      }}
+                      className="text-[12px] text-[#E8631A] font-bold mt-2 hover:underline self-center"
                     >
-                      {msg.text}
+                      Back to Menu
+                    </button>
+                  )}
+                </div>
+              )}
+              {activeTab === 'FAQ' && (
+                <div className="flex flex-col">
+                  {faqs.map((faq, idx) => (
+                    <div key={idx} className="helpdesk-faq-item">
+                      <button 
+                        onClick={() => setExpandedFaq(expandedFaq === idx ? null : idx)}
+                        className="helpdesk-faq-question"
+                      >
+                        <span className="helpdesk-faq-question-text">{faq.question}</span>
+                        <svg 
+                          className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${expandedFaq === idx ? 'rotate-180' : ''}`} 
+                          fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      {expandedFaq === idx && (
+                        <div className="helpdesk-faq-answer">
+                          {faq.answer}
+                        </div>
+                      )}
                     </div>
                   ))}
-                  
-                  {isChatLoading && (
-                    <div className="helpdesk-typing-indicator">
-                      <span className="helpdesk-typing-dot"></span>
-                      <span className="helpdesk-typing-dot delay-100"></span>
-                      <span className="helpdesk-typing-dot delay-200"></span>
-                    </div>
-                  )}
-
-                  {showMainOptions && !isChatLoading && (
-                    <div className="flex flex-col gap-2 mt-2">
-                      {[
-                        { label: 'View Last 5 Transaction', value: 'last_5_transaction' },
-                        { label: 'Download Ticket', value: 'download_ticket' },
-                        { label: 'Download Boarding Pass', value: 'download_boarding_pass' },
-                        { label: 'View Cancelled Data', value: 'view_cancelled_data' },
-                        { label: 'Refund Status', value: 'refund_status' },
-                        { label: 'Grievance', value: 'grievance' },
-                      ].map((option, idx) => (
-                        <button 
-                          key={idx}
-                          onClick={() => handleOptionSelect(option)}
-                          className="helpdesk-quick-action-btn"
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {subFlow && !isChatLoading && (
-                    <div className="flex flex-col gap-2 mt-2">
-                      {subOptions.map((option, idx) => (
-                        <button 
-                          key={idx}
-                          onClick={() => handleSubOptionSelect(option)}
-                          className="helpdesk-quick-action-btn"
-                          style={{ backgroundColor: '#E0F7FA', borderColor: '#00ACC1', color: '#006064' }}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  
-                  <div ref={chatTabEndRef} />
                 </div>
-
-                {!showMainOptions && !txnFlow && !subFlow && (
+              )}
+              {activeTab === 'Contact' && (
+                <div className="flex flex-col gap-4">
+                  {contactOptions.map((contact, idx) => (
+                    <div key={idx} className="helpdesk-contact-card">
+                      <div className="helpdesk-contact-icon-wrapper">
+                        {contact.icon}
+                      </div>
+                      <div>
+                        <div className="helpdesk-contact-title">{contact.title}</div>
+                        <div className="helpdesk-contact-desc">{contact.desc}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {activeTab === 'ChatbotAI' && (
+                <div className="helpdesk-ai-container">
+                  <div className="helpdesk-ai-messages">
+                    {messages.map((msg, idx) => (
+                      <div 
+                        key={idx} 
+                        className={msg.sender === 'user' ? "helpdesk-chat-bubble-user" : "helpdesk-chat-bubble-bot"}
+                      >
+                        {msg.text}
+                      </div>
+                    ))}
+                    {isLoading && (
+                      <div className="helpdesk-typing-indicator">
+                        <span className="helpdesk-typing-dot"></span>
+                        <span className="helpdesk-typing-dot delay-100"></span>
+                        <span className="helpdesk-typing-dot delay-200"></span>
+                      </div>
+                    )}
+                    <div ref={chatEndRef} />
+                  </div>
                   <div className="helpdesk-chat-footer">
                     <input 
                       type="text" 
-                      value={chatInputValue}
-                      onChange={(e) => setChatInputValue(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleChatSendMessage()}
-                      placeholder={bookingPrompt ? "Enter Booking ID" : "Type message..."}
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                      placeholder="Type a message..."
                       className="helpdesk-chat-input"
                     />
                     <button 
-                      onClick={handleChatSendMessage}
-                      disabled={isChatLoading || !chatInputValue.trim()}
+                      onClick={handleSendMessage}
+                      disabled={isLoading || !inputValue.trim()}
                       className="helpdesk-chat-send-btn"
                     >
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                     </button>
                   </div>
-                )}
-                
-                {(txnFlow || subFlow || !showMainOptions) && (
-                  <button 
-                    onClick={() => {
-                      setShowMainOptions(true);
-                      setTxnFlow(false);
-                      setSubFlow(false);
-                      setBookingPrompt(false);
-                    }}
-                    className="text-[12px] text-[#E8631A] font-bold mt-2 hover:underline self-center"
-                  >
-                    Back to Menu
-                  </button>
-                )}
-              </div>
-            )}
-            {activeTab === 'FAQ' && (
-              <div className="flex flex-col">
-                {faqs.map((faq, idx) => (
-                  <div key={idx} className="helpdesk-faq-item">
-                    <button 
-                      onClick={() => setExpandedFaq(expandedFaq === idx ? null : idx)}
-                      className="helpdesk-faq-question"
-                    >
-                      <span className="helpdesk-faq-question-text">{faq.question}</span>
-                      <svg 
-                        className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${expandedFaq === idx ? 'rotate-180' : ''}`} 
-                        fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                    {expandedFaq === idx && (
-                      <div className="helpdesk-faq-answer">
-                        {faq.answer}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-            {activeTab === 'Contact' && (
-              <div className="flex flex-col gap-4">
-                {contactOptions.map((contact, idx) => (
-                  <div key={idx} className="helpdesk-contact-card">
-                    <div className="helpdesk-contact-icon-wrapper">
-                      {contact.icon}
-                    </div>
-                    <div>
-                      <div className="helpdesk-contact-title">{contact.title}</div>
-                      <div className="helpdesk-contact-desc">{contact.desc}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-            {activeTab === 'ChatbotAI' && (
-              <div className="helpdesk-ai-container">
-                <div className="helpdesk-ai-messages">
-                  {messages.map((msg, idx) => (
-                    <div 
-                      key={idx} 
-                      className={msg.sender === 'user' ? "helpdesk-chat-bubble-user" : "helpdesk-chat-bubble-bot"}
-                    >
-                      {msg.text}
-                    </div>
-                  ))}
-                  {isLoading && (
-                    <div className="helpdesk-typing-indicator">
-                      <span className="helpdesk-typing-dot"></span>
-                      <span className="helpdesk-typing-dot delay-100"></span>
-                      <span className="helpdesk-typing-dot delay-200"></span>
-                    </div>
-                  )}
-                  <div ref={chatEndRef} />
                 </div>
-                <div className="helpdesk-chat-footer">
-                  <input 
-                    type="text" 
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                    placeholder="Type a message..."
-                    className="helpdesk-chat-input"
-                  />
-                  <button 
-                    onClick={handleSendMessage}
-                    disabled={isLoading || !inputValue.trim()}
-                    className="helpdesk-chat-send-btn"
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                  </button>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       )}
+
+      {/* Floating Buttons Group - Bottom Right */}
+      <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-4">
 
       {/* Floating Buttons Group */}
       <div className="helpdesk-fab-container">
@@ -529,11 +533,11 @@ const FloatingHelpdesk = () => {
           </div> */}
 
           {/* SOS Button */}
-          <button 
+          {/* <button 
             onClick={() => setIsSosOpen(true)}
             className="fab-sos">
             SOS
-          </button>
+          </button> */}
         </div>
 
       </div>

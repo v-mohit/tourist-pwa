@@ -87,7 +87,7 @@ const StatsBar: React.FC<{ categoryCountsData: any }> = ({
         suffix: "+",
       };
     })
-    .filter((item: any) => item.num > 0);
+    .filter((item: any) => item.num > 0 && item.label?.toLowerCase() !== "all");
 
   return (
     <div className="stats-bar">

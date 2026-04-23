@@ -58,11 +58,10 @@ const BADGES = [
 ];
 
 const PILLS = [
-  "🐯 Tiger Safari",
+  "🐯 Tiger Reserve",
   "🏜 Jaisalmer",
   "🌊 Udaipur",
-  "🏨 RTDC Hotels",
-  "✨ Light & Sound",
+  "✨ Light and Sound",
 ];
 
 export default function HeroSection() {

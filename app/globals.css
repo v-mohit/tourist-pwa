@@ -7634,9 +7634,22 @@ tourist stats style
 }
 
 /* ── HELPDESK & SOS COMPONENTS ── */
+.helpdesk-modal-wrapper {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
 .helpdesk-modal {
-  @apply w-[350px] bg-white rounded-[16px] shadow-2xl overflow-hidden border-2 border-[#E8631A];
+  @apply w-[350px] bg-white rounded-[16px] overflow-hidden border-2 border-[#E8631A];
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
   animation: helpdesk-fade-in 0.3s ease-out;
+  pointer-events: auto;
 }
 
 @keyframes helpdesk-fade-in {

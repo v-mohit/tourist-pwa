@@ -107,10 +107,10 @@ const HotelSection = () => {
                 ))}
               </div>
               <div className="rtdc-foot">
-                <div className="rtdc-price">
+                {/* <div className="rtdc-price">
                   <div className="rtdc-price-amt">{hotel.price}</div>
                   <div className="rtdc-price-per">per night onwards</div>
-                </div>
+                </div> */}
                 <button className="btn-s book-btn">Upcoming →</button>
               </div>
             </div>

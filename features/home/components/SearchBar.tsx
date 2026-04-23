@@ -23,6 +23,7 @@ const SearchBar = forwardRef<SearchBarHandle>((_, ref) => {
   const [loading, setLoading] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   useImperativeHandle(ref, () => ({
@@ -31,6 +32,17 @@ const SearchBar = forwardRef<SearchBarHandle>((_, ref) => {
       setTimeout(() => inputRef.current?.focus(), 0);
     },
   }));
+
+  // ✅ Close on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // ✅ Group by category
  function groupByCategory(data: any[]) {
@@ -111,7 +123,7 @@ function handleSelect(item: any) {
 }
 
   return (
-    <>
+    <div ref={containerRef} className="relative w-full">
       <div className="hero-search">
         <input
           ref={inputRef}
@@ -157,7 +169,7 @@ function handleSelect(item: any) {
             ))}
         </div>
       )}
-    </>
+    </div>
   );
 });
 
