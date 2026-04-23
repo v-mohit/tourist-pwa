@@ -11,24 +11,52 @@ import BookingModal from "@/features/booking/components/BookingModal";
 import UnauthorizedHandler from "@/components/common/UnauthorizedHandler";
 import FloatingHelpdesk from "@/components/helpdesk/FloatingHelpdesk";
 
-import { Cinzel, Raleway, Playfair_Display } from "next/font/google";
-
-const cinzel = Cinzel({
-  subsets: ["latin"],
+const cinzel = localFont({
+  src: [
+    {
+      path: "../public/fonts/cinzel/Cinzel-Regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/cinzel/Cinzel-Bold.ttf",
+      weight: "700",
+      style: "normal",
+    },
+  ],
   variable: "--font-cinzel",
-  weight: ["400", "700"],
 });
 
-const raleway = Raleway({
-  subsets: ["latin"],
+const raleway = localFont({
+  src: [
+    {
+      path: "../public/fonts/raleway/Raleway-Regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/raleway/Raleway-Bold.ttf",
+      weight: "700",
+      style: "normal",
+    },
+  ],
   variable: "--font-raleway",
-  weight: ["300", "400", "500", "600", "700"],
 });
 
-const playfair = Playfair_Display({
-  subsets: ["latin"],
+const playfair = localFont({
+  src: [
+    {
+      path: "../public/fonts/playfair/PlayfairDisplay-Regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/playfair/PlayfairDisplay-Bold.ttf",
+      weight: "700",
+      style: "normal",
+    },
+  ],
   variable: "--font-playfair",
-  weight: ["400", "700"],
 });
 
 const geistSans = localFont({
