@@ -283,30 +283,30 @@ export default function MyBookingsPage() {
   }
 
   async function createShareTicketFile(ticket: any): Promise<File> {
-    const bookingId = String(ticket.bookingId || ticket.id || '');
-    const placeName = ticket.placeName || ticket.placeDetailDto?.name || ticket.packageDto?.packageName || 'Booking';
-    const district = ticket.placeDetailDto?.districtName || '';
-    const status = getBookingStatus(ticket);
-    const visitDate = formatDate(ticket.bookingDate);
+    const bookingId  = String(ticket.bookingId || ticket.id || '');
+    const placeName  = ticket.placeName || ticket.placeDetailDto?.name || ticket.packageDto?.packageName || 'Booking';
+    const district   = ticket.placeDetailDto?.districtName || '';
+    const status     = getBookingStatus(ticket);
+    const visitDate  = formatDate(ticket.bookingDate);
     const bookedDate = formatDate(ticket.createdDate);
-    const totalAmt = ticket.totalAmount || 0;
+    const totalAmt   = ticket.totalAmount || 0;
     const visitors: any[] = ticket.ticketUserDto || [];
     const visitorText = visitors.length
       ? visitors.map((item: any) => `${item.ticketName || 'Visitor'} x ${item.qty || 0}`).join(', ')
       : `${ticket.totalUsers || 0} visitor(s)`;
     const qrValue = ticket.qrDetail || JSON.stringify({ type: 'BOOKING', data: { ticketBookingId: ticket.id || ticket.bookingId } });
 
-    const pdfDoc = await PDFDocument.create();
-    const page = pdfDoc.addPage([595.28, 841.89]);
-    const fontReg = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-    const width = page.getWidth();
-    const height = page.getHeight();
-    const margin = 42;
-    const orange = rgb(0.91, 0.39, 0.10);
-    const dark = rgb(0.17, 0.13, 0.09);
-    const muted = rgb(0.48, 0.42, 0.35);
-    const sand = rgb(0.96, 0.91, 0.84);
+    const pdfDoc     = await PDFDocument.create();
+    const page       = pdfDoc.addPage([595.28, 841.89]);
+    const fontReg    = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const fontBold   = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const width      = page.getWidth();
+    const height     = page.getHeight();
+    const margin     = 42;
+    const orange     = rgb(0.91, 0.39, 0.10);
+    const dark       = rgb(0.17, 0.13, 0.09);
+    const muted      = rgb(0.48, 0.42, 0.35);
+    const sand       = rgb(0.96, 0.91, 0.84);
 
     page.drawRectangle({ x: 0, y: height - 112, width, height: 112, color: dark });
     page.drawRectangle({ x: 0, y: height - 118, width, height: 6, color: orange });
@@ -328,7 +328,6 @@ export default function MyBookingsPage() {
       page.drawText(value || '-', { x: margin + 150, y, size: 12, font: fontReg, color: dark });
       y -= 22;
     };
-
     drawRow('Booking ID', `#${bookingId}`);
     drawRow('Status', status.label.replace(/[^\x20-\x7E]/g, '').trim() || status.key);
     drawRow('Visit Date', visitDate);
@@ -342,7 +341,6 @@ export default function MyBookingsPage() {
       page.drawText(line, { x: margin, y, size: 11, font: fontReg, color: muted });
       y -= 16;
     }
-
     y -= 8;
     page.drawText(`Amount Paid: Rs ${totalAmt}`, { x: margin, y, size: 13, font: fontBold, color: orange });
     y -= 30;
@@ -355,10 +353,7 @@ export default function MyBookingsPage() {
     return new File([buffer], `ticket_${bookingId}.pdf`, { type: 'application/pdf' });
   }
 
-  function openShareModalForBooking(b: any) {
-    setShareBooking(b);
-    setShareModalOpen(true);
-  }
+  function openShareModalForBooking(b: any) { setShareBooking(b); setShareModalOpen(true); }
 
   async function handleShareTicket(platform: 'facebook' | 'whatsapp' | 'instagram') {
     if (!shareBooking) return;
@@ -390,10 +385,6 @@ export default function MyBookingsPage() {
 
   // ══════════════════════════════════════════════════════════════════════════
   //  INVENTORY → Sariska-style HTML popup
-  //  Changes from previous version:
-  //    1. Header: place name + location sit LEFT of QR (flex row, text-left, no extra margin)
-  //    2. Gold strip removed entirely
-  //    3. Booking Reference bar + the <hr> above it removed
   // ══════════════════════════════════════════════════════════════════════════
   function printInventoryTicket(ticket: any) {
     const w = window.open('', '_blank', 'width=860,height=1000');
@@ -428,7 +419,6 @@ export default function MyBookingsPage() {
     const totalVisitors     = visitors.reduce((s, t) => s + (t.qty || 0), 0);
     const firstNat          = visitors[0]?.ticketUserDocs?.[0]?.nationality || 'Indian';
 
-    // visitor rows
     let srCounter = 0;
     const visitorRows = visitors.flatMap((t: any) => {
       const docs: any[] = t.ticketUserDocs || [];
@@ -460,7 +450,6 @@ export default function MyBookingsPage() {
       });
     }).join('');
 
-    // charges
     const charges: any[] = ticket.ticketCharges || ticket.chargeDetails || [];
     let chargesBodyHtml = '';
     if (charges.length > 0) {
@@ -510,143 +499,59 @@ export default function MyBookingsPage() {
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Rajdhani:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{
-  background:#1a0e06;
-  background-image:radial-gradient(ellipse at 20% 20%,rgba(180,60,10,.15) 0%,transparent 60%),
-                   radial-gradient(ellipse at 80% 80%,rgba(120,30,5,.1) 0%,transparent 60%);
-  font-family:'Rajdhani',sans-serif;
-  padding:36px 20px;min-height:100vh;
-}
+body{background:#1a0e06;background-image:radial-gradient(ellipse at 20% 20%,rgba(180,60,10,.15) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(120,30,5,.1) 0%,transparent 60%);font-family:'Rajdhani',sans-serif;padding:36px 20px;min-height:100vh;}
 .ticket-wrap{max-width:680px;margin:0 auto;}
-.ticket{
-  background:#F7EDD8;border-radius:6px;overflow:hidden;
-  box-shadow:0 32px 80px rgba(0,0,0,.7),0 0 0 1px rgba(184,74,14,.25),inset 0 1px 0 rgba(255,255,255,.6);
-}
-
-/* ── TOP HEADER ── */
-.t-top{
-  background:linear-gradient(140deg,#6B2309 0%,#A63A08 40%,#C9580F 70%,#D4691A 100%);
-  padding:28px 36px 44px;
-  position:relative;overflow:hidden;
-}
-.t-top::before{
-  content:'';position:absolute;inset:0;
-  background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.045'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-}
-/* curved arch at bottom */
-.t-top::after{
-  content:'';position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);
-  width:115%;height:36px;background:#F7EDD8;border-radius:60% 60% 0 0;
-}
-
-/*
- * ── HEADER ROW: gov badge on left, QR on right.
- *    Place name + location now sit BELOW the gov badge, left-aligned,
- *    NOT centred — so the title text starts at the same left edge as the emblem.
- */
-.t-header-row{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  position:relative;z-index:2;
-  gap:16px;
-}
-/* left column: stacks gov badge then place title */
-.t-header-left{
-  display:flex;flex-direction:column;gap:0;flex:1;min-width:0;
-}
+.ticket{background:#F7EDD8;border-radius:6px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.7),0 0 0 1px rgba(184,74,14,.25),inset 0 1px 0 rgba(255,255,255,.6);}
+.t-top{background:linear-gradient(140deg,#6B2309 0%,#A63A08 40%,#C9580F 70%,#D4691A 100%);padding:28px 36px 44px;position:relative;overflow:hidden;}
+.t-top::before{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.045'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");}
+.t-top::after{content:'';position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:115%;height:36px;background:#F7EDD8;border-radius:60% 60% 0 0;}
+.t-header-row{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:2;gap:16px;}
+.t-header-left{display:flex;flex-direction:column;gap:0;flex:1;min-width:0;}
 .t-gov{display:flex;align-items:center;gap:14px;margin-bottom:16px;}
-.t-emblem{
-  width:50px;height:50px;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.3);
-  border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;
-  box-shadow:0 2px 12px rgba(0,0,0,.2);flex-shrink:0;
-}
+.t-emblem{width:50px;height:50px;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 2px 12px rgba(0,0,0,.2);flex-shrink:0;}
 .t-gov-text .g1{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:2px;}
 .t-gov-text .g2{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;color:#fff;letter-spacing:.5px;line-height:1.1;}
 .t-gov-text .g3{font-size:9px;letter-spacing:1.5px;color:rgba(255,255,255,.4);margin-top:2px;}
-
-/* place name + location — left-aligned, no extra top margin */
 .t-title-block{position:relative;z-index:2;}
-.t-title-block h1{
-  font-family:'Cinzel',serif;font-size:24px;font-weight:700;color:#fff;
-  letter-spacing:1.5px;line-height:1.2;text-shadow:0 2px 12px rgba(0,0,0,.25);margin-bottom:6px;
-}
-.t-title-block .t-loc{
-  font-size:11px;color:rgba(255,255,255,.68);letter-spacing:2px;text-transform:uppercase;
-}
-
-/* QR block — right side, no shrink */
-.t-qr-wrap{
-  background:#fff;border-radius:7px;padding:10px;
-  box-shadow:0 6px 20px rgba(0,0,0,.35);position:relative;z-index:2;flex-shrink:0;
-  align-self:flex-start;
-}
-.t-qr-wrap svg{display:block;width:96px;height:96px;}
-.t-qr-label{font-family:'Space Mono',monospace;font-size:7px;color:#999;text-align:center;margin-top:5px;letter-spacing:.5px;text-transform:uppercase;}
-
-/* ── BODY ── */
+.t-title-block h1{font-family:'Cinzel',serif;font-size:24px;font-weight:700;color:#fff;letter-spacing:1.5px;line-height:1.2;text-shadow:0 2px 12px rgba(0,0,0,.25);margin-bottom:6px;}
+.t-title-block .t-loc{font-size:11px;color:rgba(255,255,255,.68);letter-spacing:2px;text-transform:uppercase;}
+.t-qr-wrap{background:#fff;border-radius:7px;padding:5px;box-shadow:0 6px 20px rgba(0,0,0,.35);position:relative;z-index:2;flex-shrink:0;align-self:flex-start;display:flex;align-items:center;justify-content:center;}
+.t-qr-wrap svg{display:block;width:100px;height:100px;}
 .t-body{padding:26px 36px;}
-
-.sec-head{
-  font-family:'Cinzel',serif;font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;
-  color:#9B4A1A;border-bottom:1px solid rgba(155,74,26,.2);padding-bottom:6px;margin-bottom:14px;
-  display:flex;align-items:center;gap:8px;
-}
+.sec-head{font-family:'Cinzel',serif;font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#9B4A1A;border-bottom:1px solid rgba(155,74,26,.2);padding-bottom:6px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
 .sec-head::before{content:'';display:block;width:16px;height:2px;background:#B84A0E;border-radius:1px;}
-
 .meta-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px;}
 .meta-cell{text-align:center;padding:13px 8px;border:1px solid rgba(184,74,14,.2);border-radius:5px;background:rgba(184,74,14,.04);}
 .meta-cell .mc-icon{font-size:20px;margin-bottom:6px;display:block;}
 .meta-cell .mc-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#9B5520;margin-bottom:3px;}
 .meta-cell .mc-val{font-family:'Cinzel',serif;font-size:14px;font-weight:600;color:#2D1400;line-height:1.1;}
 .meta-cell .mc-sub{font-size:10px;color:#9B5520;margin-top:1px;}
-
 .booking-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:22px;}
 .booking-cell{padding:10px 14px;border:1px solid rgba(184,74,14,.18);border-radius:4px;background:rgba(184,74,14,.03);}
 .booking-cell .bl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#9B5520;margin-bottom:3px;}
 .booking-cell .bv{font-family:'Space Mono',monospace;font-size:12px;color:#2D1400;line-height:1.3;}
-
 .location-table{width:100%;border-collapse:collapse;margin-bottom:22px;border:1px solid rgba(184,74,14,.22);overflow:hidden;}
 .location-table tr{border-bottom:1px solid rgba(184,74,14,.15);}
 .location-table tr:last-child{border-bottom:none;}
 .location-table td{padding:10px 14px;font-size:13px;vertical-align:middle;}
-.location-table td.loc-label{
-  font-family:'Cinzel',serif;font-size:12px;font-weight:700;color:#2D1400;letter-spacing:.5px;
-  width:200px;background:rgba(184,74,14,.05);border-right:1px solid rgba(184,74,14,.15);
-}
+.location-table td.loc-label{font-family:'Cinzel',serif;font-size:12px;font-weight:700;color:#2D1400;letter-spacing:.5px;width:200px;background:rgba(184,74,14,.05);border-right:1px solid rgba(184,74,14,.15);}
 .location-table td.loc-value{font-family:'Rajdhani',sans-serif;font-size:13.5px;font-weight:500;color:#3D1F00;}
 .location-table td.loc-value a{color:#B84A0E;text-decoration:none;font-weight:600;display:inline-flex;align-items:center;gap:5px;}
-
 .visitor-block{border:1.5px solid rgba(184,74,14,.25);border-radius:5px;overflow:hidden;margin-bottom:22px;}
-.visitor-header{
-  background:rgba(184,74,14,.08);padding:7px 16px;
-  display:grid;grid-template-columns:40px 1fr 1fr 1fr 1fr;gap:8px;align-items:center;
-  border-bottom:1px solid rgba(184,74,14,.15);
-}
+.visitor-header{background:rgba(184,74,14,.08);padding:7px 16px;display:grid;grid-template-columns:40px 1fr 1fr 1fr 1fr;gap:8px;align-items:center;border-bottom:1px solid rgba(184,74,14,.15);}
 .visitor-header span{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#9B5520;}
-.visitor-row-data{
-  padding:11px 16px;display:grid;grid-template-columns:40px 1fr 1fr 1fr 1fr;gap:8px;align-items:center;
-  border-bottom:1px solid rgba(184,74,14,.06);
-}
+.visitor-row-data{padding:11px 16px;display:grid;grid-template-columns:40px 1fr 1fr 1fr 1fr;gap:8px;align-items:center;border-bottom:1px solid rgba(184,74,14,.06);}
 .visitor-row-data:last-child{border-bottom:none;}
 .visitor-row-data .vr-num{font-family:'Space Mono',monospace;font-size:12px;color:#B84A0E;font-weight:700;}
 .visitor-row-data .vr-name{font-family:'Cinzel',serif;font-size:13px;color:#2D1400;font-weight:600;}
 .visitor-row-data .vr-id{font-family:'Space Mono',monospace;font-size:11px;color:#6B3A1F;}
 .visitor-row-data .vr-nat{font-size:12px;color:#6B3A1F;font-weight:600;}
 .visitor-row-data .vr-addon{font-size:11px;color:#aaa;font-style:italic;}
-
 .charges-table{width:100%;border-collapse:collapse;margin-bottom:22px;font-size:12px;}
 .charges-table thead tr{background:rgba(184,74,14,.08);border-bottom:1px solid rgba(184,74,14,.2);}
-.charges-table thead th{
-  font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;color:#9B5520;
-  padding:8px 10px;text-align:center;border-right:1px solid rgba(184,74,14,.1);
-}
+.charges-table thead th{font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;color:#9B5520;padding:8px 10px;text-align:center;border-right:1px solid rgba(184,74,14,.1);}
 .charges-table thead th:last-child{border-right:none;}
-.charges-table tbody td{
-  padding:8px 10px;text-align:center;border-right:1px solid rgba(184,74,14,.08);
-  border-bottom:1px solid rgba(184,74,14,.08);
-  color:#3D1F00;font-family:'Space Mono',monospace;font-size:11px;
-}
+.charges-table tbody td{padding:8px 10px;text-align:center;border-right:1px solid rgba(184,74,14,.08);border-bottom:1px solid rgba(184,74,14,.08);color:#3D1F00;font-family:'Space Mono',monospace;font-size:11px;}
 .charges-table tbody td:first-child{text-align:left;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;color:#3D1F00;}
 .charges-table tbody td:last-child{border-right:none;}
 .charges-table .addon-row td{color:#888;font-style:italic;font-size:10px;}
@@ -654,78 +559,35 @@ body{
 .charges-table .total-row td{background:rgba(184,74,14,.07);border-top:1.5px solid rgba(184,74,14,.25);}
 .charges-table .total-row td:first-child{font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:#2D1400;}
 .charges-table .total-row td:last-child{font-family:'Space Mono',monospace;font-size:15px;font-weight:700;color:#B84A0E;}
-
-/* dashed divider — circles use body bg colour so they look "punched" */
 .t-divider{border:none;border-top:1px dashed rgba(184,74,14,.28);margin:4px -8px 22px;position:relative;}
-.t-divider::before,.t-divider::after{
-  content:'';position:absolute;top:-10px;width:19px;height:19px;
-  background:#1a0e06;border-radius:50%;
-}
+.t-divider::before,.t-divider::after{content:'';position:absolute;top:-10px;width:19px;height:19px;background:#1a0e06;border-radius:50%;}
 .t-divider::before{left:-28px;} .t-divider::after{right:-28px;}
-
 .terms-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px 20px;margin-bottom:22px;}
 .term-item{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;color:#5A2D10;line-height:1.55;}
 .term-item .tick{color:#B84A0E;font-weight:700;flex-shrink:0;margin-top:1px;}
-
-.note-box{
-  background:rgba(184,74,14,.06);border:1px solid rgba(184,74,14,.2);
-  border-left:3px solid #B84A0E;border-radius:3px;
-  padding:10px 14px;margin-bottom:22px;font-size:11.5px;color:#5A2D10;line-height:1.6;
-}
+.note-box{background:rgba(184,74,14,.06);border:1px solid rgba(184,74,14,.2);border-left:3px solid #B84A0E;border-radius:3px;padding:10px 14px;margin-bottom:22px;font-size:11.5px;color:#5A2D10;line-height:1.6;}
 .note-box strong{color:#B84A0E;}
-
 .refund-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:22px;}
 .refund-cell{text-align:center;padding:10px 8px;border:1px solid rgba(184,74,14,.18);border-radius:4px;background:rgba(184,74,14,.03);}
 .refund-cell .rf-pct{font-family:'Cinzel',serif;font-size:22px;font-weight:700;color:#B84A0E;line-height:1;margin-bottom:4px;}
 .refund-cell .rf-lbl{font-size:10px;letter-spacing:1px;color:#9B5520;text-transform:uppercase;margin-bottom:2px;}
 .refund-cell .rf-cond{font-family:'Space Mono',monospace;font-size:9px;color:#6B3A1F;line-height:1.4;}
-
-/* footer */
-.t-footer{
-  background:#2D1400;border-top:1px solid rgba(255,255,255,.05);padding:16px 36px;
-  display:flex;justify-content:space-between;align-items:center;
-}
+.t-footer{background:#2D1400;border-top:1px solid rgba(255,255,255,.05);padding:16px 36px;display:flex;justify-content:space-between;align-items:center;}
 .t-footer .fc{font-size:11px;color:rgba(255,255,255,.45);line-height:1.9;}
 .t-footer .fb .bname{font-family:'Cinzel',serif;font-size:13px;color:#D4A017;letter-spacing:1.5px;text-align:right;}
 .t-footer .fb .bsub{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.25);text-align:right;margin-top:2px;}
-
-/* action bar */
 .action-bar{display:flex;gap:10px;justify-content:center;margin-top:22px;}
-.btn-print{
-  background:linear-gradient(135deg,#6B2309,#B84A0E);color:#fff;
-  font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
-  border:none;border-radius:4px;padding:13px 36px;cursor:pointer;
-  box-shadow:0 4px 16px rgba(184,74,14,.4);transition:opacity .15s;
-}
+.btn-print{background:linear-gradient(135deg,#6B2309,#B84A0E);color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;border-radius:4px;padding:13px 36px;cursor:pointer;box-shadow:0 4px 16px rgba(184,74,14,.4);transition:opacity .15s;}
 .btn-print:hover{opacity:.88;}
-.btn-close{
-  background:transparent;color:rgba(255,255,255,.45);
-  font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;letter-spacing:1px;
-  border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:13px 24px;cursor:pointer;
-}
-
-@media print{
-  body{background:#fff;padding:0;display:block;}
-  .action-bar{display:none!important;}
-  .ticket{box-shadow:none;border-radius:0;}
-  .ticket-wrap{max-width:100%;}
-  .t-top,.t-footer{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .t-divider::before,.t-divider::after{background:#fff;}
-}
+.btn-close{background:transparent;color:rgba(255,255,255,.45);font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;letter-spacing:1px;border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:13px 24px;cursor:pointer;}
+@media print{body{background:#fff;padding:0;display:block;}.action-bar{display:none!important;}.ticket{box-shadow:none;border-radius:0;}.ticket-wrap{max-width:100%;}.t-top,.t-footer{-webkit-print-color-adjust:exact;print-color-adjust:exact;}.t-divider::before,.t-divider::after{background:#fff;}}
 </style>
 </head>
 <body>
 <div class="ticket-wrap">
 <div class="ticket">
-
-  <!-- ── TOP HEADER ──
-       Left column: gov badge + place name + location (left-aligned, no extra margin)
-       Right column: QR code block
-  -->
   <div class="t-top">
     <div class="t-header-row">
-
-      <!-- LEFT: gov badge stacked above place name -->
       <div class="t-header-left">
         <div class="t-gov">
           <div class="t-emblem">🏛</div>
@@ -735,123 +597,62 @@ body{
             <div class="g3">obms-tourist.rajasthan.gov.in</div>
           </div>
         </div>
-        <!-- Place name + location directly below, left-aligned -->
         <div class="t-title-block">
           <h1>${placeName}</h1>
           ${location ? `<div class="t-loc">📍 ${location}</div>` : ''}
         </div>
       </div>
-
-      <!-- RIGHT: QR code -->
       <div class="t-qr-wrap">
-        <svg viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg">
-          ${qrRects}
-        </svg>
-        <div class="t-qr-label">Scan · ${bookingId.slice(-10)}</div>
+        <svg viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg">${qrRects}</svg>
       </div>
-
     </div>
   </div>
-  <!-- ── Gold strip REMOVED ── -->
-
-  <!-- ── BODY ── -->
   <div class="t-body">
-
-    <!-- BOOKING DETAILS -->
     <div class="sec-head">Booking Details</div>
     <div class="booking-row">
       <div class="booking-cell"><div class="bl">Booking ID</div><div class="bv">${bookingId}</div></div>
       <div class="booking-cell"><div class="bl">Booking Date &amp; Time</div><div class="bv">${bookedDateShort}</div></div>
       <div class="booking-cell"><div class="bl">Mode of Booking</div><div class="bv">ONLINE</div></div>
-      ${zoneName   ? `<div class="booking-cell"><div class="bl">Route / Zone</div><div class="bv">${zoneName}</div></div>`   : ''}
-      ${quotaName  ? `<div class="booking-cell"><div class="bl">Quota Name</div><div class="bv">${quotaName}</div></div>`    : ''}
+      ${zoneName  ? `<div class="booking-cell"><div class="bl">Route / Zone</div><div class="bv">${zoneName}</div></div>`  : ''}
+      ${quotaName ? `<div class="booking-cell"><div class="bl">Quota Name</div><div class="bv">${quotaName}</div></div>` : ''}
       <div class="booking-cell"><div class="bl">Ticket Amount</div><div class="bv">₹ ${totalAmount}</div></div>
     </div>
-
-    <!-- ADDRESS & BOARDING POINT -->
     ${(zoneAddress || mapLink) ? `
     <table class="location-table">
       ${zoneAddress ? `<tr><td class="loc-label">Address</td><td class="loc-value">${zoneAddress}</td></tr>` : ''}
-      ${mapLink     ? `<tr><td class="loc-label">Boarding Point Location</td><td class="loc-value">
-        <a href="${mapLink}" target="_blank"><span>📍</span> Click here to view on map</a>
-      </td></tr>` : ''}
+      ${mapLink     ? `<tr><td class="loc-label">Boarding Point Location</td><td class="loc-value"><a href="${mapLink}" target="_blank"><span>📍</span> Click here to view on map</a></td></tr>` : ''}
     </table>` : ''}
-
-    <!-- VISIT DETAILS -->
     <div class="sec-head">Visit Details</div>
     <div class="meta-row">
-      <div class="meta-cell">
-        <span class="mc-icon">📅</span>
-        <div class="mc-lbl">Visit Date</div>
-        <div class="mc-val">${visitDate}</div>
-        <div class="mc-sub">${visitDay}</div>
-      </div>
-      <div class="meta-cell">
-        <span class="mc-icon">${shiftIcon}</span>
-        <div class="mc-lbl">Shift</div>
-        <div class="mc-val">${shiftName || 'Full Day'}</div>
-        <div class="mc-sub">${shiftSub}</div>
-      </div>
-      ${vehicleType ? `<div class="meta-cell">
-        <span class="mc-icon">🚌</span>
-        <div class="mc-lbl">Vehicle</div>
-        <div class="mc-val">${vehicleType}</div>
-        <div class="mc-sub">${vehicleNum || quotaName}</div>
-      </div>` : ''}
-      <div class="meta-cell">
-        <span class="mc-icon">👥</span>
-        <div class="mc-lbl">Total Visitors</div>
-        <div class="mc-val">${totalVisitors || visitors.length}</div>
-        <div class="mc-sub">${checkNationality(firstNat)}</div>
-      </div>
+      <div class="meta-cell"><span class="mc-icon">📅</span><div class="mc-lbl">Visit Date</div><div class="mc-val">${visitDate}</div><div class="mc-sub">${visitDay}</div></div>
+      <div class="meta-cell"><span class="mc-icon">${shiftIcon}</span><div class="mc-lbl">Shift</div><div class="mc-val">${shiftName || 'Full Day'}</div><div class="mc-sub">${shiftSub}</div></div>
+      ${vehicleType ? `<div class="meta-cell"><span class="mc-icon">🚌</span><div class="mc-lbl">Vehicle</div><div class="mc-val">${vehicleType}</div><div class="mc-sub">${vehicleNum || quotaName}</div></div>` : ''}
+      <div class="meta-cell"><span class="mc-icon">👥</span><div class="mc-lbl">Total Visitors</div><div class="mc-val">${totalVisitors || visitors.length}</div><div class="mc-sub">${checkNationality(firstNat)}</div></div>
     </div>
-
-    <!-- VISITOR DETAILS -->
     <div class="sec-head">Visitor Information</div>
     <div class="visitor-block">
-      <div class="visitor-header">
-        <span>Sr.</span><span>Visitor Name</span><span>Identity Type / No.</span><span>Nationality</span><span>Add Ons</span>
-      </div>
-      ${visitorRows || `<div class="visitor-row-data">
-        <div class="vr-num">—</div><div class="vr-name">—</div>
-        <div class="vr-id">—</div><div class="vr-nat">—</div><div class="vr-addon">—</div>
-      </div>`}
+      <div class="visitor-header"><span>Sr.</span><span>Visitor Name</span><span>Identity Type / No.</span><span>Nationality</span><span>Add Ons</span></div>
+      ${visitorRows || `<div class="visitor-row-data"><div class="vr-num">—</div><div class="vr-name">—</div><div class="vr-id">—</div><div class="vr-nat">—</div><div class="vr-addon">—</div></div>`}
     </div>
-
-    <!-- CHARGES -->
     <div class="sec-head">Charges Detail Summary</div>
     <table class="charges-table">
-      <thead>
-        <tr>
-          <th style="text-align:left;">Category</th>
-          <th>Entry Fee<br/><span style="font-size:8px;opacity:.7;">Visitor</span></th>
-          <th>Entry Fee<br/><span style="font-size:8px;opacity:.7;">Vehicle</span></th>
-          <th>Eco-Dev<br/><span style="font-size:8px;opacity:.7;">Visitor</span></th>
-          <th>Eco-Dev<br/><span style="font-size:8px;opacity:.7;">Vehicle</span></th>
-          <th>Tiger Reserve Fund<br/><span style="font-size:8px;opacity:.7;">Visitor+Veh+Guide</span></th>
-          <th>Vehicle Rent</th>
-          <th>Guide Fee</th>
-          <th>GST</th>
-        </tr>
-      </thead>
+      <thead><tr>
+        <th style="text-align:left;">Category</th>
+        <th>Entry Fee<br/><span style="font-size:8px;opacity:.7;">Visitor</span></th>
+        <th>Entry Fee<br/><span style="font-size:8px;opacity:.7;">Vehicle</span></th>
+        <th>Eco-Dev<br/><span style="font-size:8px;opacity:.7;">Visitor</span></th>
+        <th>Eco-Dev<br/><span style="font-size:8px;opacity:.7;">Vehicle</span></th>
+        <th>Tiger Reserve Fund<br/><span style="font-size:8px;opacity:.7;">Visitor+Veh+Guide</span></th>
+        <th>Vehicle Rent</th><th>Guide Fee</th><th>GST</th>
+      </tr></thead>
       <tbody>
         ${chargesBodyHtml}
-        <tr class="addon-row">
-          <td>AddOn Charges</td>
-          <td colspan="8">₹ ${addonTotal.toFixed ? addonTotal.toFixed(2) : addonTotal}</td>
-        </tr>
+        <tr class="addon-row"><td>AddOn Charges</td><td colspan="8">₹ ${addonTotal.toFixed ? addonTotal.toFixed(2) : addonTotal}</td></tr>
         ${rislTotal ? `<tr class="risl-row"><td>RISL / Platform Charges</td><td colspan="8">₹ ${Number(rislTotal).toFixed(2)}</td></tr>` : ''}
-        <tr class="total-row">
-          <td>Grand Total</td>
-          <td colspan="8" style="text-align:right;padding-right:16px;">₹ ${totalAmount}</td>
-        </tr>
+        <tr class="total-row"><td>Grand Total</td><td colspan="8" style="text-align:right;padding-right:16px;">₹ ${totalAmount}</td></tr>
       </tbody>
     </table>
-
-    <!-- DIVIDER -->
     <hr class="t-divider"/>
-
-    <!-- TERMS & CONDITIONS -->
     <div class="sec-head">Terms &amp; Conditions for Visitors</div>
     <div class="terms-grid">
       <div class="term-item"><span class="tick">✓</span><span>The visitor must reach the Forest permit counter to collect the boarding pass at least <strong>45 minutes prior</strong> to entry time.</span></div>
@@ -867,56 +668,28 @@ body{
       <div class="term-item"><span class="tick">✓</span><span><strong>Visitors under the influence</strong> of alcohol or intoxicating substances will be denied entry.</span></div>
       <div class="term-item"><span class="tick">✓</span><span>If passenger count is less than vehicle capacity, <strong>difference in vehicle rent &amp; guide fee</strong> will be charged extra.</span></div>
     </div>
-
     <div class="note-box">
       <strong>⚠ Indemnity Bond:</strong> By booking this permit the visitor acknowledges risks of visiting this reserve, enters at own risk and accepts full liability. The protected area management shall not be responsible in any manner. Any litigation shall be in a court of law in Rajasthan.<br/><br/>
       <strong>Please Note:</strong> We will not be responsible for costs arising out of unforeseen circumstances like landslides, road blocks, or bad weather.
     </div>
-
-    <!-- CANCELLATION & REFUND POLICY -->
     <div class="sec-head">Cancellation &amp; Refund Policy</div>
     <div class="refund-row">
-      <div class="refund-cell">
-        <div class="rf-pct">75%</div><div class="rf-lbl">Refund</div>
-        <div class="rf-cond">If cancelled<br/>31+ days before<br/>visit date</div>
-      </div>
-      <div class="refund-cell">
-        <div class="rf-pct">50%</div><div class="rf-lbl">Refund</div>
-        <div class="rf-cond">If cancelled<br/>4–30 days before<br/>visit date</div>
-      </div>
-      <div class="refund-cell">
-        <div class="rf-pct">0%</div><div class="rf-lbl">Refund</div>
-        <div class="rf-cond">If cancelled<br/>within 3 days of<br/>visit date</div>
-      </div>
-    </div>
-    <!-- ── Booking Reference bar REMOVED (was here) ── -->
-
-  </div><!-- /t-body -->
-
-  <!-- ── FOOTER ── -->
-  <div class="t-footer">
-    <div class="fc">
-      📞 &nbsp;0141-282-0384<br/>
-      ✉ &nbsp;helpdesk[dot]tourist[at]rajasthan[dot]gov[dot]in<br/>
-      🌐 &nbsp;obms-tourist.rajasthan.gov.in
-    </div>
-    <div class="fb">
-      <div class="bname">OBMS</div>
-      <div class="bsub">Rajasthan Tourism</div>
+      <div class="refund-cell"><div class="rf-pct">75%</div><div class="rf-lbl">Refund</div><div class="rf-cond">If cancelled<br/>31+ days before<br/>visit date</div></div>
+      <div class="refund-cell"><div class="rf-pct">50%</div><div class="rf-lbl">Refund</div><div class="rf-cond">If cancelled<br/>4–30 days before<br/>visit date</div></div>
+      <div class="refund-cell"><div class="rf-pct">0%</div><div class="rf-lbl">Refund</div><div class="rf-cond">If cancelled<br/>within 3 days of<br/>visit date</div></div>
     </div>
   </div>
-
-</div><!-- /ticket -->
-</div><!-- /ticket-wrap -->
-
+  <div class="t-footer">
+    <div class="fc">📞 &nbsp;0141-282-0384<br/>✉ &nbsp;helpdesk[dot]tourist[at]rajasthan[dot]gov[dot]in<br/>🌐 &nbsp;obms-tourist.rajasthan.gov.in</div>
+    <div class="fb"><div class="bname">OBMS</div><div class="bsub">Rajasthan Tourism</div></div>
+  </div>
+</div>
+</div>
 <div class="action-bar">
   <button class="btn-print" onclick="window.print()">🖨 &nbsp;Print / Save as PDF</button>
   <button class="btn-close" onclick="window.close()">✕ Close</button>
 </div>
-
-<script>
-  document.fonts.ready.then(() => setTimeout(() => window.print(), 600));
-</script>
+<script>document.fonts.ready.then(() => setTimeout(() => window.print(), 600));</script>
 </body>
 </html>`;
 
@@ -926,7 +699,11 @@ body{
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  //  NON-INVENTORY → Sandstone Imperial (Design 1)
+  //  NON-INVENTORY → Sandstone Imperial
+  //  Changes:
+  //    1. Header: place name + location left-aligned beside QR (same as inventory)
+  //    2. Arch removed (no longer needed with new layout)
+  //    3. QR box: padding 5px all sides, no label, SVG fills full size (100×100)
   // ══════════════════════════════════════════════════════════════════════════
   function printSandstoneImperialTicket(ticket: any) {
     const w = window.open('', '_blank', 'width=820,height=960');
@@ -965,7 +742,8 @@ body{
       .join('');
 
     const qrValue = ticket.qrDetail || JSON.stringify({ type: 'BOOKING', data: { ticketBookingId: ticket.id || ticket.bookingId } });
-    const qrRects = generateQrSvgRects(qrValue, 90);
+    // Use 100px viewBox for a larger, full-size QR with only 5px padding
+    const qrRects = generateQrSvgRects(qrValue, 100);
 
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -985,24 +763,72 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
 .valid-dot{width:7px;height:7px;background:#4ade80;border-radius:50%;box-shadow:0 0 6px #4ade80;}
 .valid-lbl{font-family:'Space Mono',monospace;font-size:9px;color:rgba(255,255,255,.7);letter-spacing:1px;text-transform:uppercase;}
 .booked-on{font-family:'Rajdhani',sans-serif;font-size:11px;color:rgba(255,255,255,.35);letter-spacing:.5px;}
+
+/* card */
 .d1{background:#F5ECD7;border-radius:4px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 0 1px rgba(184,74,14,.2);}
-.d1-top{background:linear-gradient(135deg,#7C2D12 0%,#B84A0E 45%,#D4691A 100%);padding:28px 32px 24px;position:relative;overflow:hidden;}
-.d1-top::before{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");}
-.d1-arch{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:120%;height:32px;background:#F5ECD7;border-radius:60% 60% 0 0;}
-.d1-header-row{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:2;}
-.d1-gov{display:flex;align-items:center;gap:12px;}
-.d1-emblem{width:44px;height:44px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+
+/* ── header ── */
+.d1-top{
+  background:linear-gradient(135deg,#7C2D12 0%,#B84A0E 45%,#D4691A 100%);
+  /* reduced bottom padding — arch removed */
+  padding:26px 32px 22px;
+  position:relative;overflow:hidden;
+}
+.d1-top::before{
+  content:'';position:absolute;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+/* ── arch REMOVED — .d1-top::after deleted ── */
+
+/*
+ * Header row: left column (gov badge + place name/location) + right column (QR)
+ * Mirrors the inventory ticket layout exactly.
+ */
+.d1-header-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  position:relative;z-index:2;
+  gap:16px;
+}
+/* left column */
+.d1-header-left{display:flex;flex-direction:column;gap:0;flex:1;min-width:0;}
+.d1-gov{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.d1-emblem{
+  width:44px;height:44px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;
+}
 .d1-gov-text .sub{font-family:'Rajdhani',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.6);}
 .d1-gov-text .main{font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;color:#fff;letter-spacing:.5px;}
-.d1-qr-wrap{background:#fff;border-radius:6px;padding:10px;box-shadow:0 4px 16px rgba(0,0,0,.3);flex-shrink:0;}
-.d1-qr-wrap svg{display:block;width:90px;height:90px;}
-.d1-qr-label{font-family:'Space Mono',monospace;font-size:7px;color:#888;text-align:center;margin-top:5px;letter-spacing:.5px;text-transform:uppercase;}
-.d1-title-block{margin-top:20px;position:relative;z-index:2;}
+
+/* place name + location — directly below gov badge, left-aligned, no extra margin */
+.d1-title-block{position:relative;z-index:2;}
 .d1-title-block h1{font-family:'Cinzel',serif;font-size:24px;font-weight:700;color:#fff;letter-spacing:1px;line-height:1.2;margin-bottom:6px;}
-.d1-title-block .loc{font-family:'Rajdhani',sans-serif;font-size:13px;color:rgba(255,255,255,.7);letter-spacing:2px;text-transform:uppercase;}
+.d1-title-block .loc{font-family:'Rajdhani',sans-serif;font-size:12px;color:rgba(255,255,255,.7);letter-spacing:2px;text-transform:uppercase;}
+
+/*
+ * QR block:
+ *   - padding: 5px all sides
+ *   - no label text
+ *   - SVG size 100×100 (full size, centred)
+ *   - align-self: flex-start so it stays at the top-right
+ */
+.d1-qr-wrap{
+  background:#fff;border-radius:6px;
+  padding:5px;
+  box-shadow:0 4px 16px rgba(0,0,0,.3);
+  flex-shrink:0;
+  align-self:flex-start;
+  display:flex;align-items:center;justify-content:center;
+}
+.d1-qr-wrap svg{display:block;width:100px;height:100px;}
+
+/* pass strip */
 .d1-pass-strip{background:#D4A017;padding:8px 32px;display:flex;justify-content:space-between;align-items:center;}
 .d1-pass-strip .badge{font-family:'Cinzel',serif;font-size:11px;font-weight:600;color:#3D1F00;letter-spacing:2px;}
 .d1-pass-strip .price{font-family:'Space Mono',monospace;font-size:11px;color:#3D1F00;font-weight:700;}
+
+/* body */
 .d1-body{padding:28px 32px;}
 .d1-meta-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
 .d1-meta-cell{text-align:center;padding:14px 8px;border:1px solid rgba(184,74,14,.2);border-radius:4px;background:rgba(184,74,14,.04);}
@@ -1046,31 +872,42 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
     <div class="valid-pill"><span class="valid-dot"></span><span class="valid-lbl">Valid Ticket</span></div>
     <span class="booked-on">Booked on ${bookedDate}</span>
   </div>
+
   <div class="d1">
+    <!-- ── HEADER: gov badge + place name LEFT, QR RIGHT (no arch) ── -->
     <div class="d1-top">
       <div class="d1-header-row">
-        <div class="d1-gov">
-          <div class="d1-emblem">🏛</div>
-          <div class="d1-gov-text">
-            <div class="sub">Government of Rajasthan</div>
-            <div class="main">Department of Tourism</div>
+
+        <!-- Left: gov badge stacked above place name + location -->
+        <div class="d1-header-left">
+          <div class="d1-gov">
+            <div class="d1-emblem">🏛</div>
+            <div class="d1-gov-text">
+              <div class="sub">Government of Rajasthan</div>
+              <div class="main">Department of Tourism</div>
+            </div>
+          </div>
+          <div class="d1-title-block">
+            <h1>${placeName}</h1>
+            <div class="loc">📍 ${location}</div>
           </div>
         </div>
+
+        <!-- Right: QR — 5px padding, no label, full-size SVG -->
         <div class="d1-qr-wrap">
-          <svg viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg">${qrRects}</svg>
-          <div class="d1-qr-label">Scan · ${bookingId.slice(-8)}</div>
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${qrRects}</svg>
         </div>
+
       </div>
-      <div class="d1-title-block">
-        <h1>${placeName}</h1>
-        <div class="loc">📍 ${location}</div>
-      </div>
-      <div class="d1-arch"></div>
+      <!-- ── arch REMOVED ── -->
     </div>
+
+    <!-- pass strip unchanged -->
     <div class="d1-pass-strip">
       <span class="badge">✦ Single Entry Pass ✦</span>
       <span class="price">${priceBadge}</span>
     </div>
+
     <div class="d1-body">
       <div class="d1-meta-row">
         <div class="d1-meta-cell"><span class="icon">📅</span><div class="lbl">Visit Date</div><div class="val">${visitDay}</div><div class="sub2">${visitYear}</div></div>
@@ -1089,11 +926,13 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
       </div>
       <div class="d1-ref"><span class="rl">Booking Reference</span><span class="rv">${bookingId}</span></div>
     </div>
+
     <div class="d1-footer">
       <div class="contact">📞 141-220-0234 &nbsp;|&nbsp; ✉ support@rajasthantourism.gov.in<br/>🌐 obms-tourist.rajasthan.gov.in</div>
       <div class="brand"><div class="bname">OBMS</div><div class="bsub">Rajasthan Tourism</div></div>
     </div>
   </div>
+
   <div class="action-bar">
     <button class="btn-print" onclick="window.print()">🖨 &nbsp;Print / Save as PDF</button>
     <button class="btn-close" onclick="window.close()">✕ Close</button>
@@ -1152,7 +991,6 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
       page.drawText(`Mobile: ${mobileNo || '—'}`, { x: M, y, size: 11, font: fontReg,  color: muted });
       page.drawLine({ start: { x: M, y: M + 30 }, end: { x: PW - M, y: M + 30 }, thickness: 1, color: rgb(0.9, 0.9, 0.9) });
       page.drawText('obms-tourist.rajasthan.gov.in', { x: M, y: M + 14, size: 9, font: fontBold, color: accent });
-
       downloadBytesAsFile(await pdfDoc.save(), `jkk_booking_${bookingId}.pdf`);
     } catch (err) {
       console.error('JKK PDF error:', err);
