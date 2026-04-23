@@ -84,9 +84,9 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
   return (
     <div className="page-bg">
       {/* <span className="demo-label">OBMS · Explore City</span> */}
-      <button 
+      <button
         type="button"
-        onClick={() => (window.history.length > 1 ? router.back() : router.push('/'))} 
+        onClick={() => (window.history.length > 1 ? router.back() : router.push('/'))}
         className="see-all-back"
         style={{ cursor: 'pointer', background: 'none', border: 'none', borderBottom: '1px solid currentColor', paddingLeft: '5px', paddingBottom: '2px' }}
       >
@@ -199,7 +199,34 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
 
             const category = attr.categories?.data?.[0]?.attributes?.Name || 'Attraction';
             const slug = attr.placeDetail?.data?.attributes?.slug;
+            const content = attr.placeDetail?.data?.attributes?.content || [];
+            const ticketsBlock = content.find((c: any) => c.__typename === 'ComponentPlaceDetailPlacetickets');
 
+            let generalStudent = '';
+            let generalIndian = '';
+
+            if (ticketsBlock) {
+              // Try to find the primary ticket card (General, Entry Fee, Gypsy, etc.)
+              const ticketCard = ticketsBlock.card?.find((card: any) => {
+                const title = card.title?.toLowerCase() || '';
+                return title.includes('general') || title.includes('entry') || title.includes('gypsy') || title.includes('amount');
+              }) || ticketsBlock.card?.[0]; // Fallback to first card if no keyword matches
+
+              if (ticketCard) {
+                // Find Student price
+                generalStudent = ticketCard.content?.find((c: any) =>
+                  c.name.toLowerCase().includes('student')
+                )?.value || '';
+
+                // Find Indian/Adult price as fallback
+                generalIndian = ticketCard.content?.find((c: any) => {
+                  const n = c.name.toLowerCase();
+                  return n.includes('indian') || n.includes('adult');
+                })?.value || '';
+              }
+            }
+            const displayPrice = (generalStudent || generalIndian)?.trim();
+            const formattedPrice = displayPrice ? displayPrice.replace(/[^\d]/g, '') : '';
             return (
               <Link
                 key={place.id}
@@ -223,7 +250,9 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
                   </div>
                   {/* <span className="bookable-badge">✓ Bookable</span> */}
                   <div className="cc-pc-foot">
-                    <span className="cc-pc-fee">starting from ₹50</span>
+                    <span className="cc-pc-fee">
+                      {formattedPrice ? `Starting from ₹${formattedPrice}` : 'Click on book now'}
+                    </span>
                     <span className="cc-pc-btn">
                       {slug ? 'Book →' : 'No Details'}
                     </span>

@@ -2376,7 +2376,7 @@ button {
 .pd-nearby-name {
   font-size: 11px;
   font-weight: 600;
-  color: var(--ch);
+  color: var(--cream);
   line-height: 1.3;
 }
 
@@ -7817,4 +7817,4 @@ tourist stats style
 .header-drawer-login {
   @apply w-full px-4 py-2.75 bg-[#E8631A] text-white text-sm font-bold rounded-full transition-all duration-200 hover:bg-[#C04E0A];
 }
-
+
