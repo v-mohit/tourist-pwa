@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import BookNowButton from '../booking/components/BookNowButton';
 
 interface CityDetailsProps {
   cityDetailData: any;
@@ -228,11 +229,17 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
             const displayPrice = (generalStudent || generalIndian)?.trim();
             const formattedPrice = displayPrice ? displayPrice.replace(/[^\d]/g, '') : '';
             return (
-              <Link
+              <div
                 key={place.id}
-                href={slug ? `/place-detail/${slug}` : '#'}
-                className="cc-place-card block"
+                className="cc-place-card block relative"
               >
+                {/* Main clickable area linking to details */}
+                <Link
+                  href={slug ? `/place-detail/${slug}` : '#'}
+                  className="absolute inset-0 z-0"
+                  aria-label={`View details for ${attr.name}`}
+                />
+
                 <div className="cc-pc-img">
                   <div
                     className="cc-pc-img-bg"
@@ -241,7 +248,7 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
                   <div className="cc-pc-img-grad"></div>
                   <span className="cc-pc-cat-tag">{category}</span>
                 </div>
-                <div className="cc-pc-body">
+                <div className="cc-pc-body relative z-10 pointer-events-none">
                   {/* <div className="cc-pc-type">Government</div> */}
                   <div className="cc-pc-name">{attr.name}</div>
                   <div className="cc-pc-loc">
@@ -249,16 +256,29 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
                     {cityName}
                   </div>
                   {/* <span className="bookable-badge">✓ Bookable</span> */}
-                  <div className="cc-pc-foot">
+                  <div className="cc-pc-foot pointer-events-auto">
                     <span className="cc-pc-fee">
                       {formattedPrice ? `Starting from ₹${formattedPrice}` : 'Click on book now'}
                     </span>
-                    <span className="cc-pc-btn">
-                      {slug ? 'Book →' : 'No Details'}
-                    </span>
+                    {slug ? (
+                      <BookNowButton
+                        config={{
+                          placeId: attr.obmsId ?? place.id,
+                          placeName: attr.name,
+                          category: 'inventory',
+                          locationId: place.id,
+                        }}
+                        label="Book →"
+                        className="cc-pc-btn"
+                      />
+                    ) : (
+                      <span className="cc-pc-btn opacity-50 cursor-not-allowed">
+                        No Details
+                      </span>
+                    )}
                   </div>
                 </div>
-              </Link>
+              </div>
             );
           })}
           {filteredPlaces.length === 0 && (

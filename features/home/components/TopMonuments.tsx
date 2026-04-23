@@ -65,12 +65,18 @@ export default function TopMonuments({ data }: any) {
             : "₹100";
 
           return (
-            <Link
+            <div
               key={item.id}
-              href={`/place-detail/${placeId}`}
-              className="mon-card"
-              style={{ cursor: "pointer", display: "block" }}
+              className="mon-card relative group"
+              style={{ display: "block" }}
             >
+              {/* Main clickable area linking to details */}
+              <Link
+                href={`/place-detail/${placeId}`}
+                className="absolute inset-0 z-0"
+                aria-label={`View details for ${name}`}
+              />
+
               {/* Image */}
               <div className="mon-img">
                 <div
@@ -86,7 +92,7 @@ export default function TopMonuments({ data }: any) {
               </div>
 
               {/* Body */}
-              <div className="mon-body">
+              <div className="mon-body relative z-10 pointer-events-none">
                 <div className="mon-name">{name}</div>
                 <div className="mon-loc">
                   <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
@@ -104,18 +110,20 @@ export default function TopMonuments({ data }: any) {
                   <span className="mon-fee">{fee}</span>
                 </div>
 
-                <BookNowButton
-                  config={{
-                    placeId: attr?.placeDetail?.data?.attributes?.obmsId ?? item.id,
-                    placeName: name,
-                    category: 'standard',
-                    locationId: item.id,
-                  }}
-                  label="Book Entry →"
-                  className="btn-sm btn-sm--full inline-flex items-center justify-center"
-                />
+                <div className="pointer-events-auto">
+                  <BookNowButton
+                    config={{
+                      placeId: attr?.placeDetail?.data?.attributes?.obmsId ?? item.id,
+                      placeName: name,
+                      category: 'standard',
+                      locationId: item.id,
+                    }}
+                    label="Book Entry →"
+                    className="btn-sm btn-sm--full inline-flex items-center justify-center"
+                  />
+                </div>
               </div>
-            </Link>
+            </div>
           );
         })}
       </div>

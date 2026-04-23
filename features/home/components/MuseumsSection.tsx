@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import BookNowButton from '@/features/booking/components/BookNowButton';
 
 export default function MuseumsSection({ data }: any) {
   const places = data?.category?.data?.attributes?.places?.data || [];
@@ -60,12 +61,18 @@ export default function MuseumsSection({ data }: any) {
                            name.toLowerCase().replace(/\s+/g, '-'));
 
           return (
-            <Link 
+            <div 
               key={item.id} 
-              href={`/place-detail/${placeId}`}
-              className="mus-card"
-              style={{ display: 'block', cursor: 'pointer' }}
+              className="mus-card relative group"
+              style={{ display: 'block' }}
             >
+              {/* Main clickable area linking to details */}
+              <Link
+                href={`/place-detail/${placeId}`}
+                className="absolute inset-0 z-0"
+                aria-label={`View details for ${name}`}
+              />
+
               {/* Image */}
               <div className="mus-img">
                 <div
@@ -86,7 +93,7 @@ export default function MuseumsSection({ data }: any) {
               </div>
 
               {/* Body */}
-              <div className="mus-body">
+              <div className="mus-body relative z-10 pointer-events-none">
                 <h4>{name}</h4>
 
                 {/* Fallback description */}
@@ -106,14 +113,23 @@ export default function MuseumsSection({ data }: any) {
                   <span className="mus-fee">{fee}</span>
                 </div>
 
-                <button className="btn-sm btn-sm--full-mus">
-                  Book Tickets →
-                </button>
+                <div className="pointer-events-auto">
+                  <BookNowButton
+                    config={{
+                      placeId: attr?.placeDetail?.data?.attributes?.obmsId ?? item.id,
+                      placeName: name,
+                      category: 'standard',
+                      locationId: item.id,
+                    }}
+                    label="Book Tickets →"
+                    className="btn-sm btn-sm--full-mus inline-flex items-center justify-center w-full"
+                  />
+                </div>
               </div>
-            </Link>
+            </div>
           );
         })}
       </div>
     </section>
   );
-}
+}
