@@ -2,6 +2,13 @@
 
 import React, { useMemo, useState, useCallback, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
+import {
+  GetAllJkkDetails,
+  JkkAdvanceAvailability,
+} from "@/services/apiCalls/jkk.service";
+import AvailabilityModal from "@/components/popups/JkkAvailabilityModal";
+import JkkPricingModal from "../popups/JkkPricingModal";
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
@@ -81,6 +88,32 @@ export interface CategoryWiseGalleryNewProps {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// JKK API types (from GetAllJkkDetails response)
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface JkkShift {
+  id: string;
+  name: string;
+}
+
+interface JkkSubCategory {
+  id: string;
+  name: string;
+  jkkShiftList: JkkShift[];
+}
+
+interface JkkCategory {
+  id: string;
+  name: string;
+  jkkSubCategoryList: JkkSubCategory[];
+}
+
+interface JkkDetails {
+  id: string;
+  jkkCategoryList: JkkCategory[];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Responsive hook
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -92,7 +125,7 @@ function useIsMobile(breakpoint = 640): boolean {
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < breakpoint);
     window.addEventListener("resize", handler);
-    handler(); // run on mount
+    handler();
     return () => window.removeEventListener("resize", handler);
   }, [breakpoint]);
 
@@ -120,17 +153,24 @@ function placeImages(place: PlaceItem): string[] {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Epoch helpers  — start-of-day and end-of-day for 1st and last of a month
+// ─────────────────────────────────────────────────────────────────────────────
+
+function getMonthEpochRange(date: Date): { start: number; end: number } {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+
+  const start = new Date(year, month, 1, 0, 0, 0, 0).getTime();
+  const end = new Date(year, month + 1, 0, 23, 59, 59, 999).getTime();
+
+  return { start, end };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
 const ALL_TAB = "all";
-
-function formatPrice(price: string | null, note: string | null): string {
-  if (price === null) return note ?? "—";
-  const n = parseFloat(price);
-  if (isNaN(n)) return price;
-  return `₹${n.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FilterTabs
@@ -171,7 +211,6 @@ const FilterTabs: React.FC<{
             cursor: "pointer",
             letterSpacing: "0.4px",
             transition: "all 0.18s",
-            // Ensure touch-friendly tap target
             minHeight: "36px",
           }}
         >
@@ -240,7 +279,6 @@ const ImageCarousel: React.FC<{ images: string[]; alt: string }> = ({
     boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
     zIndex: 2,
     color: "#333",
-    // Bigger tap target on mobile
     touchAction: "manipulation",
   };
 
@@ -250,7 +288,6 @@ const ImageCarousel: React.FC<{ images: string[]; alt: string }> = ({
         position: "relative",
         borderRadius: "12px",
         overflow: "hidden",
-        // Full width on mobile, natural height ratio
         width: "100%",
         aspectRatio: isMobile ? "4/3" : undefined,
         minHeight: isMobile ? undefined : "260px",
@@ -268,7 +305,6 @@ const ImageCarousel: React.FC<{ images: string[]; alt: string }> = ({
         }}
       />
 
-      {/* Counter badge */}
       <div
         style={{
           position: "absolute",
@@ -286,7 +322,6 @@ const ImageCarousel: React.FC<{ images: string[]; alt: string }> = ({
         {cur + 1} / {total}
       </div>
 
-      {/* Arrows */}
       {total > 1 && (
         <>
           <button
@@ -310,254 +345,6 @@ const ImageCarousel: React.FC<{ images: string[]; alt: string }> = ({
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PricingModal
-// ─────────────────────────────────────────────────────────────────────────────
-
-const PricingModal: React.FC<{ place: PlaceItem; onClose: () => void }> = ({
-  place,
-  onClose,
-}) => {
-  useEffect(() => {
-    const fn = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", fn);
-    return () => window.removeEventListener("keydown", fn);
-  }, [onClose]);
-
-  return (
-    <div
-      onClick={onClose}
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(24,18,14,0.55)",
-        backdropFilter: "blur(4px)",
-        zIndex: 2000,
-        display: "flex",
-        alignItems: "flex-end", // sheet from bottom on mobile
-        justifyContent: "center",
-        padding: "0",
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background: "#fff",
-          borderRadius: "20px 20px 0 0",
-          width: "100%",
-          maxWidth: "540px",
-          maxHeight: "88vh",
-          overflowY: "auto",
-          boxShadow: "0 -8px 40px rgba(24,18,14,0.18)",
-        }}
-      >
-        {/* Drag handle */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            paddingTop: "10px",
-            paddingBottom: "4px",
-          }}
-        >
-          <div
-            style={{
-              width: "40px",
-              height: "4px",
-              borderRadius: "99px",
-              background: "#E0D0C8",
-            }}
-          />
-        </div>
-
-        {/* Header */}
-        <div
-          style={{
-            background: "linear-gradient(135deg,#E8631A,#FF69B4)",
-            padding: "16px 20px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            position: "sticky",
-            top: 0,
-            zIndex: 1,
-          }}
-        >
-          <div>
-            <p
-              style={{
-                fontSize: "10px",
-                color: "rgba(255,255,255,0.8)",
-                fontWeight: 700,
-                letterSpacing: "0.9px",
-                margin: "0 0 4px",
-                textTransform: "uppercase",
-              }}
-            >
-              Pricing Details
-            </p>
-            <h3
-              style={{
-                fontSize: "17px",
-                fontWeight: 700,
-                color: "#fff",
-                margin: 0,
-              }}
-            >
-              {place.name}
-            </h3>
-            {place.priceType && (
-              <p
-                style={{
-                  fontSize: "11px",
-                  color: "rgba(255,255,255,0.75)",
-                  margin: "4px 0 0",
-                }}
-              >
-                {place.priceType}
-              </p>
-            )}
-          </div>
-          <button
-            onClick={onClose}
-            aria-label="Close"
-            style={{
-              background: "rgba(255,255,255,0.2)",
-              border: "none",
-              color: "#fff",
-              width: "34px",
-              height: "34px",
-              borderRadius: "50%",
-              cursor: "pointer",
-              fontSize: "16px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Body */}
-        <div style={{ padding: "16px 20px 32px" }}>
-          {place.prices.length === 0 ? (
-            <p
-              style={{
-                fontSize: "13px",
-                color: "#7A6A58",
-                textAlign: "center",
-                padding: "20px 0",
-              }}
-            >
-              Contact us for pricing information.
-            </p>
-          ) : (
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "6px" }}
-            >
-              {place.prices.map((entry, i) => (
-                <div
-                  key={i}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    gap: "12px",
-                    padding: "10px 14px",
-                    background: i % 2 === 0 ? "#FFF0F7" : "#fff",
-                    borderRadius: "10px",
-                    border: "1px solid #FFD6E8",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: "12px",
-                      color: "#2C2017",
-                      lineHeight: 1.55,
-                      flex: 1,
-                    }}
-                  >
-                    {entry.title}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "13px",
-                      fontWeight: 700,
-                      color: "#E8631A",
-                      whiteSpace: "nowrap",
-                      flexShrink: 0,
-                    }}
-                  >
-                    {formatPrice(entry.price, entry.note)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {place.remark && (
-            <div
-              style={{
-                marginTop: "16px",
-                background: "#FFF9EC",
-                border: "1px solid #F0C842",
-                borderRadius: "10px",
-                padding: "12px 14px",
-              }}
-            >
-              <p
-                style={{
-                  fontSize: "10px",
-                  color: "#7A6A58",
-                  fontWeight: 700,
-                  marginBottom: "6px",
-                  letterSpacing: "0.6px",
-                  textTransform: "uppercase",
-                }}
-              >
-                Note
-              </p>
-              <p
-                style={{
-                  fontSize: "11px",
-                  color: "#2C2017",
-                  lineHeight: 1.75,
-                  whiteSpace: "pre-line",
-                  margin: 0,
-                }}
-              >
-                {place.remark}
-              </p>
-            </div>
-          )}
-
-          <button
-            onClick={onClose}
-            style={{
-              marginTop: "20px",
-              width: "100%",
-              padding: "13px",
-              background: "linear-gradient(135deg,#E8631A,#FF69B4)",
-              color: "#fff",
-              fontWeight: 700,
-              fontSize: "13px",
-              border: "none",
-              borderRadius: "10px",
-              cursor: "pointer",
-            }}
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
 // ActionButtons
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -572,7 +359,7 @@ const pill: React.CSSProperties = {
   color: "#fff",
   letterSpacing: "0.2px",
   transition: "opacity 0.18s, transform 0.18s",
-  minHeight: "40px", // touch-friendly
+  minHeight: "40px",
   touchAction: "manipulation",
 };
 
@@ -583,7 +370,16 @@ const ActionButtons: React.FC<{
   onBook: (name: string) => void;
   onAvailability: (name: string) => void;
   onPricing: (place: PlaceItem) => void;
-}> = ({ place, isbookingData, obmsId, onBook, onAvailability, onPricing }) => {
+  isAvailabilityLoading?: boolean;
+}> = ({
+  place,
+  isbookingData,
+  obmsId,
+  onBook,
+  onAvailability,
+  onPricing,
+  isAvailabilityLoading,
+}) => {
   const isMobile = useIsMobile();
 
   const over = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -603,7 +399,6 @@ const ActionButtons: React.FC<{
         flexWrap: "wrap",
         gap: "10px",
         marginTop: "16px",
-        // On mobile make buttons full width
         alignItems: isMobile ? "stretch" : "flex-start",
       }}
     >
@@ -621,18 +416,45 @@ const ActionButtons: React.FC<{
           {obmsId ? "Book Now" : "Enquire Now"}
         </button>
       )}
+
       <button
+        disabled={isAvailabilityLoading}
         style={{
           ...pill,
           width: isMobile ? "100%" : undefined,
           textAlign: "center",
+          opacity: isAvailabilityLoading ? 0.65 : 1,
+          cursor: isAvailabilityLoading ? "not-allowed" : "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "6px",
         }}
-        onMouseEnter={over}
-        onMouseLeave={out}
-        onClick={() => onAvailability(place.name)}
+        onMouseEnter={isAvailabilityLoading ? undefined : over}
+        onMouseLeave={isAvailabilityLoading ? undefined : out}
+        onClick={() => !isAvailabilityLoading && onAvailability(place.name)}
       >
-        Availability
+        {isAvailabilityLoading ? (
+          <>
+            <span
+              style={{
+                width: "12px",
+                height: "12px",
+                border: "2px solid rgba(255,255,255,0.4)",
+                borderTopColor: "#fff",
+                borderRadius: "50%",
+                display: "inline-block",
+                animation: "spin 0.8s linear infinite",
+              }}
+            />
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            Checking…
+          </>
+        ) : (
+          "Availability"
+        )}
       </button>
+
       {place.prices.length > 0 && (
         <button
           style={{
@@ -652,7 +474,7 @@ const ActionButtons: React.FC<{
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// VenueCard — responsive layout
+// VenueCard
 // ─────────────────────────────────────────────────────────────────────────────
 
 const VenueCard: React.FC<{
@@ -663,6 +485,7 @@ const VenueCard: React.FC<{
   onBook: (name: string) => void;
   onAvailability: (name: string) => void;
   onPricing: (place: PlaceItem) => void;
+  availabilityLoadingFor: string | null;
 }> = ({
   place,
   index,
@@ -671,10 +494,14 @@ const VenueCard: React.FC<{
   onBook,
   onAvailability,
   onPricing,
+  availabilityLoadingFor,
 }) => {
   const isMobile = useIsMobile();
   const isReverse = index % 2 !== 0;
   const images = placeImages(place);
+
+  const isAvailabilityLoading =
+    availabilityLoadingFor?.toLowerCase() === place.name.toLowerCase();
 
   const infoBlock = (
     <div
@@ -731,6 +558,7 @@ const VenueCard: React.FC<{
         onBook={onBook}
         onAvailability={onAvailability}
         onPricing={onPricing}
+        isAvailabilityLoading={isAvailabilityLoading}
       />
     </div>
   );
@@ -747,13 +575,11 @@ const VenueCard: React.FC<{
       }}
     >
       {isMobile ? (
-        // Mobile: always stack — image on top, info below
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           {imageBlock}
           {infoBlock}
         </div>
       ) : (
-        // Desktop: alternating two-column layout
         <div
           style={{
             display: "grid",
@@ -791,6 +617,7 @@ const CategorySection: React.FC<{
   onBook: (name: string) => void;
   onAvailability: (name: string) => void;
   onPricing: (place: PlaceItem) => void;
+  availabilityLoadingFor: string | null;
 }> = ({
   category,
   categoryItem,
@@ -799,6 +626,7 @@ const CategorySection: React.FC<{
   onBook,
   onAvailability,
   onPricing,
+  availabilityLoadingFor,
 }) => {
   const description = categoryItem?.description;
 
@@ -850,6 +678,7 @@ const CategorySection: React.FC<{
           onBook={onBook}
           onAvailability={onAvailability}
           onPricing={onPricing}
+          availabilityLoadingFor={availabilityLoadingFor}
         />
       ))}
     </section>
@@ -871,6 +700,43 @@ const CategoryWiseGalleryNew: React.FC<CategoryWiseGalleryNewProps> = ({
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
   const [pricingPlace, setPricingPlace] = useState<PlaceItem | null>(null);
 
+  // ── Availability state ──────────────────────────────────────────────────────
+  const [availabilityLoadingFor, setAvailabilityLoadingFor] = useState<
+    string | null
+  >(null);
+  const [availabilityModal, setAvailabilityModal] = useState<{
+    venueName: string;
+    data: any;
+    error: string | null;
+    month: Date;
+  } | null>(null);
+
+  // ── API hooks ──────────────────────────────────────────────────────────────
+  const { data: jkkDetails } = GetAllJkkDetails();
+  const { mutateAsync: fetchAvailability } = JkkAdvanceAvailability();
+
+  // ── Pre-build a lookup: subCategory name (uppercase) → { categoryId, subCategoryId }
+  const jkkLookup = useMemo<
+    Record<string, { categoryId: string; subCategoryId: string }>
+  >(() => {
+    const map: Record<string, { categoryId: string; subCategoryId: string }> =
+      {};
+    const details: JkkDetails | undefined = jkkDetails;
+    if (!details?.jkkCategoryList) return map;
+
+    for (const cat of details.jkkCategoryList) {
+      for (const sub of cat.jkkSubCategoryList ?? []) {
+        // Normalise to uppercase for case-insensitive matching
+        map[sub.name.toUpperCase()] = {
+          categoryId: cat.id,
+          subCategoryId: sub.id,
+        };
+      }
+    }
+    return map;
+  }, [jkkDetails]);
+
+  // ── Category / tab helpers ─────────────────────────────────────────────────
   const categoryLookup = useMemo<Record<string, CMSCategory>>(
     () =>
       (data ?? []).reduce<Record<string, CMSCategory>>((acc, item) => {
@@ -915,20 +781,80 @@ const CategoryWiseGalleryNew: React.FC<CategoryWiseGalleryNewProps> = ({
     });
   }, [visibleCategories, categoryLookup]);
 
+  // ── Handlers ───────────────────────────────────────────────────────────────
   const handleBook = useCallback(
     (_name: string) => {
       bookNowClick();
     },
     [bookNowClick],
   );
-  const handleAvailability = useCallback((_name: string) => {
-    console.log("Availability:", _name);
-  }, []);
+
+  const handleAvailability = useCallback(
+    async (venueName: string) => {
+      // 1. Look up categoryId + subCategoryId from JKK details
+      const ids = jkkLookup[venueName.toUpperCase()];
+
+      if (!ids) {
+        // Venue not found in JKK system — open modal with a friendly error
+        setAvailabilityModal({
+          venueName,
+          data: null,
+          error: "Availability information is not configured for this venue.",
+          month: new Date(),
+        });
+        return;
+      }
+
+      // 2. Build payload for current month
+      const now = new Date();
+      const { start, end } = getMonthEpochRange(now);
+
+      const payload = {
+        bookingStartDate: start,
+        bookingEndDate: end,
+        categoryId: ids.categoryId,
+        subCategoryId: ids.subCategoryId,
+        auth: false,
+        preDays: 0,
+      };
+
+      // 3. Show loading state on the specific card's button
+      setAvailabilityLoadingFor(venueName);
+
+      try {
+        const result = await fetchAvailability(payload);
+
+        // 4. Open modal with response data
+        setAvailabilityModal({
+          venueName,
+          data: result,
+          error: null,
+          month: now,
+        });
+      } catch (err: any) {
+        setAvailabilityModal({
+          venueName,
+          data: null,
+          error:
+            err?.message ?? "Failed to fetch availability. Please try again.",
+          month: now,
+        });
+      } finally {
+        setAvailabilityLoadingFor(null);
+      }
+    },
+    [jkkLookup, fetchAvailability],
+  );
+
   const handlePricing = useCallback(
     (place: PlaceItem) => setPricingPlace(place),
     [],
   );
   const handleCloseModal = useCallback(() => setPricingPlace(null), []);
+  const handleCloseAvailability = useCallback(
+    () => setAvailabilityModal(null),
+    [],
+  );
 
   if (!prices || prices.length === 0) {
     return (
@@ -959,11 +885,25 @@ const CategoryWiseGalleryNew: React.FC<CategoryWiseGalleryNewProps> = ({
           onBook={handleBook}
           onAvailability={handleAvailability}
           onPricing={handlePricing}
+          availabilityLoadingFor={availabilityLoadingFor}
         />
       ))}
 
+      {/* Pricing modal */}
       {pricingPlace && (
-        <PricingModal place={pricingPlace} onClose={handleCloseModal} />
+        <JkkPricingModal place={pricingPlace} onClose={handleCloseModal} />
+      )}
+
+      {/* Availability modal */}
+      {availabilityModal && (
+        <AvailabilityModal
+          venueName={availabilityModal.venueName}
+          availabilityData={availabilityModal.data}
+          onClose={handleCloseAvailability}
+          isLoading={false}
+          error={availabilityModal.error}
+          // currentMonth={availabilityModal.month}
+        />
       )}
     </div>
   );
