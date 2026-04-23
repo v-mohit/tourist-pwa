@@ -11,6 +11,26 @@ import BookingModal from "@/features/booking/components/BookingModal";
 import UnauthorizedHandler from "@/components/common/UnauthorizedHandler";
 import FloatingHelpdesk from "@/components/helpdesk/FloatingHelpdesk";
 
+import { Cinzel, Raleway, Playfair_Display } from "next/font/google";
+
+const cinzel = Cinzel({
+  subsets: ["latin"],
+  variable: "--font-cinzel",
+  weight: ["400", "700"],
+});
+
+const raleway = Raleway({
+  subsets: ["latin"],
+  variable: "--font-raleway",
+  weight: ["300", "400", "500", "600", "700"],
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+  weight: ["400", "700"],
+});
+
 const geistSans = localFont({
   src: [
     {
@@ -52,9 +72,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${cinzel.variable} ${raleway.variable} ${playfair.variable}`}
     >
-      <body className="min-h-full flex flex-col bg-[#FDF8F1]">
+      <body>
         <AuthProvider>
           <BookingProvider>
             <Providers>

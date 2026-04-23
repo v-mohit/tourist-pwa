@@ -56,6 +56,8 @@ export default function PackagesSection({ data }: any) {
           ];
           const badge = { label: "COMPOSITE", cls: "tg" };
 
+          const isBookable = pkgAttr.package_detail?.data?.attributes?.bookable;
+
           return (
             <div
               key={slug || index}
@@ -114,6 +116,7 @@ export default function PackagesSection({ data }: any) {
                       category: "package",
                       locationId,
                     }}
+                    disabled={isBookable === false}
                     label="Book →"
                     className="btn-s"
                   />

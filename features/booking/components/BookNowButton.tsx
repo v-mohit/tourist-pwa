@@ -10,6 +10,7 @@ interface BookNowButtonProps {
   label?: string;
   className?: string;
   variant?: 'primary' | 'secondary' | 'small';
+  disabled?: boolean;
 }
 
 /**
@@ -28,6 +29,7 @@ export default function BookNowButton({
   label = 'Book Now →',
   className,
   variant = 'primary',
+  disabled = false,
 }: BookNowButtonProps) {
   const { openBookingModal } = useBooking();
   const { user, openLoginModal, setPostLoginAction } = useAuth();
@@ -49,6 +51,8 @@ export default function BookNowButton({
   }
 
   function handleClick(e: React.MouseEvent) {
+    if (disabled) return;
+    
     // Prevent parent Link/anchor from navigating when this button is nested inside one
     e.preventDefault();
     e.stopPropagation();
@@ -60,6 +64,7 @@ export default function BookNowButton({
       openLoginModal();
       return;
     }
+    
     void openResolvedBooking(config);
   }
 
@@ -79,10 +84,11 @@ export default function BookNowButton({
     <button
       onClick={handleClick}
       onMouseDown={(e) => e.stopPropagation()}
-      className={className ?? `${base} ${variants[variant]}`}
+      disabled={disabled}
+      className={className ? (disabled ? `${className} opacity-50 cursor-not-allowed grayscale` : className) : `${base} ${variants[variant]} ${disabled ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
       aria-label={`Book tickets for ${config.placeName}`}
     >
-      {label}
+      {disabled ? 'Booking Unavailable' : label}
     </button>
   );
 }
