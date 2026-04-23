@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Grievance — OBMS | Government of Rajasthan</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sf:#E8631A;--sf2:#C04E0A;--gold:#D4A017;--gold2:#F0C842;
+  --cream:#FDF8F1;--sand:#F5E8CC;--ink:#2C2017;--ch:#18120E;
+  --mu:#7A6A58;--bdr:#E8DAC5;--grn:#1A6B3C;--red:#DC2626;
+  --blue:#2563EB;--nav-h:66px;
+  --sh0:0 1px 6px rgba(24,18,14,.06);
+  --sh1:0 4px 20px rgba(24,18,14,.10);
+  --sh2:0 12px 48px rgba(24,18,14,.16);
+  --r:14px;--rl:22px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--cream);color:var(--ink);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;border:none}
+a{text-decoration:none;color:inherit}
+
+/* ── NAV ── */
+.nav{position:fixed;top:0;left:0;right:0;z-index:300;height:var(--nav-h);display:flex;align-items:center;justify-content:space-between;padding:0 max(20px,4vw);background:rgba(253,248,241,.96);backdrop-filter:blur(24px);border-bottom:1px solid rgba(212,160,23,.14);box-shadow:0 1px 6px rgba(24,18,14,.06)}
+.nav-brand{display:flex;align-items:center;gap:10px}
+.nav-logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--sf),var(--gold));display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 12px rgba(232,99,26,.3);flex-shrink:0}
+.nav-brand strong{font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:var(--ch);display:block}
+.nav-brand small{font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--sf)}
+.nav-links{display:flex;align-items:center;gap:20px}
+.nav-links a{font-size:13px;font-weight:500;color:var(--mu);transition:color .2s}
+.nav-links a:hover{color:var(--sf)}
+.nav-r{display:flex;align-items:center;gap:8px}
+.nav-user{position:relative}
+.nav-user-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--sf);color:#fff;font-size:13px;font-weight:600;border-radius:99px;cursor:pointer;transition:all .2s;border:none}
+.nav-user-btn:hover{background:var(--sf2)}
+.nav-user-btn .chevron{width:14px;height:14px;transition:transform .2s}
+.nav-user-btn.open .chevron{transform:rotate(180deg)}
+.nav-dd{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:1px solid var(--bdr);border-radius:var(--r);box-shadow:var(--sh2);min-width:170px;z-index:400;opacity:0;pointer-events:none;transform:translateY(-6px);transition:all .2s}
+.nav-dd.open{opacity:1;pointer-events:all;transform:translateY(0)}
+.nav-dd a,.nav-dd button{display:block;width:100%;text-align:left;padding:11px 18px;font-size:13px;font-weight:500;color:var(--ink);background:none;border:none;cursor:pointer;transition:background .15s}
+.nav-dd a:hover,.nav-dd button:hover{background:var(--sand);color:var(--sf)}
+.nav-dd a.active{color:var(--sf);font-weight:600;background:rgba(232,99,26,.06)}
+.nav-dd-div{height:1px;background:var(--bdr);margin:4px 0}
+.btn-sos{padding:8px 14px;background:var(--red);color:#fff;font-size:12px;font-weight:700;border-radius:99px;border:none;cursor:pointer}
+
+/* ── PAGE ── */
+.page{padding-top:var(--nav-h);min-height:100vh;background:#F9F2EC}
+
+/* ── PAGE HEADER ── */
+.page-header{background:#fff;border-bottom:1px solid var(--bdr);padding:24px max(22px,5vw);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.page-header-left h1{font-family:'Playfair Display',serif;font-size:clamp(20px,3vw,28px);font-weight:700;color:var(--ch);margin-bottom:3px}
+.page-header-left p{font-size:13px;color:var(--mu)}
+.btn-new-query{display:inline-flex;align-items:center;gap:7px;padding:11px 22px;background:var(--sf);color:#fff;font-size:13px;font-weight:700;border-radius:99px;box-shadow:0 4px 16px rgba(232,99,26,.3);transition:all .2s;border:none;cursor:pointer;white-space:nowrap}
+.btn-new-query:hover{background:var(--sf2);transform:translateY(-1px)}
+
+/* ── STATS STRIP ── */
+.stats-strip{display:flex;background:#fff;border-bottom:1px solid var(--bdr)}
+.ss-item{flex:1;padding:14px 20px;border-right:1px solid var(--bdr);text-align:center}
+.ss-item:last-child{border-right:none}
+.ss-num{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--ch);line-height:1;margin-bottom:2px}
+.ss-num.ongoing{color:var(--sf)}
+.ss-num.resolved{color:var(--grn)}
+.ss-num.cancelled{color:var(--red)}
+.ss-lbl{font-size:10px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--mu)}
+
+/* ── TABS ── */
+.tabs-wrap{padding:20px max(22px,5vw) 0;display:flex;align-items:center;gap:4px}
+.tab-pill{padding:9px 22px;border-radius:99px;font-size:13px;font-weight:600;border:1.5px solid var(--bdr);background:#fff;color:var(--mu);cursor:pointer;transition:all .2s}
+.tab-pill:hover{border-color:var(--sf);color:var(--sf)}
+.tab-pill.active{background:var(--sf);border-color:var(--sf);color:#fff;box-shadow:0 4px 14px rgba(232,99,26,.25)}
+
+/* ── GRIEVANCES BODY ── */
+.grievances-body{padding:20px max(22px,5vw) 60px}
+
+/* ── GRIEVANCE CARD ── */
+.g-card{background:#fff;border-radius:var(--rl);border:1.5px solid var(--bdr);box-shadow:var(--sh0);margin-bottom:14px;overflow:hidden;transition:box-shadow .25s,transform .2s}
+.g-card:hover{box-shadow:var(--sh1);transform:translateY(-2px)}
+.g-card-header{padding:14px 20px;background:linear-gradient(90deg,rgba(232,99,26,.05) 0%,transparent 100%);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.g-card-title{font-size:14px;font-weight:700;color:var(--ch);display:flex;align-items:center;gap:8px}
+.g-card-title span{font-family:'Playfair Display',serif}
+.g-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:99px;font-size:11px;font-weight:700;letter-spacing:.3px}
+.badge-ongoing{background:rgba(232,99,26,.12);color:var(--sf);border:1px solid rgba(232,99,26,.25)}
+.badge-resolved{background:rgba(26,107,60,.12);color:var(--grn);border:1px solid rgba(26,107,60,.25)}
+.badge-cancelled{background:rgba(220,38,38,.1);color:var(--red);border:1px solid rgba(220,38,38,.2)}
+.badge-scheduled{background:rgba(37,99,235,.1);color:var(--blue);border:1px solid rgba(37,99,235,.2)}
+.g-card-body{padding:16px 20px}
+.g-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.g-field{min-width:0}
+.g-field-lbl{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--mu);margin-bottom:4px}
+.g-field-val{font-size:13px;font-weight:600;color:var(--ch);word-break:break-word}
+.g-field-val.mono{font-family:monospace;font-size:12px;letter-spacing:.5px}
+.g-card-footer{padding:12px 20px;border-top:1px solid var(--bdr);background:var(--cream);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.g-foot-left{font-size:11px;color:var(--mu)}
+.g-foot-right{display:flex;align-items:center;gap:8px}
+.btn-view-detail{display:inline-flex;align-items:center;gap:5px;padding:7px 16px;border:1.5px solid var(--bdr);border-radius:99px;background:#fff;font-size:12px;font-weight:600;color:var(--mu);cursor:pointer;transition:all .2s}
+.btn-view-detail:hover{border-color:var(--sf);color:var(--sf)}
+.btn-view-detail svg{width:13px;height:13px}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:70px 24px}
+.empty-icon{font-size:56px;margin-bottom:14px;opacity:.35}
+.empty-title{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:var(--ch);margin-bottom:7px}
+.empty-sub{font-size:13px;color:var(--mu);line-height:1.65;max-width:300px;margin:0 auto 20px}
+
+/* ════════ NEW QUERY MODAL ════════ */
+.modal-overlay{position:fixed;inset:0;z-index:500;background:rgba(24,18,14,.5);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:#fff;border-radius:var(--rl);box-shadow:0 24px 80px rgba(24,18,14,.25);width:100%;max-width:480px;max-height:90vh;overflow-y:auto;transform:translateY(20px) scale(.97);transition:transform .3s cubic-bezier(.22,.68,0,1.2)}
+.modal-overlay.open .modal{transform:translateY(0) scale(1)}
+.modal-top{background:linear-gradient(135deg,var(--sf) 0%,var(--sf2) 100%);padding:20px 24px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;border-radius:var(--rl) var(--rl) 0 0}
+.modal-top-text h2{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#fff;margin-bottom:3px}
+.modal-top-text p{font-size:12px;color:rgba(255,255,255,.75)}
+.modal-close-btn{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0;transition:all .2s}
+.modal-close-btn:hover{background:rgba(255,255,255,.35)}
+.modal-body{padding:22px 24px}
+.section-number{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:8px;background:var(--sf);color:#fff;font-size:12px;font-weight:700;flex-shrink:0}
+.section-heading{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.section-heading h3{font-size:14px;font-weight:700;color:var(--ch)}
+.form-group{margin-bottom:14px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.form-label{display:block;font-size:11px;font-weight:700;color:var(--mu);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+.form-label .req{color:var(--sf)}
+.form-input,.form-select,.form-textarea{width:100%;padding:11px 14px;border:1.5px solid var(--bdr);border-radius:11px;font-size:13px;font-family:inherit;outline:none;background:#fff;color:var(--ink);transition:border .2s;appearance:none}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--sf)}
+.form-input::placeholder,.form-textarea::placeholder{color:#bbb}
+.form-textarea{resize:vertical;min-height:90px;line-height:1.6}
+.select-wrap{position:relative}
+.select-wrap::after{content:'';position:absolute;right:14px;top:50%;transform:translateY(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:5px solid var(--mu);pointer-events:none}
+.phone-input-wrap{display:flex;border:1.5px solid var(--bdr);border-radius:11px;overflow:hidden;transition:border .2s}
+.phone-input-wrap:focus-within{border-color:var(--sf)}
+.phone-prefix{display:flex;align-items:center;padding:0 12px;background:var(--sand);font-size:12px;font-weight:600;color:var(--mu);border-right:1px solid var(--bdr);white-space:nowrap;gap:4px}
+.phone-input-inner{flex:1;padding:11px 12px;border:none;outline:none;font-size:13px;font-family:inherit;color:var(--ink);background:#fff}
+.attach-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border:1.5px dashed var(--bdr);border-radius:10px;background:var(--cream);font-size:12px;font-weight:600;color:var(--mu);cursor:pointer;transition:all .2s}
+.attach-btn:hover{border-color:var(--sf);color:var(--sf);background:rgba(232,99,26,.04)}
+.attach-hint{font-size:11px;color:var(--mu);margin-left:8px}
+.form-divider{height:1px;background:var(--bdr);margin:18px 0}
+.modal-footer{padding:0 24px 22px;display:flex;gap:10px}
+.btn-cancel-modal{flex:1;padding:12px;background:transparent;border:1.5px solid var(--bdr);border-radius:99px;font-size:13px;font-weight:700;color:var(--mu);cursor:pointer;transition:all .2s}
+.btn-cancel-modal:hover{border-color:var(--ink);color:var(--ink)}
+.btn-submit-ticket{flex:2;padding:12px;background:var(--sf);color:#fff;border-radius:99px;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(232,99,26,.3);border:none}
+.btn-submit-ticket:hover{background:var(--sf2);transform:translateY(-1px)}
+
+/* ════════ DETAIL DRAWER ════════ */
+.drawer-overlay{position:fixed;inset:0;z-index:510;background:rgba(24,18,14,.5);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .3s}
+.drawer-overlay.open{opacity:1;pointer-events:all}
+.drawer-panel{position:absolute;top:0;right:0;bottom:0;width:100%;max-width:560px;background:#fff;overflow-y:auto;transform:translateX(40px);transition:transform .38s cubic-bezier(.22,.68,0,1.2);box-shadow:-12px 0 60px rgba(24,18,14,.18)}
+.drawer-overlay.open .drawer-panel{transform:translateX(0)}
+.drawer-bar{position:sticky;top:0;z-index:20;padding:14px 20px;background:rgba(255,255,255,.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:10px}
+.drawer-back{width:32px;height:32px;border-radius:99px;background:var(--sand);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--mu);font-size:16px;flex-shrink:0;transition:all .2s}
+.drawer-back:hover{background:var(--bdr)}
+.drawer-bar-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--ch);flex:1}
+.drawer-content{padding:0}
+
+/* Ticket header inside drawer */
+.qt-header{padding:20px;border-bottom:1px solid var(--bdr)}
+.qt-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px}
+.qt-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--ch)}
+.qt-sub{font-size:12px;color:var(--mu)}
+
+/* Chat area */
+.chat-wrap{display:grid;grid-template-columns:1fr 260px;height:calc(100vh - 66px - 60px);min-height:400px}
+.chat-left{border-right:1px solid var(--bdr);display:flex;flex-direction:column}
+.chat-messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px;background:#F9F2EC}
+.chat-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--mu)}
+.chat-empty-icon{font-size:40px;opacity:.3}
+.chat-empty-text{font-size:14px;font-weight:500}
+.chat-input-bar{padding:12px 14px;border-top:1px solid var(--bdr);background:#fff;display:flex;align-items:center;gap:8px}
+.chat-input{flex:1;padding:10px 14px;border:1.5px solid var(--bdr);border-radius:99px;font-size:13px;font-family:inherit;outline:none;background:var(--cream);color:var(--ink);transition:border .2s}
+.chat-input:focus{border-color:var(--sf);background:#fff}
+.chat-input::placeholder{color:#bbb}
+.chat-send-btn{width:36px;height:36px;border-radius:50%;background:var(--sf);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.chat-send-btn:hover{background:var(--sf2)}
+.chat-send-btn svg{width:16px;height:16px;color:#fff}
+
+/* Chat messages */
+.msg-user{align-self:flex-end;max-width:75%;background:var(--sf);color:#fff;padding:10px 14px;border-radius:16px 16px 4px 16px;font-size:13px;line-height:1.55}
+.msg-support{align-self:flex-start;max-width:75%;background:#fff;color:var(--ink);padding:10px 14px;border-radius:16px 16px 16px 4px;font-size:13px;line-height:1.55;border:1px solid var(--bdr);box-shadow:var(--sh0)}
+.msg-time{font-size:10px;color:rgba(255,255,255,.65);margin-top:4px;text-align:right}
+.msg-support .msg-time{color:var(--mu);text-align:left}
+
+/* Right panel */
+.chat-right{overflow-y:auto;background:#fff}
+.detail-section{border-bottom:1px solid var(--bdr)}
+.detail-section-header{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .15s}
+.detail-section-header:hover{background:var(--cream)}
+.detail-section-header h4{font-size:13px;font-weight:700;color:var(--ch)}
+.detail-section-header .toggle-ico{font-size:12px;color:var(--mu);transition:transform .2s}
+.detail-section-header.collapsed .toggle-ico{transform:rotate(-180deg)}
+.detail-section-body{padding:0 16px 14px}
+.detail-user-row{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--bdr)}
+.detail-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--sf),var(--gold));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
+.detail-user-name{font-size:13px;font-weight:700;color:var(--ch)}
+.detail-user-role{font-size:10px;color:var(--mu)}
+.detail-status-pill{margin-left:auto}
+.di-row{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid rgba(232,218,197,.5);gap:8px;font-size:12px}
+.di-row:last-child{border-bottom:none}
+.di-key{color:var(--mu);flex-shrink:0}
+.di-val{font-weight:600;color:var(--ch);text-align:right;word-break:break-word}
+.di-val.highlight{color:var(--sf)}
+.attachment-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--cream);border-radius:10px;border:1px solid var(--bdr);margin-top:4px}
+.attachment-row span{font-size:12px;color:var(--ch);font-weight:500}
+.attachment-view-btn{width:28px;height:28px;border-radius:8px;background:#fff;border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s}
+.attachment-view-btn:hover{border-color:var(--sf);color:var(--sf)}
+.attachment-view-btn svg{width:14px;height:14px}
+
+/* Success toast */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ch);color:#fff;padding:12px 22px;border-radius:99px;font-size:13px;font-weight:600;box-shadow:var(--sh2);z-index:800;transition:transform .35s cubic-bezier(.22,.68,0,1.2),opacity .35s;opacity:0;pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+@media(max-width:768px){
+  .g-grid{grid-template-columns:1fr 1fr}
+  .nav-links{display:none}
+  .chat-wrap{grid-template-columns:1fr;height:auto}
+  .chat-right{border-top:1px solid var(--bdr)}
+  .chat-left{min-height:400px}
+  .drawer-panel{max-width:100%}
+  .form-row{grid-template-columns:1fr}
+  .stats-strip{overflow-x:auto;scrollbar-width:none}
+  .stats-strip::-webkit-scrollbar{display:none}
+  .ss-item{min-width:90px}
+}
+@media(max-width:480px){
+  .g-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ NAV ══ -->
+<nav class="nav">
+  <a href="#" class="nav-brand">
+    <div class="nav-logo">🏛</div>
+    <div>
+      <strong>Government of Rajasthan</strong>
+      <small>Online Booking Management System</small>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="#">Explore</a>
+    <a href="#">Composite</a>
+    <a href="#">HelpDesk</a>
+    <a href="#">FAQ</a>
+    <a href="#">Search</a>
+    <a href="#">About Us</a>
+  </div>
+  <div class="nav-r">
+    <div class="nav-user">
+      <button class="nav-user-btn" id="navUserBtn" onclick="toggleUserMenu()">
+        👤 PANKAJDHA...
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="nav-dd" id="navDd">
+        <a href="#">My Bookings</a>
+        <a href="#" class="active">My Grievance</a>
+        <div class="nav-dd-div"></div>
+        <button onclick="alert('Logged out')">Logout</button>
+      </div>
+    </div>
+    <button class="btn-sos">🆘 SOS</button>
+  </div>
+</nav>
+
+<!-- ══ PAGE ══ -->
+<div class="page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <h1>My Grievance</h1>
+      <p>Track and manage your support queries & complaints</p>
+    </div>
+    <button class="btn-new-query" onclick="openNewQuery()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:15px;height:15px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Query
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-strip">
+    <div class="ss-item">
+      <div class="ss-num">4</div>
+      <div class="ss-lbl">Total</div>
+    </div>
+    <div class="ss-item">
+      <div class="ss-num ongoing">1</div>
+      <div class="ss-lbl">Ongoing</div>
+    </div>
+    <div class="ss-item">
+      <div class="ss-num resolved">2</div>
+      <div class="ss-lbl">Resolved</div>
+    </div>
+    <div class="ss-item">
+      <div class="ss-num cancelled">1</div>
+      <div class="ss-lbl">Cancelled</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-wrap">
+    <button class="tab-pill" id="tab-ongoing" onclick="setTab('ongoing')">Ongoing</button>
+    <button class="tab-pill active" id="tab-resolved" onclick="setTab('resolved')">Resolved</button>
+    <button class="tab-pill" id="tab-cancelled" onclick="setTab('cancelled')">Cancelled</button>
+  </div>
+
+  <!-- Grievances List -->
+  <div class="grievances-body" id="grievancesList"></div>
+
+</div>
+
+<!-- ════════ NEW QUERY MODAL ════════ -->
+<div class="modal-overlay" id="newQueryModal">
+  <div class="modal">
+    <div class="modal-top">
+      <div class="modal-top-text">
+        <h2>Welcome Guest</h2>
+        <p>Please provide your information to continue</p>
+      </div>
+      <button class="modal-close-btn" onclick="closeNewQuery()">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Section 1 -->
+      <div class="section-heading">
+        <div class="section-number">1</div>
+        <h3>Personal Information</h3>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Mobile Number <span class="req">*</span></label>
+          <div class="phone-input-wrap">
+            <span class="phone-prefix">🇮🇳 IN +91</span>
+            <input type="tel" class="phone-input-inner" placeholder="Enter mobile number" value="6350548682" />
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Full Name <span class="req">*</span></label>
+          <input type="text" class="form-input" placeholder="Your full name" value="PANKAJ GURJAR" />
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:14px">
+        <label class="form-label">Email Address</label>
+        <div style="position:relative">
+          <input type="email" class="form-input" placeholder="enter email address" style="padding-left:36px" />
+          <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--mu)">@</span>
+        </div>
+      </div>
+
+      <div class="form-divider"></div>
+
+      <!-- Section 2 -->
+      <div class="section-heading">
+        <div class="section-number">2</div>
+        <h3>Issue / Feedback Details</h3>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Select Place <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select class="form-select">
+              <option value="" disabled selected>Choose location</option>
+              <option>Amber Fort, Jaipur</option>
+              <option>Mehrangarh Fort, Jodhpur</option>
+              <option>Hawa Mahal, Jaipur</option>
+              <option>Jaisalmer Fort</option>
+              <option>City Palace, Udaipur</option>
+              <option>Ranthambore Tiger Reserve</option>
+              <option>Keoladeo National Park</option>
+              <option>General / Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Issue Category <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select class="form-select">
+              <option value="" disabled selected>Select issue type</option>
+              <option>Booking Related</option>
+              <option>Payment Issue</option>
+              <option>Ticket Not Received</option>
+              <option>Cancellation/Refund</option>
+              <option>Website / App Bug</option>
+              <option>Images Incorrect</option>
+              <option>Staff Behaviour</option>
+              <option>Facility Complaint</option>
+              <option>General Enquiry</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:14px">
+        <label class="form-label">Booking ID</label>
+        <div class="select-wrap">
+          <select class="form-select">
+            <option value="" selected>Select Booking Id</option>
+            <option>RJ2024001 — Amber Fort</option>
+            <option>RJ2024002 — Mehrangarh Fort</option>
+            <option>RJ2024003 — Hawa Mahal</option>
+            <option>RJ2024004 — Jaisalmer Fort</option>
+            <option>N/A</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <div style="position:relative">
+          <textarea class="form-textarea" placeholder="Please describe your issue in detail..." rows="4"></textarea>
+          <span style="position:absolute;right:13px;bottom:12px;font-size:16px;color:var(--mu);opacity:.4">💬</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Attachment</label>
+        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px">
+          <label class="attach-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            Choose File
+            <input type="file" accept=".jpg,.png,.pdf" style="display:none" onchange="handleFile(this)" />
+          </label>
+          <span class="attach-hint">Max 2MB (JPG, PNG, PDF)</span>
+          <span id="fileName" style="font-size:11px;color:var(--sf);font-weight:600"></span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel-modal" onclick="closeNewQuery()">Cancel</button>
+      <button class="btn-submit-ticket" onclick="submitTicket()">Submit Ticket</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ DETAIL DRAWER ════════ -->
+<div class="drawer-overlay" id="detailDrawer">
+  <div class="drawer-panel">
+    <div class="drawer-bar">
+      <button class="drawer-back" onclick="closeDrawer()">←</button>
+      <span class="drawer-bar-title">Query Tickets</span>
+      <div id="drawerStatusBadge"></div>
+    </div>
+    <div class="drawer-content" id="drawerContent"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════ DATA ═══════ */
+const grievances = {
+  ongoing: [
+    {
+      id:'GRV-2024-007',
+      issueType:'URGENT',
+      ticketNo:'7823041290',
+      bookingNo:'RJ2024001',
+      raisedAt:'12/04/2026 9:15:30 AM',
+      status:'ongoing',
+      badgeClass:'badge-ongoing',
+      badgeLabel:'🟠 Ongoing',
+      subject:'Ticket not received after payment',
+      description:'I completed the payment for Amber Fort ticket on 12 April 2026 but have not received any confirmation email or ticket. Transaction ID: TXN89201234.',
+      user:{name:'PANKAJ GURJAR',email:'pankaj.gurjar@yatra.com',mobile:'6350548682'},
+      attachment:'payment_screenshot.png',
+      chatStatus:'Scheduled',
+      messages:[
+        {from:'support',text:'Hello Pankaj! Thank you for reaching out. We have received your complaint regarding ticket delivery for Amber Fort.',time:'9:20 AM'},
+        {from:'user',text:'Yes, I made the payment but the ticket never arrived. Please help.',time:'9:22 AM'},
+        {from:'support',text:'We are investigating this issue. Could you please share the transaction ID?',time:'9:25 AM'},
+        {from:'user',text:'Transaction ID is TXN89201234',time:'9:27 AM'},
+      ]
+    },
+  ],
+  resolved: [
+    {
+      id:'GRV-2024-003',
+      issueType:'NORMAL',
+      ticketNo:'4591680841',
+      bookingNo:'N/A',
+      raisedAt:'04/07/2024 12:02:20 PM',
+      status:'resolved',
+      badgeClass:'badge-resolved',
+      badgeLabel:'✅ Resolved',
+      subject:'Images are not correct',
+      description:'Images are not correct',
+      user:{name:'PANKAJ GURJAR',email:'pankaj.gurjar@yatra.com',mobile:'6350548682'},
+      attachment:'Screenshot 2024-06-26 110849.png',
+      chatStatus:'Resolved',
+      messages:[]
+    },
+    {
+      id:'GRV-2024-001',
+      issueType:'NORMAL',
+      ticketNo:'3310294877',
+      bookingNo:'RJ2024003',
+      raisedAt:'01/03/2026 10:44:00 AM',
+      status:'resolved',
+      badgeClass:'badge-resolved',
+      badgeLabel:'✅ Resolved',
+      subject:'Refund not processed for cancelled booking',
+      description:'I cancelled my booking for Hawa Mahal on 28 Feb 2026 but the refund has not been credited to my bank account after 3 days.',
+      user:{name:'PANKAJ GURJAR',email:'pankaj.gurjar@yatra.com',mobile:'6350548682'},
+      attachment:null,
+      chatStatus:'Resolved',
+      messages:[
+        {from:'support',text:'Your refund of ₹150 has been processed. It will reflect in 2–3 working days.',time:'11:00 AM'},
+        {from:'user',text:'Thank you, received it.',time:'3:30 PM'},
+      ]
+    },
+  ],
+  cancelled: [
+    {
+      id:'GRV-2024-005',
+      issueType:'NORMAL',
+      ticketNo:'6012839451',
+      bookingNo:'N/A',
+      raisedAt:'15/01/2026 4:55:00 PM',
+      status:'cancelled',
+      badgeClass:'badge-cancelled',
+      badgeLabel:'✕ Cancelled',
+      subject:'General enquiry about fort timings',
+      description:'Wanted to know the exact timing of Mehrangarh Fort for Republic Day as the website was showing different information.',
+      user:{name:'PANKAJ GURJAR',email:'pankaj.gurjar@yatra.com',mobile:'6350548682'},
+      attachment:null,
+      chatStatus:'Cancelled',
+      messages:[]
+    },
+  ]
+};
+
+/* ═══════ STATE ═══════ */
+let currentTab = 'resolved';
+
+/* ═══════ NAV ═══════ */
+function toggleUserMenu(){
+  document.getElementById('navUserBtn').classList.toggle('open');
+  document.getElementById('navDd').classList.toggle('open');
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.nav-user')){
+    document.getElementById('navUserBtn').classList.remove('open');
+    document.getElementById('navDd').classList.remove('open');
+  }
+});
+
+/* ═══════ TABS ═══════ */
+function setTab(tab){
+  currentTab = tab;
+  ['ongoing','resolved','cancelled'].forEach(t=>{
+    const el = document.getElementById('tab-'+t);
+    el.classList.toggle('active', t===tab);
+  });
+  renderGrievances();
+}
+
+/* ═══════ RENDER ═══════ */
+function renderGrievances(){
+  const list = grievances[currentTab] || [];
+  const container = document.getElementById('grievancesList');
+  if(list.length === 0){
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <div class="empty-title">No ${currentTab.charAt(0).toUpperCase()+currentTab.slice(1)} Queries</div>
+        <div class="empty-sub">You don't have any ${currentTab} grievances right now.</div>
+        <button class="btn-new-query" onclick="openNewQuery()" style="margin:0 auto">+ New Query</button>
+      </div>`;
+    return;
+  }
+  container.innerHTML = list.map((g,i) => `
+    <div class="g-card" id="gcard-${g.id}">
+      <div class="g-card-header">
+        <div class="g-card-title">
+          <span>${g.subject}</span>
+        </div>
+        <span class="g-badge ${g.badgeClass}">${g.badgeLabel}</span>
+      </div>
+      <div class="g-card-body">
+        <div class="g-grid">
+          <div class="g-field">
+            <div class="g-field-lbl">Issue Type</div>
+            <div class="g-field-val">${g.issueType}</div>
+          </div>
+          <div class="g-field">
+            <div class="g-field-lbl">Ticket No</div>
+            <div class="g-field-val mono">${g.ticketNo}</div>
+          </div>
+          <div class="g-field">
+            <div class="g-field-lbl">Booking No</div>
+            <div class="g-field-val mono">${g.bookingNo}</div>
+          </div>
+          <div class="g-field">
+            <div class="g-field-lbl">Raised Date &amp; Time</div>
+            <div class="g-field-val">${g.raisedAt}</div>
+          </div>
+        </div>
+      </div>
+      <div class="g-card-footer">
+        <span class="g-foot-left">🎫 Query ID: <strong>${g.id}</strong></span>
+        <div class="g-foot-right">
+          <button class="btn-view-detail" onclick="openDrawer('${g.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            View Details
+          </button>
+          <span class="g-badge ${g.badgeClass}">${g.badgeLabel}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ═══════ DRAWER ═══════ */
+function findGrievance(id){
+  for(const tab of ['ongoing','resolved','cancelled']){
+    const found = grievances[tab].find(g=>g.id===id);
+    if(found) return found;
+  }
+  return null;
+}
+
+function openDrawer(id){
+  const g = findGrievance(id);
+  if(!g) return;
+
+  // Set badge in bar
+  document.getElementById('drawerStatusBadge').innerHTML = `<span class="g-badge ${g.badgeClass}" style="font-size:11px">${g.badgeLabel}</span>`;
+
+  // Messages html
+  const msgsHtml = g.messages.length > 0
+    ? g.messages.map(m=>`
+        <div class="msg-${m.from}">
+          ${m.text}
+          <div class="msg-time">${m.time}</div>
+        </div>`).join('')
+    : `<div class="chat-empty">
+         <div class="chat-empty-icon">💬</div>
+         <div class="chat-empty-text">No Chat found</div>
+       </div>`;
+
+  const attachHtml = g.attachment
+    ? `<div class="attachment-row">
+         <span>📎 ${g.attachment}</span>
+         <button class="attachment-view-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+       </div>`
+    : `<div style="font-size:12px;color:var(--mu);padding:4px 0">No attachments</div>`;
+
+  const isOngoing = g.status === 'ongoing';
+
+  document.getElementById('drawerContent').innerHTML = `
+    <!-- Subject row -->
+    <div class="qt-header">
+      <div class="qt-title-row">
+        <div>
+          <div class="qt-title">${g.subject}</div>
+          <div class="qt-sub">Ticket #${g.ticketNo} · Raised ${g.raisedAt}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat + Details -->
+    <div class="chat-wrap">
+      <!-- Left: Chat -->
+      <div class="chat-left">
+        <div class="chat-messages" id="chatMsgs-${g.id}">${msgsHtml}</div>
+        <div class="chat-input-bar">
+          <input class="chat-input" type="text" placeholder="Type your Message..." id="chatInput-${g.id}" ${!isOngoing?'disabled':''} />
+          <button class="chat-send-btn" onclick="sendMessage('${g.id}')" ${!isOngoing?'disabled style="opacity:.4;cursor:not-allowed"':''}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right: Details panel -->
+      <div class="chat-right">
+        <div class="detail-user-row">
+          <div class="detail-avatar">${g.user.name.charAt(0)}</div>
+          <div>
+            <div class="detail-user-name">${g.user.name}</div>
+            <div class="detail-user-role">Registered User</div>
+          </div>
+          <div class="detail-status-pill">
+            <span class="g-badge badge-scheduled" style="font-size:10px">${g.chatStatus}</span>
+          </div>
+        </div>
+
+        <!-- User Info -->
+        <div class="detail-section">
+          <div class="detail-section-header" onclick="toggleSection(this)">
+            <h4>User Info</h4>
+            <span class="toggle-ico">▲</span>
+          </div>
+          <div class="detail-section-body">
+            <div class="di-row"><span class="di-key">Email ID</span><span class="di-val highlight">${g.user.email}</span></div>
+            <div class="di-row"><span class="di-key">Mobile Number</span><span class="di-val highlight">${g.user.mobile}</span></div>
+            <div class="di-row"><span class="di-key">Issue Type</span><span class="di-val">${g.issueType}</span></div>
+            <div class="di-row"><span class="di-key">Booking Number</span><span class="di-val highlight">${g.bookingNo}</span></div>
+            <div class="di-row"><span class="di-key">Ticket Number</span><span class="di-val highlight">${g.ticketNo}</span></div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="detail-section">
+          <div class="detail-section-header" onclick="toggleSection(this)">
+            <h4>Description</h4>
+            <span class="toggle-ico">▲</span>
+          </div>
+          <div class="detail-section-body">
+            <div style="font-size:13px;color:var(--sf);font-weight:600;margin-bottom:4px">${g.subject}</div>
+            <div style="font-size:12px;color:var(--mu);line-height:1.65">${g.description}</div>
+          </div>
+        </div>
+
+        <!-- Attachment -->
+        <div class="detail-section">
+          <div class="detail-section-header" onclick="toggleSection(this)">
+            <h4>Attachment</h4>
+            <span class="toggle-ico">▲</span>
+          </div>
+          <div class="detail-section-body">${attachHtml}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('detailDrawer').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDrawer(){
+  document.getElementById('detailDrawer').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function toggleSection(header){
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  body.style.display = header.classList.contains('collapsed') ? 'none' : '';
+}
+
+function sendMessage(id){
+  const input = document.getElementById('chatInput-'+id);
+  const text = input.value.trim();
+  if(!text) return;
+  const msgs = document.getElementById('chatMsgs-'+id);
+  const now = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  const div = document.createElement('div');
+  div.className = 'msg-user';
+  div.innerHTML = `${text}<div class="msg-time">${now}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  input.value = '';
+  // Simulate response
+  setTimeout(()=>{
+    const r = document.createElement('div');
+    r.className = 'msg-support';
+    r.innerHTML = `Thank you for your message. Our team will respond shortly.<div class="msg-time">${now}</div>`;
+    msgs.appendChild(r);
+    msgs.scrollTop = msgs.scrollHeight;
+  }, 1200);
+}
+
+/* ═══════ NEW QUERY MODAL ═══════ */
+function openNewQuery(){
+  document.getElementById('newQueryModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeNewQuery(){
+  document.getElementById('newQueryModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function handleFile(input){
+  const name = input.files[0]?.name;
+  if(name) document.getElementById('fileName').textContent = name;
+}
+function submitTicket(){
+  closeNewQuery();
+  showToast('✅ Your ticket has been submitted successfully!');
+  // Add demo entry to ongoing
+  const newId = 'GRV-2026-'+Math.floor(Math.random()*900+100);
+  grievances.ongoing.push({
+    id: newId,
+    issueType:'NORMAL',
+    ticketNo: Math.floor(Math.random()*9000000000+1000000000)+'',
+    bookingNo:'N/A',
+    raisedAt: new Date().toLocaleDateString('en-IN')+ ' ' + new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})+' AM',
+    status:'ongoing',badgeClass:'badge-ongoing',badgeLabel:'🟠 Ongoing',
+    subject:'New Query',
+    description:'Submitted via New Query form.',
+    user:{name:'PANKAJ GURJAR',email:'pankaj.gurjar@yatra.com',mobile:'6350548682'},
+    attachment:null,chatStatus:'Scheduled',messages:[]
+  });
+  // Update stats
+  document.querySelector('.ss-num.ongoing').textContent = grievances.ongoing.length;
+}
+
+/* ═══════ TOAST ═══════ */
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+/* Overlay close on click outside */
+document.getElementById('newQueryModal').addEventListener('click',function(e){if(e.target===this)closeNewQuery();});
+document.getElementById('detailDrawer').addEventListener('click',function(e){if(e.target===this)closeDrawer();});
+
+/* ═══════ INIT ═══════ */
+renderGrievances();
+</script>
+</body>
+</html>

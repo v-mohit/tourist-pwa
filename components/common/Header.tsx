@@ -7,6 +7,7 @@ import clsx from "clsx";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { GetUserDetails } from "@/services/apiCalls/login.service";
 import SosPopup from "@/components/modals/SosPopup";
+import { GetAllHelpDeskNotificationUpdate } from "@/services/apiCalls/helpdeskservices";
 
 export default function Header() {
   const router = useRouter();
@@ -32,6 +33,9 @@ export default function Header() {
     user?.fullName ??
     user?.email ??
     "";
+
+  const { data: notificationData } = GetAllHelpDeskNotificationUpdate("", "", !!user) as any;
+  const notificationCount = Number(notificationData?.result?.totalHelpdeskNotification || 0);
 
   const navLinks = [
     { label: "Explore", href: "/#destinations" },
@@ -68,6 +72,45 @@ export default function Header() {
   const handleNavClick = (href: string) => {
     setActiveLink(href);
     setIsDrawerOpen(false);
+  };
+
+  const NotificationBell = ({
+    mobile = false,
+  }: {
+    mobile?: boolean;
+  }) => {
+    if (!user) return null;
+
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          setIsDrawerOpen(false);
+          router.push("/my-grievance");
+        }}
+        className={clsx(
+          "relative inline-flex items-center justify-center rounded-full border border-[#E8DAC5] bg-white text-[#7A6A58] transition-all hover:border-[#E8631A] hover:text-[#E8631A]",
+          mobile ? "h-11 w-11 self-start" : "h-10 w-10"
+        )}
+        aria-label="Open grievance notifications"
+        title="Grievance notifications"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-[18px] w-[18px]">
+          <path d="M15 17h5l-1.4-1.4a2 2 0 0 1-.6-1.4V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5" />
+          <path d="M10 20a2 2 0 0 0 4 0" />
+        </svg>
+        {notificationCount > 0 ? (
+          <span
+            className={clsx(
+              "absolute -right-1.5 -top-1.5 flex min-w-[20px] items-center justify-center rounded-full bg-[#DC2626] px-1 text-[10px] font-bold leading-5 text-white shadow-[0_4px_12px_rgba(220,38,38,0.25)]",
+              notificationCount > 9 ? "h-5" : "h-5 w-5"
+            )}
+          >
+            {notificationCount > 99 ? "99+" : notificationCount}
+          </span>
+        ) : null}
+      </button>
+    );
   };
 
   return (
@@ -107,6 +150,7 @@ export default function Header() {
               {link.label}
             </a>
           ))}
+          <NotificationBell />
         </nav>
 
         {/* Right Actions */}
@@ -252,6 +296,12 @@ export default function Header() {
         ))}
 
         <div className="flex flex-col gap-2 mt-3 pt-3.5 border-t border-[#E8DAC5]">
+          <div className="flex items-center justify-between px-1 pb-1">
+            <span className="text-[11px] font-semibold uppercase tracking-[1px] text-[#7A6A58]">
+              Quick Access
+            </span>
+            <NotificationBell mobile />
+          </div>
           {!mounted ? (
             <div className="h-10 rounded-[10px] bg-[#F5E8CC] animate-pulse" />
           ) : user ? (

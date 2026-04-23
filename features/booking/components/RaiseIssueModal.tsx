@@ -16,22 +16,6 @@ interface Props {
   booking: any;
 }
 
-const ISSUE_TYPES = [
-  { id: '1', label: 'Refund', name: 'REFUND' },
-  { id: '2', label: 'Payment', name: 'PAYMENT' },
-  { id: '3', label: 'Boarding Pass', name: 'BOARDING_PASS' },
-  { id: '4', label: 'Payment Mode', name: 'PAYMENT_MODE' },
-  { id: '5', label: 'Ticket', name: 'TICKET' },
-  { id: '6', label: 'Portal', name: 'PORTAL' },
-  { id: '7', label: 'Choice Guide', name: 'CHOICE_GUIDE' },
-  { id: '8', label: 'Choice Vehicle', name: 'CHOICE_VEHICLE' },
-  { id: '9', label: 'Tourist Place', name: 'TOURIST_PLACE' },
-  { id: '10', label: 'Cancellation', name: 'CANCELLATION' },
-  { id: '11', label: 'General Query', name: 'GENERAL_QUERY' },
-  { id: '12', label: 'Difference Amount', name: 'DIFFERENCE_AMOUNT' },
-  { id: '13', label: 'Information Not Visible', name: 'INFO_NOT_VISIBLE' },
-];
-
 const OPTIONAL_BOOKING_TYPES = [
   'PAYMENT_MODE', 'INFO_NOT_VISIBLE', 'PORTAL', 'GENERAL_QUERY', 'TOURIST_PLACE',
 ];
@@ -42,7 +26,9 @@ export default function RaiseIssueModal({ open, onClose, booking }: Props) {
   const [userName, setUserName] = useState(u?.name || u?.displayName || '');
   const [mobileNumber, setMobileNumber] = useState(u?.mobile || u?.mobileNo || '');
   const [emailId, setEmailId] = useState(u?.email || '');
+  const [issueTypeId, setIssueTypeId] = useState('');
   const [ticketType, setTicketType] = useState('');
+  const [subIssueTypeId, setSubIssueTypeId] = useState('');
   const [subTicketType, setSubTicketType] = useState('');
   const [description, setDescription] = useState('');
   const [attachmentUrl, setAttachmentUrl] = useState('');
@@ -50,18 +36,25 @@ export default function RaiseIssueModal({ open, onClose, booking }: Props) {
 
   const placeId = booking?.placeDetailDto?.id || booking?.placeId || '';
   const bookingId = booking?.bookingId || booking?.id || '';
+  const placeName = booking?.placeName || booking?.placeDetailDto?.name || '';
+  const obmsPlaceId = booking?.placeDetailDto?.placeId || booking?.placeDetailDto?._id || placeId;
 
   // Sync user info if user changes
   useEffect(() => {
     if (u?.name || u?.displayName) setUserName(u.name || u.displayName);
     if (u?.mobile || u?.mobileNo) setMobileNumber(u.mobile || u.mobileNo);
     if (u?.email) setEmailId(u.email);
-  }, [user]);
+  }, [u?.displayName, u?.email, u?.mobile, u?.mobileNo, u?.name]);
 
-  // Get sub-issue types for selected ticket type
-  const selectedIssue = ISSUE_TYPES.find((i) => i.name === ticketType);
-  const { data: subIssueData } = GetSubIssueType(selectedIssue?.id, !!ticketType);
-  const subIssueOptions = subIssueData?.result ?? [];
+  const { data: issueTypeData } = GetAllIssueType(placeId, !!placeId);
+  const issueTypeOptions = (issueTypeData?.result?.issueTypeDtos ?? []).filter(
+    (item: any) => item?.active !== false,
+  );
+
+  const { data: subIssueData } = GetSubIssueType(issueTypeId, !!issueTypeId);
+  const subIssueOptions = (subIssueData?.result?.issueTypeDtos ?? []).flatMap((group: any) =>
+    (group?.issueSubTypeDtoList ?? []).filter((item: any) => item?.active !== false),
+  );
 
   const helpdeskAttachment = HelpdeskAttachment();
   const createTicket = CreateNewHelpTicket(
@@ -73,7 +66,9 @@ export default function RaiseIssueModal({ open, onClose, booking }: Props) {
   );
 
   function reset() {
+    setIssueTypeId('');
     setTicketType('');
+    setSubIssueTypeId('');
     setSubTicketType('');
     setDescription('');
     setAttachmentUrl('');
@@ -135,24 +130,16 @@ export default function RaiseIssueModal({ open, onClose, booking }: Props) {
       return;
     }
 
-    const selectedSub = subIssueOptions.find((s: any) => (s.name || s.id) === subTicketType);
-
-    // placeType in old project = the place name (string from dropdown)
-    const placeName = booking?.placeName || booking?.placeDetailDto?.name || '';
-    // placeId in old project = the OBMS MongoDB ObjectId
-    const obmsPlaceId = booking?.placeDetailDto?.placeId || booking?.placeDetailDto?._id || placeId;
-
-    // Payload structure matches old project exactly
     const payload: any = {
       ticketTitle: '',
       userName: userName.trim(),
       mobileNumber: mobileNumber.trim(),
       emailId: emailId.trim().replace(/\s/g, ''),
       ticketType,
-      placeType: placeName, // place name, not placeType
+      placeType: placeName,
       subTicketType: subTicketType || '',
-      issueTypeId: selectedIssue?.id || '',
-      issueSubTypeId: selectedSub?.id || selectedSub?._id || '',
+      issueTypeId: issueTypeId || '',
+      issueSubTypeId: subIssueTypeId || '',
       bookingId: isBookingOptional ? '' : String(bookingId),
       cancellationReason: '',
       description: description.trim(),
@@ -209,11 +196,22 @@ export default function RaiseIssueModal({ open, onClose, booking }: Props) {
           <div className="form-group">
             <label className="form-label">Issue Type <span className="req">*</span></label>
             <div className="select-wrap">
-              <select className="form-select" value={ticketType}
-                onChange={(e) => { setTicketType(e.target.value); setSubTicketType(''); }}>
+              <select
+                className="form-select"
+                value={issueTypeId}
+                onChange={(e) => {
+                  const selectedIssue = issueTypeOptions.find((item: any) => String(item?.id) === e.target.value);
+                  setIssueTypeId(String(selectedIssue?.id || ''));
+                  setTicketType(String(selectedIssue?.issueType || selectedIssue?.name || ''));
+                  setSubIssueTypeId('');
+                  setSubTicketType('');
+                }}
+              >
                 <option value="" disabled>Select issue type</option>
-                {ISSUE_TYPES.map((t) => (
-                  <option key={t.id} value={t.name}>{t.label}</option>
+                {issueTypeOptions.map((issue: any) => (
+                  <option key={issue.id} value={String(issue.id)}>
+                    {String(issue.issueType || issue.name || issue.label || 'Issue')}
+                  </option>
                 ))}
               </select>
             </div>
@@ -223,11 +221,22 @@ export default function RaiseIssueModal({ open, onClose, booking }: Props) {
             <div className="form-group">
               <label className="form-label">Sub-Category</label>
               <div className="select-wrap">
-                <select className="form-select" value={subTicketType}
-                  onChange={(e) => setSubTicketType(e.target.value)}>
+                <select
+                  className="form-select"
+                  value={subIssueTypeId}
+                  onChange={(e) => {
+                    const selectedSub = subIssueOptions.find(
+                      (item: any) => String(item?.id || item?._id) === e.target.value,
+                    );
+                    setSubIssueTypeId(String(selectedSub?.id || selectedSub?._id || ''));
+                    setSubTicketType(String(selectedSub?.name || selectedSub?.label || ''));
+                  }}
+                >
                   <option value="">Select sub-category (optional)</option>
                   {subIssueOptions.map((s: any) => (
-                    <option key={s.id || s._id} value={s.name || s.id}>{s.label || s.name}</option>
+                    <option key={s.id || s._id} value={String(s.id || s._id)}>
+                      {s.label || s.name}
+                    </option>
                   ))}
                 </select>
               </div>

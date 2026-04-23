@@ -123,7 +123,8 @@ export const GetAllHelpDeskListing = (
 
 export const GetAllHelpDeskNotificationUpdate = (
   search: string,
-  statusList: string
+  statusList: string,
+  enabled = true
 ) => {
   return useQuery({
     queryKey: [
@@ -141,6 +142,7 @@ export const GetAllHelpDeskNotificationUpdate = (
       return data;
     },
     //  enabled: !!seasonId,
+    enabled,
     staleTime: 0,
     // refetchOnMount: true,
   });
