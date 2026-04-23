@@ -1,10 +1,12 @@
 'use client';
-
+ 
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import BookNowButton from '@/features/booking/components/BookNowButton';
-
+ 
 const PackageDetail = ({ data }: any) => {
+  const router = useRouter();
   const pkgData = data?.packageDetails?.data?.[0];
   const pkg = pkgData?.attributes;
   if (!pkg) {
@@ -125,6 +127,14 @@ const PackageDetail = ({ data }: any) => {
   }, [refCity, pkg.name]);
   return (
     <div className="pkg-v2-container">
+      <button
+        type="button"
+        onClick={() => (window.history.length > 1 ? router.back() : router.push('/'))}
+        className="see-all-back"
+        style={{ cursor: 'pointer', background: 'none', border: 'none', borderBottom: '1px solid currentColor', paddingLeft: '5px', paddingBottom: '2px' }}
+      >
+        ← Back
+      </button>
       {/* ── HERO SECTION ── */}
       <section className="pkg-v2-hero">
         <div
