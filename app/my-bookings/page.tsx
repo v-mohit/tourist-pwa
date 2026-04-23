@@ -206,27 +206,35 @@ export default function MyBookingsPage() {
   }, [pdfData?.result, shouldFetchPdf]);
 
   // ─── QR helpers ───────────────────────────────────────────────────────────
-  function generateQrSvgRects(value: string, size = 96): string {
+  /**
+   * Returns { rects, count } where rects use 1×1 cells.
+   * Caller sets `viewBox="0 0 ${count} ${count}"` so the SVG scales to fill its
+   * container exactly — no gaps, no centering math needed.
+   */
+  function generateQrSvgRects(value: string, _size = 96): { rects: string; count: number } {
     try {
       const qr = QRCode(0, 'M');
       qr.addData(value);
       qr.make();
       const count = qr.getModuleCount();
-      const cell  = Math.floor(size / count);
-      let out     = `<rect width="${size}" height="${size}" fill="#fff"/>`;
+      let out = `<rect width="${count}" height="${count}" fill="#fff"/>`;
       for (let r = 0; r < count; r++)
         for (let c = 0; c < count; c++)
           if (qr.isDark(r, c))
-            out += `<rect x="${c * cell}" y="${r * cell}" width="${cell}" height="${cell}" fill="#000"/>`;
-      return out;
+            out += `<rect x="${c}" y="${r}" width="1" height="1" fill="#000"/>`;
+      return { rects: out, count };
     } catch {
-      return `<rect width="${size}" height="${size}" fill="#fff"/>
-        <rect x="6" y="6" width="24" height="24" fill="none" stroke="#000" stroke-width="2.5"/>
-        <rect x="11" y="11" width="14" height="14" fill="#000"/>
-        <rect x="${size - 30}" y="6" width="24" height="24" fill="none" stroke="#000" stroke-width="2.5"/>
-        <rect x="${size - 25}" y="11" width="14" height="14" fill="#000"/>
-        <rect x="6" y="${size - 30}" width="24" height="24" fill="none" stroke="#000" stroke-width="2.5"/>
-        <rect x="11" y="${size - 25}" width="14" height="14" fill="#000"/>`;
+      const count = 33;
+      return {
+        rects: `<rect width="${count}" height="${count}" fill="#fff"/>
+          <rect x="2" y="2" width="8" height="8" fill="none" stroke="#000" stroke-width=".8"/>
+          <rect x="4" y="4" width="4" height="4" fill="#000"/>
+          <rect x="${count - 10}" y="2" width="8" height="8" fill="none" stroke="#000" stroke-width=".8"/>
+          <rect x="${count - 8}" y="4" width="4" height="4" fill="#000"/>
+          <rect x="2" y="${count - 10}" width="8" height="8" fill="none" stroke="#000" stroke-width=".8"/>
+          <rect x="4" y="${count - 8}" width="4" height="4" fill="#000"/>`,
+        count,
+      };
     }
   }
 
@@ -482,7 +490,7 @@ export default function MyBookingsPage() {
     const rislTotal  = ticket.rislCharges ?? ticket.platformCharges ?? 0;
 
     const qrValue = ticket.qrDetail || JSON.stringify({ type: 'BOOKING', data: { ticketBookingId: ticket.id || ticket.bookingId } });
-    const qrRects = generateQrSvgRects(qrValue, 96);
+    const { rects: qrRects, count: qrCount } = generateQrSvgRects(qrValue, 96);
 
     const shiftIcon = (shiftName || '').toLowerCase().includes('morning') ? '🌅'
       : (shiftName || '').toLowerCase().includes('afternoon') ? '🌇'
@@ -515,8 +523,8 @@ body{background:#1a0e06;background-image:radial-gradient(ellipse at 20% 20%,rgba
 .t-title-block{position:relative;z-index:2;}
 .t-title-block h1{font-family:'Cinzel',serif;font-size:24px;font-weight:700;color:#fff;letter-spacing:1.5px;line-height:1.2;text-shadow:0 2px 12px rgba(0,0,0,.25);margin-bottom:6px;}
 .t-title-block .t-loc{font-size:11px;color:rgba(255,255,255,.68);letter-spacing:2px;text-transform:uppercase;}
-.t-qr-wrap{background:#fff;border-radius:7px;padding:5px;box-shadow:0 6px 20px rgba(0,0,0,.35);position:relative;z-index:2;flex-shrink:0;align-self:flex-start;display:flex;align-items:center;justify-content:center;}
-.t-qr-wrap svg{display:block;width:100px;height:100px;}
+.t-qr-wrap{background:#fff;border-radius:7px;padding:6px;box-shadow:0 6px 20px rgba(0,0,0,.35);position:relative;z-index:2;flex-shrink:0;align-self:flex-start;width:120px;height:120px;display:flex;align-items:center;justify-content:center;}
+.t-qr-wrap svg{display:block;width:100%;height:100%;}
 .t-body{padding:26px 36px;}
 .sec-head{font-family:'Cinzel',serif;font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#9B4A1A;border-bottom:1px solid rgba(155,74,26,.2);padding-bottom:6px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
 .sec-head::before{content:'';display:block;width:16px;height:2px;background:#B84A0E;border-radius:1px;}
@@ -603,7 +611,7 @@ body{background:#1a0e06;background-image:radial-gradient(ellipse at 20% 20%,rgba
         </div>
       </div>
       <div class="t-qr-wrap">
-        <svg viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg">${qrRects}</svg>
+        <svg viewBox="0 0 ${qrCount} ${qrCount}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" shape-rendering="crispEdges">${qrRects}</svg>
       </div>
     </div>
   </div>
@@ -743,7 +751,7 @@ body{background:#1a0e06;background-image:radial-gradient(ellipse at 20% 20%,rgba
 
     const qrValue = ticket.qrDetail || JSON.stringify({ type: 'BOOKING', data: { ticketBookingId: ticket.id || ticket.bookingId } });
     // Use 100px viewBox for a larger, full-size QR with only 5px padding
-    const qrRects = generateQrSvgRects(qrValue, 100);
+    const { rects: qrRects, count: qrCount } = generateQrSvgRects(qrValue, 100);
 
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -814,14 +822,15 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
  *   - align-self: flex-start so it stays at the top-right
  */
 .d1-qr-wrap{
-  background:#fff;border-radius:6px;
-  padding:5px;
+  background:#fff;border-radius:8px;
+  padding:6px;
   box-shadow:0 4px 16px rgba(0,0,0,.3);
   flex-shrink:0;
-  align-self:flex-start;
+  margin:0 auto;
+  width:140px;height:140px;
   display:flex;align-items:center;justify-content:center;
 }
-.d1-qr-wrap svg{display:block;width:100px;height:100px;}
+.d1-qr-wrap svg{display:block;width:100%;height:100%;}
 
 /* pass strip */
 .d1-pass-strip{background:#D4A017;padding:8px 32px;display:flex;justify-content:space-between;align-items:center;}
@@ -895,7 +904,7 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
 
         <!-- Right: QR — 5px padding, no label, full-size SVG -->
         <div class="d1-qr-wrap">
-          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${qrRects}</svg>
+          <svg viewBox="0 0 ${qrCount} ${qrCount}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" shape-rendering="crispEdges">${qrRects}</svg>
         </div>
 
       </div>
