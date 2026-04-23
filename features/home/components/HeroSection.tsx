@@ -197,10 +197,10 @@ export default function HeroSection() {
       </div>
 
       {/* Scroll hint */}
-      <div className="scroll-hint">
+      {/* <div className="scroll-hint">
         <span>Scroll</span>
         <div className="scroll-ring" />
-      </div>
+      </div> */}
     </section>
   );
 }

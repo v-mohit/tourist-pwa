@@ -116,4 +116,5 @@ getAsiTicketDetailByPlace:"getAsiTicketDetailByPlace",
 getAsiBookingPdf:"getAsiBookingPdf",
 getAsiBookingDetails:"getAsiBookingDetails",
 jkkProgramDetailOnAvailability :"jkkProgramDetailOnAvailability",
+getTouristStats : "getTouristStats",
 };

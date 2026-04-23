@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 
 const JkkSection = ({
   JkkplaceDetailsData,
@@ -54,21 +55,21 @@ const JkkSection = ({
           {/* STATS (STATIC — NOT IN API) */}
           <div className="jkk-stats">
             <div className="jkk-stat">
-              <div className="jkk-stat-n">8+</div>
+              <div className="jkk-stat-n">15+</div>
               <div className="jkk-stat-l">Venues</div>
             </div>
             <div className="jkk-stat">
-              <div className="jkk-stat-n">120+</div>
-              <div className="jkk-stat-l">Events/year</div>
+              <div className="jkk-stat-n">101</div>
+              <div className="jkk-stat-l">Total Events</div>
             </div>
-            <div className="jkk-stat">
+            {/* <div className="jkk-stat">
               <div className="jkk-stat-n">50K+</div>
               <div className="jkk-stat-l">Visitors</div>
-            </div>
+            </div> */}
           </div>
 
           {/* CHIPS */}
-          <div className="jkk-chips">
+          {/* <div className="jkk-chips">
             <span className="jkk-chip active">All</span>
 
             {categories.map((cat: any, i: number) => (
@@ -76,13 +77,15 @@ const JkkSection = ({
                 {cat?.name.toUpperCase()} ({cat?.places?.length || 0})
               </span>
             ))}
-          </div>
+          </div> */}
 
           {/* BUTTONS */}
           <div className="jkk-btns">
-            <button className="btn-p">Explore Venues</button>
+            <Link href="/place-detail/JAWAHAR-KALA-KENDRA">
+              <button className="btn-p">Explore Venues</button>
+            </Link>
 
-            <button className="btn-g">View Calendar</button>
+            {/* <button className="btn-g">View Calendar</button> */}
           </div>
         </div>
 

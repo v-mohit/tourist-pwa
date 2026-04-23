@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import clsx from "clsx";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { GetUserDetails } from "@/services/apiCalls/login.service";
+import SosPopup from "@/components/modals/SosPopup";
 
 export default function Header() {
   const router = useRouter();
@@ -13,6 +14,7 @@ export default function Header() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeLink, setActiveLink] = useState("");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [isSosOpen, setIsSosOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const { user, openLoginModal, logout } = useAuth();
 
@@ -32,15 +34,15 @@ export default function Header() {
     "";
 
   const navLinks = [
-    { label: "Explore", href: "#destinations" },
-    { label: "Packages", href: "#packages" },
-    { label: "Monuments", href: "#monuments" },
-    { label: "Wildlife", href: "#wildlife" },
-    { label: "RTDC Hotels", href: "#rtdc" },
-    { label: "JKK", href: "#venues" },
-    { label: "Parks", href: "#parks" },
-    { label: "App", href: "#app" },
-    { label: "Reviews", href: "#feedback" },
+    { label: "Explore", href: "/#destinations" },
+    { label: "Packages", href: "/#packages" },
+    { label: "Monuments", href: "/#monuments" },
+    { label: "Wildlife", href: "/#wildlife" },
+    { label: "RTDC Hotels", href: "/#rtdc" },
+    { label: "JKK", href: "/#venues" },
+    { label: "Parks", href: "/#parks" },
+    { label: "App", href: "/#app" },
+    { label: "Reviews", href: "/#feedback" },
   ];
 
   // Close dropdown when clicking outside
@@ -57,6 +59,12 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    const handleOpenSos = () => setIsSosOpen(true);
+    window.addEventListener("app:openSos", handleOpenSos);
+    return () => window.removeEventListener("app:openSos", handleOpenSos);
+  }, []);
+
   const handleNavClick = (href: string) => {
     setActiveLink(href);
     setIsDrawerOpen(false);
@@ -64,18 +72,19 @@ export default function Header() {
 
   return (
     <>
+      <SosPopup isOpen={isSosOpen} setIsOpen={setIsSosOpen} />
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-[5000] h-16 md:h-[66px] flex items-center justify-between px-6 md:px-8 bg-[rgba(253,248,241,0.96)] backdrop-blur-[24px] border-b border-[rgba(212,160,23,0.14)] shadow-[0_1px_6px_rgba(24,18,14,0.06)]">
+      <nav className="header-nav">
         {/* Brand */}
-        <Link href="/" className="flex items-center gap-2.5 no-underline">
-          <div className="w-9 h-9 rounded-[10px] bg-gradient-to-br from-[#E8631A] to-[#D4A017] flex items-center justify-center text-lg shadow-[0_4px_12px_rgba(232,99,26,0.3)] flex-shrink-0">
+        <Link href="/" className="header-brand">
+          <div className="header-brand-icon">
             🏯
           </div>
           <div>
-            <strong className="font-['Playfair_Display',serif] text-xs font-bold text-[#2C2017] block">
+            <strong className="header-brand-title">
               Rajasthan Tourism
             </strong>
-            <small className="text-[9px] font-semibold tracking-[0.8px] uppercase text-[#E8631A]">
+            <small className="header-brand-subtitle">
               Online Booking Management System
             </small>
           </div>
@@ -89,7 +98,7 @@ export default function Header() {
               href={link.href}
               onClick={() => handleNavClick(link.href)}
               className={clsx(
-                "text-sm font-medium transition-colors duration-200",
+                "header-nav-link",
                 activeLink === link.href
                   ? "text-[#E8631A]"
                   : "text-[#7A6A58] hover:text-[#E8631A]",
@@ -110,7 +119,7 @@ export default function Header() {
             <div className="relative hidden md:block" ref={userMenuRef}>
               <button
                 onClick={() => setUserMenuOpen((prev) => !prev)}
-                className="flex items-center gap-2 px-4 py-2 bg-[#E8631A] text-white text-[13px] font-semibold rounded-full transition-all hover:opacity-90 shadow-[0_2px_8px_rgba(232,99,26,0.3)]"
+                className="header-user-btn"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -144,13 +153,13 @@ export default function Header() {
               </button>
 
               {userMenuOpen && (
-                <ul className="absolute right-0 mt-2 min-w-[170px] overflow-hidden rounded-xl border border-[#E8DAC5] bg-white shadow-[0_8px_24px_rgba(24,18,14,0.12)] z-[5001]">
+                <ul className="header-dropdown-menu">
                   <li
                     onClick={() => {
                       setUserMenuOpen(false);
                       router.push("/my-bookings");
                     }}
-                    className="px-4 py-2.5 text-[13px] text-[#18120E] cursor-pointer hover:bg-[#F5E8CC]"
+                    className="header-dropdown-item"
                   >
                     My Bookings
                   </li>
@@ -159,7 +168,7 @@ export default function Header() {
                       setUserMenuOpen(false);
                       router.push("/my-grievance");
                     }}
-                    className="px-4 py-2.5 text-[13px] text-[#18120E] cursor-pointer hover:bg-[#F5E8CC]"
+                    className="header-dropdown-item"
                   >
                     My Grievance
                   </li>
@@ -168,7 +177,7 @@ export default function Header() {
                       setUserMenuOpen(false);
                       logout();
                     }}
-                    className="px-4 py-2.5 text-[13px] text-[#18120E] cursor-pointer hover:bg-[#F5E8CC]"
+                    className="header-dropdown-item"
                   >
                     Logout
                   </li>
@@ -178,20 +187,23 @@ export default function Header() {
           ) : (
             <button
               onClick={openLoginModal}
-              className="hidden md:block px-5 py-2 bg-[#E8631A] text-white text-sm font-semibold rounded-full transition-all duration-200 hover:bg-[#C04E0A] hover:translate-y-[-1px]"
+              className="header-login-btn"
             >
               Login
             </button>
           )}
 
-          <button className="px-3.5 py-2 bg-[#DC2626] text-white text-xs font-bold rounded-full transition-all duration-200 hover:shadow-lg animate-pulse">
+          <button
+            onClick={() => setIsSosOpen(true)}
+            className="fab-sos-header"
+          >
             🆘 SOS
           </button>
 
           {/* Hamburger */}
           <button
             onClick={() => setIsDrawerOpen((prev) => !prev)}
-            className="lg:hidden flex flex-col gap-1.5 bg-transparent p-1.5 rounded-lg"
+            className="header-hamburger"
             aria-expanded={isDrawerOpen}
             aria-controls="drawer"
             aria-label="Open navigation menu"
@@ -222,7 +234,7 @@ export default function Header() {
       <div
         id="drawer"
         className={clsx(
-          "lg:hidden fixed top-16 left-0 right-0 bg-white border-b border-[#E8DAC5] px-6 py-4 z-290 flex flex-col gap-0.5 shadow-[0_12px_48px_rgba(24,18,14,0.16)] transition-all duration-300 origin-top",
+          "header-drawer",
           isDrawerOpen
             ? "opacity-100 visible scale-y-100"
             : "opacity-0 invisible scale-y-95",
@@ -233,7 +245,7 @@ export default function Header() {
             key={link.href}
             href={link.href}
             onClick={() => handleNavClick(link.href)}
-            className="px-4 py-3 text-[#2C2017] rounded-[10px] transition-colors duration-150 hover:bg-[#F5E8CC] no-underline block"
+            className="header-drawer-link"
           >
             {link.label}
           </a>
@@ -244,7 +256,7 @@ export default function Header() {
             <div className="h-10 rounded-[10px] bg-[#F5E8CC] animate-pulse" />
           ) : user ? (
             <>
-              <span className="px-4 py-2.5 text-[13px] font-semibold text-[#2C2017] bg-[#F5E8CC] rounded-[10px] truncate">
+              <span className="header-drawer-user-info">
                 👤 {displayName}
               </span>
               <button
@@ -252,7 +264,7 @@ export default function Header() {
                   setIsDrawerOpen(false);
                   router.push("/my-bookings");
                 }}
-                className="px-4 py-2.5 text-[13px] text-left text-[#18120E] rounded-[10px] hover:bg-[#F5E8CC] transition-colors"
+                className="header-drawer-btn"
               >
                 My Bookings
               </button>
@@ -261,7 +273,7 @@ export default function Header() {
                   setIsDrawerOpen(false);
                   router.push("/my-grievance");
                 }}
-                className="px-4 py-2.5 text-[13px] text-left text-[#18120E] rounded-[10px] hover:bg-[#F5E8CC] transition-colors"
+                className="header-drawer-btn"
               >
                 My Grievance
               </button>
@@ -270,7 +282,7 @@ export default function Header() {
                   setIsDrawerOpen(false);
                   logout();
                 }}
-                className="px-4 py-2.5 text-[13px] text-left text-[#18120E] rounded-[10px] hover:bg-[#F5E8CC] transition-colors"
+                className="header-drawer-btn"
               >
                 Logout
               </button>
@@ -281,7 +293,7 @@ export default function Header() {
                 openLoginModal();
                 setIsDrawerOpen(false);
               }}
-              className="w-full px-4 py-2.75 bg-[#E8631A] text-white text-sm font-bold rounded-full transition-all duration-200 hover:bg-[#C04E0A]"
+              className="header-drawer-login"
             >
               Login
             </button>

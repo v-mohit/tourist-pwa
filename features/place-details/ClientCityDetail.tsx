@@ -179,10 +179,12 @@ function PlaceDetailContent({
   const nearbyPlaces = nearPlace
     .map((p: any) => {
       const img = p?.attributes?.images?.data?.[0]?.attributes?.url;
+      const slug = p?.attributes?.placeDetail?.data?.attributes?.slug;
 
       return {
         name: p?.attributes?.name,
         id: p?.id,
+        slug: slug,
         image: img
           ? img.startsWith("http")
             ? img
@@ -409,12 +411,18 @@ function PlaceDetailContent({
                     <div
                       key={i}
                       className="pd-nearby-card"
+                      onClick={() => {
+                        if (place.slug) {
+                          router.push(`/place-detail/${place.slug}`);
+                        }
+                      }}
                       style={{
                         backgroundImage: place.image
                           ? `url('${place.image}')`
                           : "none",
                         backgroundSize: "cover",
                         backgroundPosition: "center",
+                        cursor: place.slug ? "pointer" : "default",
                       }}
                     >
                       <div className="pd-nearby-overlay">

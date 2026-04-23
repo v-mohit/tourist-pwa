@@ -53,7 +53,7 @@ const ParkSection = (data: any) => {
 
 
   return (
-    <section className="park-sec">
+    <section className="park-sec" id="parks">
       {/* HEADER */}
       <div className="park-head">
         <div>
