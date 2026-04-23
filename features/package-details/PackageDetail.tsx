@@ -267,38 +267,6 @@ const PackageDetail = ({ data }: any) => {
           </div>
         </section>
       </div>
-
-      {/* ── DISTANCES SECTION ── */}
-      <section className="pkg-v2-distances">
-        <div className="pkg-v2-page-wrap pkg-v2-dist-inner">
-          <div className="pkg-v2-dist-title-row">
-            <div className="pkg-v2-dist-eyebrow">✦ &nbsp; Distances from {pkg.name}</div>
-          </div>
-          <div className="pkg-v2-dist-grid">
-            {(distancesText.list.split(', ') || []).slice(0, 8).map((item: string, idx: number) => {
-              const [name, dist] = item.split(' - ');
-              const [km, unit] = (dist || '').split(' ');
-              return (
-                <div key={idx} className="pkg-v2-dist-item">
-                  <div className="pkg-v2-dist-name">{name}</div>
-                  <div className="pkg-v2-dist-km">{km || '0.0'}</div>
-                  <div className="pkg-v2-dist-unit">{unit || 'km'}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ── FOOTER ── */}
-      <div className="pkg-footer mt-16 text-center border-t-2 border-[var(--bdr)] pt-12 pb-12">
-        <p className="footer-tagline italic text-[var(--mu)]">
-          Powered by Rajasthan Tourism & OBMS Portal
-        </p>
-        <div className="footer-bottom mt-8">
-          <p className="text-[11px] text-[var(--mu)]">Copyright © 2025 Rajasthan Tourism. All rights reserved.</p>
-        </div>
-      </div>
     </div>
   );
 };
