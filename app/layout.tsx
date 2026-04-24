@@ -11,6 +11,54 @@ import BookingModal from "@/features/booking/components/BookingModal";
 import UnauthorizedHandler from "@/components/common/UnauthorizedHandler";
 import FloatingHelpdesk from "@/components/helpdesk/FloatingHelpdesk";
 
+const cinzel = localFont({
+  src: [
+    {
+      path: "../public/fonts/cinzel/Cinzel-Regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/cinzel/Cinzel-Bold.ttf",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  variable: "--font-cinzel",
+});
+
+const raleway = localFont({
+  src: [
+    {
+      path: "../public/fonts/raleway/Raleway-Regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/raleway/Raleway-Bold.ttf",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  variable: "--font-raleway",
+});
+
+const playfair = localFont({
+  src: [
+    {
+      path: "../public/fonts/playfair/PlayfairDisplay-Regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/playfair/PlayfairDisplay-Bold.ttf",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  variable: "--font-playfair",
+});
+
 const geistSans = localFont({
   src: [
     {
@@ -52,9 +100,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${cinzel.variable} ${raleway.variable} ${playfair.variable}`}
     >
-      <body className="min-h-full flex flex-col bg-[#FDF8F1]">
+      <body>
         <AuthProvider>
           <BookingProvider>
             <Providers>

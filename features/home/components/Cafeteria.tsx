@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import BookNowButton from "@/features/booking/components/BookNowButton";
 
 const fallbackData = [
   {
@@ -116,12 +117,18 @@ const Cafeteria = ({ data }: { data?: any }) => {
             `cafeteria-${index}`;
 
           return (
-            <Link
+            <div
               key={item?.id || slug || index}
-              href={`/place-detail/${slug}`}
-              className="cafe-card"
-              style={{ display: "block", textDecoration: "none" }}
+              className="cafe-card relative group"
+              style={{ display: "block" }}
             >
+              {/* Main clickable area linking to details */}
+              <Link
+                href={`/place-detail/${slug}`}
+                className="absolute inset-0 z-0"
+                aria-label={`View details for ${name}`}
+              />
+
               <div className="cafe-img">
                 <div
                   className="dimg"
@@ -135,7 +142,7 @@ const Cafeteria = ({ data }: { data?: any }) => {
                 </div>
               </div>
 
-              <div className="cafe-body">
+              <div className="cafe-body relative z-10 pointer-events-none">
                 <h4>{name}</h4>
                 <p>{desc}</p>
 
@@ -162,12 +169,21 @@ const Cafeteria = ({ data }: { data?: any }) => {
                       ⏰ {time}
                     </div>
                   </div>
-                  <button className="btn-s" type="button">
-                    Reserve →
-                  </button>
+                  <div className="pointer-events-auto">
+                    <BookNowButton
+                      config={{
+                        placeId: attributes?.placeDetail?.data?.attributes?.obmsId ?? item?.id,
+                        placeName: name,
+                        category: "inventory",
+                        locationId: item?.id,
+                      }}
+                      label="Reserve →"
+                      className="btn-s"
+                    />
+                  </div>
                 </div>
               </div>
-            </Link>
+            </div>
           );
         })}
       </div>

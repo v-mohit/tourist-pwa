@@ -1,4 +1,6 @@
 import React from "react";
+import Link from "next/link";
+import BookNowButton from "@/features/booking/components/BookNowButton";
 
 const fallbackData = [
   {
@@ -52,10 +54,10 @@ const LightSoundShow = ({ data }: any) => {
             History Comes Alive at Night
           </h2>
         </div>
-        <a href={`/tourist-attraction?categoryId=${data?.category?.data?.id}`}
+        <Link href={`/tourist-attraction?categoryId=${data?.category?.data?.id}`}
           className="see-all sag">
           See all →
-        </a>
+        </Link>
       </div>
 
       <div className="ls-grid rv in">
@@ -70,8 +72,10 @@ const LightSoundShow = ({ data }: any) => {
             fallbackData[index % fallbackData.length].image;
           const image = buildImageUrl(rawImage);
 
-          const placeDetails =
-            attributes?.placeDetail?.data?.attributes?.content || [];
+          const pdAttr = attributes?.placeDetail?.data?.attributes;
+          const placeDetails = pdAttr?.content || [];
+
+          const slug = pdAttr?.slug || name.toLowerCase().replace(/\s+/g, "-");
 
           // Try extracting dynamic info (optional)
           const ticketData = placeDetails.find(
@@ -115,7 +119,14 @@ const LightSoundShow = ({ data }: any) => {
               : `🏯 ${extraText}`;
 
           return (
-            <div className="ls-card" key={item?.id || index}>
+            <div className="ls-card relative group" key={item?.id || index}>
+              {/* Main clickable area linking to details */}
+              <Link
+                href={`/place-detail/${slug}`}
+                className="absolute inset-0 z-0"
+                aria-label={`View details for ${name}`}
+              />
+
               <div
                 className="dimg"
                 style={{
@@ -125,14 +136,14 @@ const LightSoundShow = ({ data }: any) => {
 
               <div className="ls-grad"></div>
 
-              <div className="ls-top">
+              <div className="ls-top relative z-10 pointer-events-none">
                 {/* <span className="tag to">✨ Light & Sound</span> */}
                 <span className={`tag ${isNew ? "tw" : "tg"}`}>
                   {isNew ? "🌟" : "⭐"} {tag}
                 </span>
               </div>
 
-              <div className="ls-body">
+              <div className="ls-body relative z-10 pointer-events-none">
                 <h3>{name}</h3>
 
                 <div className="ls-dets">
@@ -144,7 +155,16 @@ const LightSoundShow = ({ data }: any) => {
 
                 <p className="ls-desc">{desc}</p>
 
-                <button className="btn-s">Book Seats →</button>
+                <BookNowButton
+                  config={{
+                    placeId: pdAttr?.obmsId ?? item?.id,
+                    placeName: name,
+                    category: "inventory",
+                    locationId: item?.id,
+                  }}
+                  label="Book Seats →"
+                  className="btn-s pointer-events-auto"
+                />
               </div>
             </div>
           );
