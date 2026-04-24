@@ -260,21 +260,31 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
                     <span className="cc-pc-fee">
                       {formattedPrice ? `Starting from ₹${formattedPrice}` : 'Click on book now'}
                     </span>
-                    {slug ? (
-                      <BookNowButton
-                        config={{
-                          placeId: attr.obmsId ?? place.id,
-                          placeName: attr.name,
-                          category: 'inventory',
-                          locationId: place.id,
-                        }}
-                        label="Book →"
-                        className="cc-pc-btn"
-                      />
+                    {attr?.bookable !== false ? (
+                      slug ? (
+                        <BookNowButton
+                          config={{
+                            placeId: attr.obmsId ?? place.id,
+                            placeName: attr.name,
+                            category: "inventory",
+                            locationId: place.id,
+                          }}
+                          label="Book →"
+                          className="cc-pc-btn"
+                        />
+                      ) : (
+                        <span className="cc-pc-btn opacity-50 cursor-not-allowed">
+                          No Details
+                        </span>
+                      )
                     ) : (
-                      <span className="cc-pc-btn opacity-50 cursor-not-allowed">
-                        No Details
-                      </span>
+                      <button
+                        className="cc-pc-btn opacity-40 cursor-not-allowed"
+                        style={{ fontSize: "9px" }}
+                        disabled
+                      >
+                        Booking Unavailable
+                      </button>
                     )}
                   </div>
                 </div>

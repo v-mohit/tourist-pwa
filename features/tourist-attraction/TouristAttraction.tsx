@@ -3,12 +3,15 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import BookNowButton from '@/features/booking/components/BookNowButton';
 
 interface Place {
   id: string;
   attributes: {
     name: string;
     popularity: number;
+    bookable?: boolean;
+    obmsId?: string;
     city?: {
       data?: {
         attributes?: {
@@ -189,13 +192,15 @@ const TouristAttraction: React.FC<TouristAttractionProps> = ({ data }) => {
             const reactKey = `${slug}-${place.id || idx}`;
 
             return (
-              <Link
+              <div
                 key={reactKey}
-                href={`/place-detail/${slug}`}
-                className="sa-card"
+                className="sa-card relative group"
                 style={{ textDecoration: 'none' }}
               >
-                <div className="sa-img">
+                {/* Full clickable layer for details */}
+                <Link href={`/place-detail/${slug}`} className="absolute inset-0 z-0" />
+
+                <div className="sa-img relative z-10 pointer-events-none">
                   <div className="sa-img-inner" style={{ backgroundImage: `url('${img}')` }}></div>
                   <div className="sa-card-top">
                     <span className="sa-tag">{firstCat}</span>
@@ -209,7 +214,7 @@ const TouristAttraction: React.FC<TouristAttractionProps> = ({ data }) => {
                     </div>
                   </div>
                 </div>
-                <div className="sa-body">
+                <div className="sa-body relative z-10 pointer-events-none">
                   <div className="sa-highlights">
                     <span className="sa-hl">✦ Must Visit</span>
                     <span className="sa-hl">✦ {firstCat}</span>
@@ -219,9 +224,30 @@ const TouristAttraction: React.FC<TouristAttractionProps> = ({ data }) => {
                     <span className="sa-season">📅 Open All Year</span>
                     <span className="sa-region-tag">{cityName}</span>
                   </div>
-                  <button className="sa-btn">Book Tickets →</button>
+                  <div className="pointer-events-auto">
+                    {attr?.bookable !== false ? (
+                      <BookNowButton
+                        config={{
+                          placeId: attr.obmsId ?? place.id,
+                          placeName: attr.name,
+                          category: 'inventory',
+                          locationId: place.id,
+                        }}
+                        label="Book Tickets →"
+                        className="sa-btn"
+                      />
+                    ) : (
+                      <button
+                        className="sa-btn opacity-40 cursor-not-allowed"
+                        style={{ fontSize: '12px' }}
+                        disabled
+                      >
+                        Booking Unavailable
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </Link>
+              </div>
             );
           })
         ) : (
