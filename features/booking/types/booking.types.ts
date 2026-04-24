@@ -17,6 +17,13 @@ export interface PlaceBookingConfig {
   asiType?: string;
   /** Strapi/graphql location ID if different from OBMS placeId */
   locationId?: string | number;
+  /** For JKK: name of the venue/subcategory the user clicked on (e.g. "Alankar", "Krishnayan").
+   *  JkkStep uses this to auto-select the matching sub-category and skip the picker step. */
+  preferredVenueName?: string;
+  /** For JKK: pre-resolved parent category from /jkk/placeDetails (skip category picker). */
+  preferredCategory?: { id: string; name: string };
+  /** For JKK: pre-resolved sub-category from /jkk/placeDetails (skip sub-category picker). */
+  preferredSubCategory?: { id: string; name: string };
 }
 
 // ─── Specific Charges ─────────────────────────────────────────────────────────

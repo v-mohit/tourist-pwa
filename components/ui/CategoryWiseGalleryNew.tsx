@@ -76,10 +76,19 @@ export interface CMSCategory {
   }[];
 }
 
+export interface BookNowVenuePayload {
+  venueName: string;
+  /** Parent JKK category resolved from /jkk/placeDetails, if found. */
+  category?: { id: string; name: string };
+  /** Sub-category resolved from /jkk/placeDetails, if found. */
+  subCategory?: { id: string; name: string };
+}
+
 export interface CategoryWiseGalleryNewProps {
   placeName: string;
   disclaimerOpen: boolean;
-  bookNowClick: () => void;
+  /** Receives the specific venue with its resolved JKK category/sub-category IDs. */
+  bookNowClick: (payload: BookNowVenuePayload) => void;
   data: CMSCategory[];
   prices: PriceCategory[] | null;
   placeCategory: string;
@@ -413,7 +422,7 @@ const ActionButtons: React.FC<{
           onMouseLeave={out}
           onClick={() => onBook(place.name)}
         >
-          {obmsId ? "Book Now" : "Enquire Now"}
+          Book Now
         </button>
       )}
 
@@ -715,26 +724,52 @@ const CategoryWiseGalleryNew: React.FC<CategoryWiseGalleryNewProps> = ({
   const { data: jkkDetails } = GetAllJkkDetails();
   const { mutateAsync: fetchAvailability } = JkkAdvanceAvailability();
 
-  // ── Pre-build a lookup: subCategory name (uppercase) → { categoryId, subCategoryId }
-  const jkkLookup = useMemo<
-    Record<string, { categoryId: string; subCategoryId: string }>
-  >(() => {
-    const map: Record<string, { categoryId: string; subCategoryId: string }> =
-      {};
+  // ── Pre-build a lookup: subCategory name (uppercase) → IDs + parent ──
+  type JkkLookupEntry = {
+    categoryId: string;
+    categoryName: string;
+    subCategoryId: string;
+    subCategoryName: string;
+  };
+  const jkkLookup = useMemo<Record<string, JkkLookupEntry>>(() => {
+    const map: Record<string, JkkLookupEntry> = {};
     const details: JkkDetails | undefined = jkkDetails;
     if (!details?.jkkCategoryList) return map;
-
     for (const cat of details.jkkCategoryList) {
       for (const sub of cat.jkkSubCategoryList ?? []) {
-        // Normalise to uppercase for case-insensitive matching
         map[sub.name.toUpperCase()] = {
           categoryId: cat.id,
+          categoryName: cat.name,
           subCategoryId: sub.id,
+          subCategoryName: sub.name,
         };
       }
     }
     return map;
   }, [jkkDetails]);
+
+  /**
+   * Resolve a CMS venue name (e.g. "Alankar (Ground Floor)") to a JKK
+   * sub-category. Tries exact match first, then strips parentheticals and
+   * does a case-insensitive substring match (matching old project behaviour).
+   */
+  function resolveJkkVenue(venueName: string): JkkLookupEntry | undefined {
+    if (!venueName) return undefined;
+    const upper = venueName.toUpperCase();
+    if (jkkLookup[upper]) return jkkLookup[upper];
+
+    // Strip parentheticals and trim
+    const stripped = venueName.replace(/\(.*?\)/g, '').trim().toLowerCase();
+    if (!stripped) return undefined;
+
+    for (const key of Object.keys(jkkLookup)) {
+      const subName = jkkLookup[key].subCategoryName.toLowerCase();
+      if (subName.includes(stripped) || stripped.includes(subName)) {
+        return jkkLookup[key];
+      }
+    }
+    return undefined;
+  }
 
   // ── Category / tab helpers ─────────────────────────────────────────────────
   const categoryLookup = useMemo<Record<string, CMSCategory>>(
@@ -783,16 +818,26 @@ const CategoryWiseGalleryNew: React.FC<CategoryWiseGalleryNewProps> = ({
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   const handleBook = useCallback(
-    (_name: string) => {
-      bookNowClick();
+    (name: string) => {
+      const resolved = resolveJkkVenue(name);
+      bookNowClick({
+        venueName: name,
+        category: resolved
+          ? { id: resolved.categoryId, name: resolved.categoryName }
+          : undefined,
+        subCategory: resolved
+          ? { id: resolved.subCategoryId, name: resolved.subCategoryName }
+          : undefined,
+      });
     },
-    [bookNowClick],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [bookNowClick, jkkLookup],
   );
 
   const handleAvailability = useCallback(
     async (venueName: string) => {
-      // 1. Look up categoryId + subCategoryId from JKK details
-      const ids = jkkLookup[venueName.toUpperCase()];
+      // 1. Look up categoryId + subCategoryId from JKK details (with substring fallback)
+      const ids = resolveJkkVenue(venueName);
 
       if (!ids) {
         // Venue not found in JKK system — open modal with a friendly error

@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import BookNowButton from "@/features/booking/components/BookNowButton";
 import CheckAvailabilityModal from "@/features/booking/components/CheckAvailabilityModal";
 import { useObmsPlaceId } from "@/features/booking/hooks/useBookingApi";
+import { useBooking } from "@/features/booking/context/BookingContext";
+import { useAuth } from "@/features/auth/context/AuthContext";
 import type { PlaceBookingConfig } from "@/features/booking/types/booking.types";
 import CategoryWiseGalleryNew from "@/components/ui/CategoryWiseGalleryNew";
 import ReactMarkdown from "react-markdown";
@@ -101,6 +103,8 @@ function PlaceDetailContent({
 
   const obmsPlaceMutation = useObmsPlaceId();
   const resolvedRef = useRef(false);
+  const { openBookingModal } = useBooking();
+  const { user, openLoginModal, setPostLoginAction } = useAuth();
 
   const pricesBlock = contentData?.find(
     (items: any) => items?.__typename === "ComponentPlaceDetailDynamicprice",
@@ -328,7 +332,23 @@ function PlaceDetailContent({
                     <div key={tab.key}>
                       <CategoryWiseGalleryNew
                         placeName={name}
-                        bookNowClick={() => setAvailModalOpen(true)}
+                        bookNowClick={(payload) => {
+                          const openModal = () => openBookingModal({
+                            placeId: (obmsPlaceId ?? locationId)!,
+                            placeName: name,
+                            category: bookingCategory,
+                            locationId: locationId ?? undefined,
+                            preferredVenueName: payload.venueName,
+                            preferredCategory: payload.category,
+                            preferredSubCategory: payload.subCategory,
+                          });
+                          if (!user) {
+                            setPostLoginAction(() => openModal());
+                            openLoginModal();
+                            return;
+                          }
+                          openModal();
+                        }}
                         disclaimerOpen={false}
                         data={
                           Array.isArray(placeCategories) ? placeCategories : []

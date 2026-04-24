@@ -164,6 +164,72 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
       });
   }, [state.config.locationId]);
 
+  /* ── Auto-select category + subcategory from preferred IDs ──────────────────
+   *
+   * When the user clicks "Book Now" on a specific venue tile (e.g. "Alankar
+   * (Ground Floor)"), the gallery component already resolved the venue's JKK
+   * ids via /jkk/placeDetails and passed them through PlaceBookingConfig.
+   * We pre-fill the booking state from those IDs and jump straight to the
+   * date step — exactly how the old project's CategoryWiseGalleryNew flow
+   * works.
+   *
+   * If only the name is supplied (no IDs), we fall back to a substring search
+   * once the API-loaded categories/subcategories arrive.
+   */
+  const autoPickedRef = useRef(false);
+
+  // 1. Apply pre-resolved IDs synchronously on mount (no API wait needed)
+  useEffect(() => {
+    if (autoPickedRef.current) return;
+    const preCat = state.config.preferredCategory;
+    const preSub = state.config.preferredSubCategory;
+    if (preCat && preSub) {
+      updateJkk({
+        selectedCategory: preCat as any,
+        selectedSubCategory: preSub as any,
+        selectedPlaceType: null,
+      });
+      autoPickedRef.current = true;
+      // Skip disclaimer + booking-type + sub-category pickers
+      setSubStep('dates');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.config.preferredCategory?.id, state.config.preferredSubCategory?.id]);
+
+  // 2. Fallback: if only a venue name is supplied, find the IDs once the
+  //    API-loaded categories/subcategories are available.
+  useEffect(() => {
+    if (autoPickedRef.current) return;
+    const pref = state.config.preferredVenueName?.trim().toLowerCase();
+    if (!pref) return;
+    if (!Array.isArray(categories) || categories.length === 0) return;
+
+    if (!jkk.selectedCategory) {
+      const isGalleryVenue = ['gallery', 'galleries', 'art', 'museum'].some((k) => pref.includes(k));
+      const cat = (categories as any[]).find((c: any) => {
+        const n = c?.name?.toLowerCase?.() ?? '';
+        return isGalleryVenue ? n.includes('galleries') : n.includes('places');
+      }) ?? (categories as any[])[0];
+      if (cat) updateJkk({ selectedCategory: cat, selectedSubCategory: null });
+      return;
+    }
+
+    if (!Array.isArray(subCategories) || subCategories.length === 0) return;
+
+    // Strip parentheticals from the venue name for matching
+    const normalizedPref = pref.replace(/\(.*?\)/g, '').trim();
+    const match = (subCategories as any[]).find((s: any) => {
+      const n = s?.name?.toLowerCase?.() ?? '';
+      return n.includes(normalizedPref) || normalizedPref.includes(n);
+    });
+    if (match) {
+      updateJkk({ selectedSubCategory: match, selectedPlaceType: null });
+      autoPickedRef.current = true;
+      setSubStep('dates');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categories, subCategories, jkk.selectedCategory?.id, state.config.preferredVenueName]);
+
   /* ── Derived flags ─────────────────────────────────────────────────────────── */
 
   const isGalleries = jkk.selectedCategory?.name?.toLowerCase?.()?.includes('galleries') ?? false;
@@ -542,10 +608,19 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
         <div className="flex gap-3">
           <button onClick={() => setSubStep('disclaimer')} className={btnBack}>← Back</button>
           <button
-            onClick={() => setSubStep('category')}
-            disabled={!jkk.bookingStartDate || !jkk.bookingEndDate || jkk.bookingStartDate < minDate}
+            onClick={() => {
+              // If category + sub-category were pre-selected (user clicked Book Now
+              // on a specific JKK venue), skip the picker steps entirely and go
+              // straight to fetching shifts.
+              if (jkk.selectedCategory?.id && jkk.selectedSubCategory?.id) {
+                fetchShifts();
+              } else {
+                setSubStep('category');
+              }
+            }}
+            disabled={!jkk.bookingStartDate || !jkk.bookingEndDate || jkk.bookingStartDate < minDate || shiftsMutation.isPending}
             className={btnNext}>
-            Continue →
+            {shiftsMutation.isPending ? 'Loading…' : 'Continue →'}
           </button>
         </div>
       </div>
@@ -698,7 +773,12 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
         )}
 
         <div className="flex gap-3">
-          <button onClick={() => { setSelectedShifts([]); setShiftAvailMsg(''); setSubStep('subcategory'); }} className={btnBack}>← Back</button>
+          <button onClick={() => {
+            setSelectedShifts([]); setShiftAvailMsg('');
+            // If category/subcategory were pre-selected, going back from shifts
+            // should return to the date picker (skip the locked picker steps).
+            setSubStep(autoPickedRef.current ? 'dates' : 'subcategory');
+          }} className={btnBack}>← Back</button>
           <button
             onClick={() => setSubStep('type')}
             disabled={selectedShifts.length === 0 || shiftAvailMsg !== 'Available'}
