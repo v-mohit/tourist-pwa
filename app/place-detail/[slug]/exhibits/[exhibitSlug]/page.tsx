@@ -32,7 +32,10 @@ interface ExhibitContentItem {
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-const IMG_BASE = (process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL ?? "").replace(/\/$/, "");
+const IMG_BASE = (process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL ?? "").replace(
+  /\/$/,
+  "",
+);
 
 function resolveUrl(path: string | null | undefined): string | null {
   if (!path) return null;
@@ -51,10 +54,14 @@ function formatSlug(slug: string): string {
 // Page
 // ─────────────────────────────────────────────────────────────────────────────
 
-export default async function Page({ params }: PageProps) {
-    const { slug, exhibitSlug } = await params;
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ slug: string; exhibitSlug: string }>;
+}) {
+  const { slug, exhibitSlug } = await params;
 
-  const slugParam        = decodeURIComponent(slug);
+  const slugParam = decodeURIComponent(slug);
   const exhibitSlugParam = decodeURIComponent(exhibitSlug);
 
   const data = await graphqlClient.request(FetchExhibitDetailDocument, {
@@ -66,24 +73,35 @@ export default async function Page({ params }: PageProps) {
 
   const exhibitComponent = contentArray?.find(
     (item): item is ComponentPlaceDetailPlaceexhibit =>
-      item?.__typename === "ComponentPlaceDetailPlaceexhibit"
+      item?.__typename === "ComponentPlaceDetailPlaceexhibit",
   );
 
   const exhibitData = exhibitComponent?.exhibit?.[0];
-  const content     = (exhibitData?.content ?? []) as ExhibitContentItem[];
+  const content = (exhibitData?.content ?? []) as ExhibitContentItem[];
 
   // ── Guard: nothing found ──────────────────────────────────────────────────
   if (!exhibitData) {
     return (
-      <div style={{ padding: "60px 24px", textAlign: "center", fontFamily: "'Inter', sans-serif" }}>
+      <div
+        style={{
+          padding: "60px 24px",
+          textAlign: "center",
+          fontFamily: "'Inter', sans-serif",
+        }}
+      >
         <p style={{ fontSize: "14px", color: "#7A6A58" }}>Exhibit not found.</p>
       </div>
     );
   }
 
   return (
-    <div style={{ fontFamily: "'Inter', sans-serif", background: "#FAFAFA", minHeight: "100vh" }}>
-
+    <div
+      style={{
+        fontFamily: "'Inter', sans-serif",
+        background: "#FAFAFA",
+        minHeight: "100vh",
+      }}
+    >
       {/* ── Hero banner ── */}
       <div
         style={{
@@ -92,7 +110,6 @@ export default async function Page({ params }: PageProps) {
         }}
       >
         <div style={{ maxWidth: "860px", margin: "0 auto" }}>
-
           {/* Breadcrumb */}
           <p
             style={{
@@ -147,8 +164,13 @@ export default async function Page({ params }: PageProps) {
       </div>
 
       {/* ── Content list ── */}
-      <div style={{ maxWidth: "860px", margin: "0 auto", padding: "32px 24px 64px" }}>
-
+      <div
+        style={{
+          maxWidth: "860px",
+          margin: "0 auto",
+          padding: "32px 24px 64px",
+        }}
+      >
         {content.length === 0 ? (
           <div
             style={{
@@ -164,11 +186,16 @@ export default async function Page({ params }: PageProps) {
             </p>
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "20px" }}
+          >
             {content.map((item, index) => {
               const imageUrl = resolveUrl(item.image?.data?.attributes?.url);
-              const altText  = item.image?.data?.attributes?.alternativeText || item.title || "exhibit image";
-              const isEven   = index % 2 === 0;
+              const altText =
+                item.image?.data?.attributes?.alternativeText ||
+                item.title ||
+                "exhibit image";
+              const isEven = index % 2 === 0;
 
               return (
                 <div
