@@ -6,18 +6,19 @@ import SosPopup from '@/components/modals/SosPopup';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { getCookie } from 'cookies-next';
 import { AUTHENTICATION_TOKEN } from '@/utils/constants/common.constants';
-import { 
-  ChatBotBookingAction, 
-  GetChatBotCancelledData, 
-  GetChatBotTranstactionData 
+import {
+  ChatBotBookingAction,
+  GetChatBotCancelledData,
+  GetChatBotTranstactionData
 } from '@/services/apiCalls/booking.services';
 import { showErrorToastMessage } from '@/utils/toast.utils';
+import ReactMarkdown from 'react-markdown';
 
 const FloatingHelpdesk = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'FAQ' | 'Contact' | 'Chat' | 'ChatbotAI'>('Chat');
-  const [chatMessages, setChatMessages] = useState<{sender: 'user'|'bot', text: string, isTxn?: boolean, txnId?: string}[]>([{sender: 'bot', text: 'Hi! How can I help you?'}]);
-  const [messages, setMessages] = useState<{sender: 'user'|'bot', text: string}[]>([{sender: 'bot', text: 'Hi! I am your AI assistant. How can I help you today?'}]);
+  const [chatMessages, setChatMessages] = useState<{ sender: 'user' | 'bot', text: string, isTxn?: boolean, txnId?: string }[]>([{ sender: 'bot', text: 'Hi! How can I help you?' }]);
+  const [messages, setMessages] = useState<{ sender: 'user' | 'bot', text: string }[]>([{ sender: 'bot', text: 'Hi! I am your AI assistant. How can I help you today?' }]);
   const [inputValue, setInputValue] = useState('');
   const [chatInputValue, setChatInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -34,7 +35,7 @@ const FloatingHelpdesk = () => {
   const [txnFlow, setTxnFlow] = useState(false);
   const [subFlow, setSubFlow] = useState(false);
   const [selectedTxnId, setSelectedTxnId] = useState<string | null>(null);
-  const [subOptions, setSubOptions] = useState<{label: string, value: string}[]>([]);
+  const [subOptions, setSubOptions] = useState<{ label: string, value: string }[]>([]);
 
   const userId = user?.sub || "";
 
@@ -100,7 +101,7 @@ const FloatingHelpdesk = () => {
     }
   );
 
-  const handleOptionSelect = (option: {label: string, value: string}) => {
+  const handleOptionSelect = (option: { label: string, value: string }) => {
     if (!isAuthenticated) {
       openLoginModal();
       return;
@@ -128,7 +129,7 @@ const FloatingHelpdesk = () => {
     setChatMessages(prev => [...prev, { sender: 'user', text: `Selected Booking Id - ${txnId}` }]);
     setSelectedTxnId(txnId);
     setTxnFlow(false);
-    
+
     // In a real app, you might fetch specific options for this txn
     const dynamicOptions = [
       { label: 'Download Ticket', value: 'download_ticket' },
@@ -138,30 +139,30 @@ const FloatingHelpdesk = () => {
     setSubFlow(true);
   };
 
-  const handleSubOptionSelect = (option: {label: string, value: string}) => {
+  const handleSubOptionSelect = (option: { label: string, value: string }) => {
     setChatMessages(prev => [...prev, { sender: 'user', text: option.label }]);
     setIsChatLoading(true);
-    chatBotMutate({ 
-      userId, 
-      action: option.value, 
-      bookingId: selectedTxnId || "" 
+    chatBotMutate({
+      userId,
+      action: option.value,
+      bookingId: selectedTxnId || ""
     });
     setSubFlow(false);
   };
 
   const handleChatSendMessage = () => {
     if (!chatInputValue.trim() || !bookingPrompt) return;
-    
+
     const userMsg = chatInputValue.trim();
     setChatMessages(prev => [...prev, { sender: 'user', text: userMsg }]);
     setChatInputValue('');
     setBookingPrompt(false);
     setIsChatLoading(true);
 
-    chatBotMutate({ 
-      userId, 
-      action: selectedIntent || "", 
-      bookingId: userMsg 
+    chatBotMutate({
+      userId,
+      action: selectedIntent || "",
+      bookingId: userMsg
     });
   };
 
@@ -170,7 +171,7 @@ const FloatingHelpdesk = () => {
       openLoginModal();
       return;
     }
-    
+
     const option = [
       { label: 'View Last 5 Transaction', value: 'last_5_transaction' },
       { label: 'Download Ticket', value: 'download_ticket' },
@@ -184,8 +185,8 @@ const FloatingHelpdesk = () => {
   };
 
   const clearChat = () => {
-    setChatMessages([{sender: 'bot', text: 'Hi! How can I help you?'}]);
-    setMessages([{sender: 'bot', text: 'Hi! I am your AI assistant. How can I help you today?'}]);
+    setChatMessages([{ sender: 'bot', text: 'Hi! How can I help you?' }]);
+    setMessages([{ sender: 'bot', text: 'Hi! I am your AI assistant. How can I help you today?' }]);
     setShowMainOptions(true);
     setTxnFlow(false);
     setSubFlow(false);
@@ -263,7 +264,7 @@ const FloatingHelpdesk = () => {
 
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
-    
+
     const userMessage = inputValue.trim();
     setMessages(prev => [...prev, { sender: 'user', text: userMessage }]);
     setInputValue('');
@@ -297,15 +298,15 @@ const FloatingHelpdesk = () => {
             <div className="helpdesk-header">
               <h3 className="font-bold text-lg">Helpdesk Support</h3>
               <div className="flex gap-4">
-                <button 
+                <button
                   onClick={clearChat}
                   className="hover:opacity-80 transition-opacity"
                   title="Clear Chat"
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg>
                 </button>
                 <button onClick={toggleModal} className="hover:opacity-80 transition-opacity">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
                 </button>
               </div>
             </div>
@@ -327,20 +328,26 @@ const FloatingHelpdesk = () => {
             <div className="helpdesk-content">
               {activeTab === 'Chat' && (
                 <div className="flex flex-col h-full">
-                  <div className="flex-1 overflow-y-auto pr-1 space-y-3 flex flex-col">
+                  <div className="flex-1 overflow-y-auto pr-1 flex flex-col">
                     {chatMessages.map((msg, idx) => (
-                      <div 
-                        key={idx} 
+                      <div
+                        key={idx}
                         onClick={() => msg.isTxn && msg.txnId && handleTxnClick(msg.txnId)}
                         className={msg.sender === 'user' ? "helpdesk-chat-bubble-user" : "helpdesk-chat-bubble-bot"}
-                        style={msg.isTxn ? { cursor: 'pointer', border: '1px solid #E8631A', backgroundColor: '#FFF5F0' } : {}}
+                        style={msg.isTxn ? { cursor: 'pointer', border: '2px solid #E8631A', backgroundColor: '#FFF5F0' } : {}}
                       >
-                        {msg.text}
+                        {msg.sender === 'bot' ? (
+                          <div className="markdown-content">
+                            <ReactMarkdown>{msg.text}</ReactMarkdown>
+                          </div>
+                        ) : (
+                          msg.text
+                        )}
                       </div>
                     ))}
-                    
+
                     {isChatLoading && (
-                      <div className="helpdesk-typing-indicator">
+                      <div className="helpdesk-typing-indicator mb-4">
                         <span className="helpdesk-typing-dot"></span>
                         <span className="helpdesk-typing-dot delay-100"></span>
                         <span className="helpdesk-typing-dot delay-200"></span>
@@ -348,7 +355,7 @@ const FloatingHelpdesk = () => {
                     )}
 
                     {showMainOptions && !isChatLoading && (
-                      <div className="flex flex-col gap-2 mt-2">
+                      <div className="flex flex-col mb-4">
                         {[
                           { label: 'View Last 5 Transaction', value: 'last_5_transaction' },
                           { label: 'Download Ticket', value: 'download_ticket' },
@@ -357,7 +364,7 @@ const FloatingHelpdesk = () => {
                           { label: 'Refund Status', value: 'refund_status' },
                           { label: 'Grievance', value: 'grievance' },
                         ].map((option, idx) => (
-                          <button 
+                          <button
                             key={idx}
                             onClick={() => handleOptionSelect(option)}
                             className="helpdesk-quick-action-btn"
@@ -369,34 +376,33 @@ const FloatingHelpdesk = () => {
                     )}
 
                     {subFlow && !isChatLoading && (
-                      <div className="flex flex-col gap-2 mt-2">
+                      <div className="flex flex-col mb-4">
                         {subOptions.map((option, idx) => (
-                          <button 
+                          <button
                             key={idx}
                             onClick={() => handleSubOptionSelect(option)}
-                            className="helpdesk-quick-action-btn"
-                            style={{ backgroundColor: '#E0F7FA', borderColor: '#00ACC1', color: '#006064' }}
+                            className="helpdesk-quick-action-btn border-[#20C1D6] bg-[#E9FBFC] text-[#0A6A78] hover:bg-[#D4F4F7]"
                           >
                             {option.label}
                           </button>
                         ))}
                       </div>
                     )}
-                    
+
                     <div ref={chatTabEndRef} />
                   </div>
 
                   {!showMainOptions && !txnFlow && !subFlow && (
-                    <div className="helpdesk-chat-footer">
-                      <input 
-                        type="text" 
+                    <div className="helpdesk-chat-footer -mx-4 -mb-4 mt-auto">
+                      <input
+                        type="text"
                         value={chatInputValue}
                         onChange={(e) => setChatInputValue(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleChatSendMessage()}
                         placeholder={bookingPrompt ? "Enter Booking ID" : "Type message..."}
                         className="helpdesk-chat-input"
                       />
-                      <button 
+                      <button
                         onClick={handleChatSendMessage}
                         disabled={isChatLoading || !chatInputValue.trim()}
                         className="helpdesk-chat-send-btn"
@@ -405,18 +411,18 @@ const FloatingHelpdesk = () => {
                       </button>
                     </div>
                   )}
-                  
+
                   {(txnFlow || subFlow || !showMainOptions) && (
-                    <button 
+                    <button
                       onClick={() => {
                         setShowMainOptions(true);
                         setTxnFlow(false);
                         setSubFlow(false);
                         setBookingPrompt(false);
                       }}
-                      className="text-[12px] text-[#E8631A] font-bold mt-2 hover:underline self-center"
+                      className="text-[12px] text-[#E8631A] font-bold py-2 hover:underline self-center flex-shrink-0"
                     >
-                      Back to Menu
+                      ← Back to Main Menu
                     </button>
                   )}
                 </div>
@@ -425,13 +431,13 @@ const FloatingHelpdesk = () => {
                 <div className="flex flex-col">
                   {faqs.map((faq, idx) => (
                     <div key={idx} className="helpdesk-faq-item">
-                      <button 
+                      <button
                         onClick={() => setExpandedFaq(expandedFaq === idx ? null : idx)}
                         className="helpdesk-faq-question"
                       >
                         <span className="helpdesk-faq-question-text">{faq.question}</span>
-                        <svg 
-                          className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${expandedFaq === idx ? 'rotate-180' : ''}`} 
+                        <svg
+                          className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${expandedFaq === idx ? 'rotate-180' : ''}`}
                           fill="none" viewBox="0 0 24 24" stroke="currentColor"
                         >
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
@@ -447,13 +453,13 @@ const FloatingHelpdesk = () => {
                 </div>
               )}
               {activeTab === 'Contact' && (
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col">
                   {contactOptions.map((contact, idx) => (
                     <div key={idx} className="helpdesk-contact-card">
                       <div className="helpdesk-contact-icon-wrapper">
                         {contact.icon}
                       </div>
-                      <div>
+                      <div className="flex-1">
                         <div className="helpdesk-contact-title">{contact.title}</div>
                         <div className="helpdesk-contact-desc">{contact.desc}</div>
                       </div>
@@ -463,17 +469,23 @@ const FloatingHelpdesk = () => {
               )}
               {activeTab === 'ChatbotAI' && (
                 <div className="helpdesk-ai-container">
-                  <div className="helpdesk-ai-messages">
+                  <div className="helpdesk-ai-messages flex-1">
                     {messages.map((msg, idx) => (
-                      <div 
-                        key={idx} 
+                      <div
+                        key={idx}
                         className={msg.sender === 'user' ? "helpdesk-chat-bubble-user" : "helpdesk-chat-bubble-bot"}
                       >
-                        {msg.text}
+                        {msg.sender === 'bot' ? (
+                          <div className="markdown-content">
+                            <ReactMarkdown>{msg.text}</ReactMarkdown>
+                          </div>
+                        ) : (
+                          msg.text
+                        )}
                       </div>
                     ))}
                     {isLoading && (
-                      <div className="helpdesk-typing-indicator">
+                      <div className="helpdesk-typing-indicator mb-4">
                         <span className="helpdesk-typing-dot"></span>
                         <span className="helpdesk-typing-dot delay-100"></span>
                         <span className="helpdesk-typing-dot delay-200"></span>
@@ -481,16 +493,16 @@ const FloatingHelpdesk = () => {
                     )}
                     <div ref={chatEndRef} />
                   </div>
-                  <div className="helpdesk-chat-footer">
-                    <input 
-                      type="text" 
+                  <div className="helpdesk-chat-footer -mx-4 -mb-4 mt-auto">
+                    <input
+                      type="text"
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                       placeholder="Type a message..."
                       className="helpdesk-chat-input"
                     />
-                    <button 
+                    <button
                       onClick={handleSendMessage}
                       disabled={isLoading || !inputValue.trim()}
                       className="helpdesk-chat-send-btn"
@@ -508,22 +520,22 @@ const FloatingHelpdesk = () => {
       {/* Floating Buttons Group - Bottom Right */}
       <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-4">
 
-      {/* Floating Buttons Group */}
-      <div className="helpdesk-fab-container">
-        
-        {/* Chat Bot Button */}
-        <button 
-          onClick={toggleModal}
-          className="fab-main"
-        >
-          <svg width="40" height="40" viewBox="0 0 70 70" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M47.7666 46.5813C46.9563 44.1884 45.9478 41.1523 42.0314 41.1523H39.9106C40.5438 40.6457 41.1183 40.0695 41.5712 39.3945H42.0314C44.4544 39.3945 46.4259 37.423 46.4259 35C46.4259 33.7278 46.4259 32.7565 46.4259 31.4844C46.4259 25.1844 41.3001 20 35.0001 20C28.5565 20 23.4873 25.3563 23.5752 31.6329C23.5741 33.5683 23.5743 32.8646 23.5743 35C23.5743 37.423 25.5458 39.3945 27.9689 39.3945H28.429C28.8819 40.0695 29.4564 40.0695 30.0896 41.1523H27.9689C24.0524 41.1523 23.0439 44.1884 22.2336 46.5805C21.6607 48.2714 22.9886 50 24.7571 50H45.2432C47.0176 50 48.3377 48.2652 47.7666 46.5813ZM27.1788 30.6055H26.211C25.929 30.6055 25.6623 30.6617 25.4073 30.7441C25.8112 25.457 30.1452 21.7578 35.0001 21.7578C40.0852 21.7578 44.2563 25.7649 44.6312 30.7559C44.3652 30.6654 44.0853 30.6055 43.7892 30.6055H42.8214C42.3777 26.6612 39.0611 23.5156 35.0001 23.5156C30.9391 23.5156 27.6225 26.6612 27.1788 30.6055ZM35.0001 47.656L31.4841 42.9102H38.516L35.0001 47.656ZM35.0001 41.1523C31.6081 41.1523 28.8478 38.392 28.8478 35V34.1211H31.4845C32.9271 34.1211 34.1984 33.413 35.0001 32.3362C35.8018 33.413 37.0731 34.1211 38.5157 34.1211H41.1524V35C41.1524 35.9472 40.9194 36.8344 40.5353 37.6367H36.7579C36.2721 37.6367 35.879 38.0298 35.879 38.5156C35.879 39.0014 36.2721 39.3887 36.7579 39.3887H39.2922C38.1825 40.4726 36.6699 41.1523 35.0001 41.1523Z" fill="#E8631A" />
-          </svg>
-        </button>
-        
-        <div className="flex items-end gap-3">
-          {/* Scroll Indicator */}
-          {/* <div className="flex flex-col items-center mr-2 mb-2">
+        {/* Floating Buttons Group */}
+        <div className="helpdesk-fab-container">
+
+          {/* Chat Bot Button */}
+          <button
+            onClick={toggleModal}
+            className="fab-main"
+          >
+            <svg width="40" height="40" viewBox="0 0 70 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M47.7666 46.5813C46.9563 44.1884 45.9478 41.1523 42.0314 41.1523H39.9106C40.5438 40.6457 41.1183 40.0695 41.5712 39.3945H42.0314C44.4544 39.3945 46.4259 37.423 46.4259 35C46.4259 33.7278 46.4259 32.7565 46.4259 31.4844C46.4259 25.1844 41.3001 20 35.0001 20C28.5565 20 23.4873 25.3563 23.5752 31.6329C23.5741 33.5683 23.5743 32.8646 23.5743 35C23.5743 37.423 25.5458 39.3945 27.9689 39.3945H28.429C28.8819 40.0695 29.4564 40.0695 30.0896 41.1523H27.9689C24.0524 41.1523 23.0439 44.1884 22.2336 46.5805C21.6607 48.2714 22.9886 50 24.7571 50H45.2432C47.0176 50 48.3377 48.2652 47.7666 46.5813ZM27.1788 30.6055H26.211C25.929 30.6055 25.6623 30.6617 25.4073 30.7441C25.8112 25.457 30.1452 21.7578 35.0001 21.7578C40.0852 21.7578 44.2563 25.7649 44.6312 30.7559C44.3652 30.6654 44.0853 30.6055 43.7892 30.6055H42.8214C42.3777 26.6612 39.0611 23.5156 35.0001 23.5156C30.9391 23.5156 27.6225 26.6612 27.1788 30.6055ZM35.0001 47.656L31.4841 42.9102H38.516L35.0001 47.656ZM35.0001 41.1523C31.6081 41.1523 28.8478 38.392 28.8478 35V34.1211H31.4845C32.9271 34.1211 34.1984 33.413 35.0001 32.3362C35.8018 33.413 37.0731 34.1211 38.5157 34.1211H41.1524V35C41.1524 35.9472 40.9194 36.8344 40.5353 37.6367H36.7579C36.2721 37.6367 35.879 38.0298 35.879 38.5156C35.879 39.0014 36.2721 39.3887 36.7579 39.3887H39.2922C38.1825 40.4726 36.6699 41.1523 35.0001 41.1523Z" fill="#E8631A" />
+            </svg>
+          </button>
+
+          <div className="flex items-end gap-3">
+            {/* Scroll Indicator */}
+            {/* <div className="flex flex-col items-center mr-2 mb-2">
             <div className="scroll-indicator-fab">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E8631A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
             </div>
@@ -532,16 +544,16 @@ const FloatingHelpdesk = () => {
             </span>
           </div> */}
 
-          {/* SOS Button */}
-          {/* <button 
+            {/* SOS Button */}
+            {/* <button 
             onClick={() => setIsSosOpen(true)}
             className="fab-sos">
             SOS
           </button> */}
-        </div>
+          </div>
 
+        </div>
       </div>
-    </div>
     </>
   );
 };
