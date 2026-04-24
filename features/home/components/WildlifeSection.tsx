@@ -46,7 +46,7 @@ export default function WildlifeSection({ data }: any) {
         <div
           className="dimg"
           style={{
-            backgroundImage: "url(./images/tiger.jpg)",
+            backgroundImage: "url(./images/tiger.webp)",
           }}
         />
         <div className="wild-hero-grad" />
