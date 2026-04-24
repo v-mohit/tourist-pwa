@@ -8334,3 +8334,28 @@ tourist stats style
   font-size: 18px;
   color: #6b7280;
 }
+
+/* --- SOS POPUP --- */
+.sos-paper {
+  @apply !w-[320px] !m-auto !rounded-xl !p-5 !bg-white !shadow-2xl;
+}
+
+.sos-btn-list {
+  @apply flex flex-col gap-3;
+}
+
+.sos-emergency-btn {
+  @apply flex items-center justify-center w-full py-3.5 text-white font-semibold rounded-[14px] transition-all active:scale-[0.97] no-underline shadow-md;
+  background: linear-gradient(135deg, #E8631A 0%, #C04E0A 100%);
+  font-size: 15px;
+  letter-spacing: 0.5px;
+}
+
+.sos-emergency-btn:hover {
+  @apply brightness-110;
+}
+
+.sos-modal-close-btn {
+  @apply w-full py-3.5 bg-[#2D2114] text-white font-medium rounded-[14px] transition-all active:scale-[0.97] mt-1 shadow-sm hover:bg-black;
+  font-size: 15px;
+}
