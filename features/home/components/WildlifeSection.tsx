@@ -81,7 +81,7 @@ export default function WildlifeSection({ data }: any) {
             India&apos;s first reserve to successfully relocate tigers.
           </p>
           <div className="wild-hero-btns">
-            {heroLocationId ? (
+            {heroLocationId && heroPlace?.bookable !== false ? (
               <BookNowButton
                 config={{
                   placeId: heroPlaceId,
@@ -94,7 +94,7 @@ export default function WildlifeSection({ data }: any) {
               />
             ) : (
               <button className="btn-p opacity-40 cursor-not-allowed" disabled>
-                Book Safari →
+                {heroPlace?.bookable === false ? "Booking Unavailable" : "Book Safari →"}
               </button>
             )}
             <Link
@@ -202,7 +202,7 @@ export default function WildlifeSection({ data }: any) {
                   </Link>
 
                   {/* RIGHT → Book Safari */}
-                  {locationId ? (
+                  {locationId && attr?.bookable !== false ? (
                     <BookNowButton
                       config={{
                         placeId: obmsPlaceId,
@@ -218,7 +218,7 @@ export default function WildlifeSection({ data }: any) {
                       className="bg-orange-500 text-white text-xs px-3 py-1 rounded-full opacity-40 cursor-not-allowed"
                       disabled
                     >
-                      Book Safari →
+                      {attr?.bookable === false ? "Booking Unavailable" : "Book Safari →"}
                     </button>
                   )}
                 </div>

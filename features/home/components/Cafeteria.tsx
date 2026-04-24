@@ -170,16 +170,25 @@ const Cafeteria = ({ data }: { data?: any }) => {
                     </div>
                   </div>
                   <div className="pointer-events-auto">
-                    <BookNowButton
-                      config={{
-                        placeId: attributes?.placeDetail?.data?.attributes?.obmsId ?? item?.id,
-                        placeName: name,
-                        category: "inventory",
-                        locationId: item?.id,
-                      }}
-                      label="Reserve →"
-                      className="btn-s"
-                    />
+                    {attributes?.bookable !== false ? (
+                      <BookNowButton
+                        config={{
+                          placeId: attributes?.placeDetail?.data?.attributes?.obmsId ?? item?.id,
+                          placeName: name,
+                          category: "inventory",
+                          locationId: item?.id,
+                        }}
+                        label="Reserve →"
+                        className="btn-s"
+                      />
+                    ) : (
+                      <button
+                        className="btn-s opacity-40 cursor-not-allowed"
+                        disabled
+                      >
+                        Booking Unavailable
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

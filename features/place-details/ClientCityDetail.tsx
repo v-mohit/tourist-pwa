@@ -396,16 +396,17 @@ function PlaceDetailContent({
             </p>
             {locationId ? (
               <div className="space-y-2">
-                {(placeType === "INVENTORY" ||
-                  bookingCategory === "jkk" ||
-                  bookingCategory === "igprs") && (
-                  <button
-                    className="w-full py-3 border-2 border-[#E8631A] text-[#E8631A] font-bold rounded-full hover:bg-[#FFF5EE] transition-all duration-200 text-sm inline-flex items-center justify-center"
-                    onClick={() => setAvailModalOpen(true)}
-                  >
-                    Check Availability
-                  </button>
-                )}
+                {placeData?.bookable !== false &&
+                  (placeType === "INVENTORY" ||
+                    bookingCategory === "jkk" ||
+                    bookingCategory === "igprs") && (
+                    <button
+                      className="w-full py-3 border-2 border-[#E8631A] text-[#E8631A] font-bold rounded-full hover:bg-[#FFF5EE] transition-all duration-200 text-sm inline-flex items-center justify-center"
+                      onClick={() => setAvailModalOpen(true)}
+                    >
+                      Check Availability
+                    </button>
+                  )}
 
                 <BookNowButton
                   className="w-full py-3 bg-[#E8631A] text-white font-bold rounded-full hover:bg-[#C04E0A] transition-all duration-200 text-sm inline-flex items-center justify-center"
@@ -415,10 +416,18 @@ function PlaceDetailContent({
                     category: bookingCategory,
                     locationId,
                   }}
+                  disabled={placeData?.bookable === false}
                 />
               </div>
             ) : (
-              <button disabled>Book Now</button>
+              <button
+                className="w-full py-3 bg-gray-300 text-white font-bold rounded-full cursor-not-allowed text-sm inline-flex items-center justify-center"
+                disabled
+              >
+                {placeData?.bookable === false
+                  ? "Booking Unavailable"
+                  : "Book Now"}
+              </button>
             )}
           </div>
           {hasNearbySection && (

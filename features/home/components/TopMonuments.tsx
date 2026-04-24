@@ -111,16 +111,25 @@ export default function TopMonuments({ data }: any) {
                 </div>
 
                 <div className="pointer-events-auto">
-                  <BookNowButton
-                    config={{
-                      placeId: attr?.placeDetail?.data?.attributes?.obmsId ?? item.id,
-                      placeName: name,
-                      category: 'standard',
-                      locationId: item.id,
-                    }}
-                    label="Book Entry →"
-                    className="btn-sm btn-sm--full inline-flex items-center justify-center"
-                  />
+                  {attr?.bookable !== false ? (
+                    <BookNowButton
+                      config={{
+                        placeId: attr?.placeDetail?.data?.attributes?.obmsId ?? item.id,
+                        placeName: name,
+                        category: 'standard',
+                        locationId: item.id,
+                      }}
+                      label="Book Entry →"
+                      className="btn-sm btn-sm--full inline-flex items-center justify-center"
+                    />
+                  ) : (
+                    <button
+                      className="btn-sm btn-sm--full inline-flex items-center justify-center opacity-40 cursor-not-allowed"
+                      disabled
+                    >
+                      Booking Unavailable
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

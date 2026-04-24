@@ -114,16 +114,25 @@ export default function MuseumsSection({ data }: any) {
                 </div>
 
                 <div className="pointer-events-auto">
-                  <BookNowButton
-                    config={{
-                      placeId: attr?.placeDetail?.data?.attributes?.obmsId ?? item.id,
-                      placeName: name,
-                      category: 'standard',
-                      locationId: item.id,
-                    }}
-                    label="Book Tickets →"
-                    className="btn-sm btn-sm--full-mus inline-flex items-center justify-center w-full"
-                  />
+                  {attr?.bookable !== false ? (
+                    <BookNowButton
+                      config={{
+                        placeId: attr?.placeDetail?.data?.attributes?.obmsId ?? item.id,
+                        placeName: name,
+                        category: 'standard',
+                        locationId: item.id,
+                      }}
+                      label="Book Tickets →"
+                      className="btn-sm btn-sm--full-mus inline-flex items-center justify-center w-full"
+                    />
+                  ) : (
+                    <button
+                      className="btn-sm btn-sm--full-mus inline-flex items-center justify-center w-full opacity-40 cursor-not-allowed"
+                      disabled
+                    >
+                      Booking Unavailable
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -132,4 +141,4 @@ export default function MuseumsSection({ data }: any) {
       </div>
     </section>
   );
-}
+}

@@ -155,16 +155,25 @@ const LightSoundShow = ({ data }: any) => {
 
                 <p className="ls-desc">{desc}</p>
 
-                <BookNowButton
-                  config={{
-                    placeId: pdAttr?.obmsId ?? item?.id,
-                    placeName: name,
-                    category: "inventory",
-                    locationId: item?.id,
-                  }}
-                  label="Book Seats →"
-                  className="btn-s pointer-events-auto"
-                />
+                {attributes?.bookable !== false ? (
+                  <BookNowButton
+                    config={{
+                      placeId: pdAttr?.obmsId ?? item?.id,
+                      placeName: name,
+                      category: "inventory",
+                      locationId: item?.id,
+                    }}
+                    label="Book Seats →"
+                    className="btn-s pointer-events-auto"
+                  />
+                ) : (
+                  <button
+                    className="btn-s pointer-events-auto opacity-40 cursor-not-allowed"
+                    disabled
+                  >
+                    Booking Unavailable
+                  </button>
+                )}
               </div>
             </div>
           );
