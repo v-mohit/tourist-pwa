@@ -7650,7 +7650,7 @@ tourist stats style
 }
 
 .helpdesk-modal {
-  @apply w-[350px] bg-white rounded-[16px] overflow-hidden border-2 border-[#E8631A];
+  @apply w-[380px] h-[550px] bg-white rounded-[16px] overflow-hidden border-2 border-[#E8631A] flex flex-col;
   box-shadow: 0 20px 50px rgba(0,0,0,0.3);
   animation: helpdesk-fade-in 0.3s ease-out;
   pointer-events: auto;
@@ -7659,49 +7659,117 @@ tourist stats style
 @keyframes helpdesk-fade-in {
   from {
     opacity: 0;
-    transform: translateY(1rem);
+    transform: translateY(1rem) scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
 .helpdesk-header {
-  @apply bg-[#E8631A] text-white p-4 flex justify-between items-center;
+  @apply bg-[#E8631A] text-white p-4 flex justify-between items-center flex-shrink-0;
 }
 
 .helpdesk-tab {
-  @apply flex-1 py-3 text-[13px] transition-colors text-[#637381] hover:text-gray-700 font-medium;
+  @apply flex-1 py-3.5 text-[13px] transition-all text-[#637381] hover:text-[#E8631A] font-bold uppercase tracking-wider border-b-2 border-transparent;
 }
 
 .helpdesk-tab-active {
-  @apply text-[#E8631A] font-semibold border-b-[3px] border-[#E8631A];
+  @apply text-[#E8631A] border-[#E8631A] bg-[#FFF5F0];
+}
+
+.helpdesk-content {
+  @apply flex-1 overflow-y-auto p-4 bg-white;
 }
 
 .helpdesk-chat-bubble-bot {
-  @apply bg-[#EAEFF4] text-[#333333] rounded-2xl rounded-tl-sm self-start shadow-sm p-3 text-[14px] max-w-[85%];
+  @apply bg-[#F4F6F8] text-[#212B36] rounded-2xl rounded-tl-none self-start shadow-sm p-3.5 text-[14px] max-w-[85%] leading-relaxed mb-4;
 }
 
 .helpdesk-chat-bubble-user {
-  @apply bg-[#E8631A] text-white rounded-2xl rounded-tr-sm self-end shadow-sm p-3 text-[14px] max-w-[85%];
+  @apply bg-[#E8631A] text-white rounded-2xl rounded-tr-none self-end shadow-sm p-3.5 text-[14px] max-w-[85%] leading-relaxed mb-4;
 }
 
 .helpdesk-quick-action-btn {
-  @apply w-full text-left bg-[#E9FBFC] border border-[#20C1D6] text-[#0A6A78] font-bold py-3.5 px-5 rounded-xl hover:bg-[#D4F4F7] transition-colors text-[14px];
+  @apply w-full text-left bg-white border border-[#E8DAC5] text-[#2C2017] font-semibold py-3 px-4 rounded-xl hover:bg-[#FFF5F0] hover:border-[#E8631A] hover:text-[#E8631A] transition-all text-[13.5px] mb-2 flex items-center justify-between;
+}
+
+.helpdesk-quick-action-btn::after {
+  content: '→';
+  @apply opacity-50 text-[16px];
+}
+
+.helpdesk-chat-footer {
+  @apply p-3 border-t border-gray-100 flex items-center gap-2 bg-white flex-shrink-0;
 }
 
 .helpdesk-chat-input {
-  @apply flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-[#E8631A];
+  @apply flex-1 bg-[#F4F6F8] border-none rounded-full px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#E8631A] transition-all;
 }
 
 .helpdesk-chat-send-btn {
-  @apply w-10 h-10 bg-[#E8631A] text-white rounded-full flex items-center justify-center disabled:opacity-50 hover:bg-[#C04E0A] transition-colors shrink-0;
+  @apply w-10 h-10 bg-[#E8631A] text-white rounded-full flex items-center justify-center disabled:opacity-30 hover:bg-[#C04E0A] transition-all shadow-md shrink-0;
+}
+
+.markdown-content p {
+  @apply mb-2 last:mb-0;
+}
+
+.markdown-content ul, .markdown-content ol {
+  @apply mb-2 ml-4 last:mb-0;
+}
+
+.markdown-content li {
+  @apply mb-1;
+}
+
+/* FAQ Styling */
+.helpdesk-faq-item {
+  @apply mb-3 border border-gray-100 rounded-xl overflow-hidden;
+}
+
+.helpdesk-faq-question {
+  @apply w-full flex justify-between items-center p-4 text-left hover:bg-gray-50 transition-colors bg-white;
+}
+
+.helpdesk-faq-question-text {
+  @apply text-[14px] font-bold text-[#212B36] leading-tight pr-4;
+}
+
+.helpdesk-faq-answer {
+  @apply p-4 text-[13.5px] text-[#637381] leading-relaxed bg-[#F9FAFB] border-t border-gray-50;
+}
+
+/* Contact Styling */
+.helpdesk-contact-card {
+  @apply flex items-start gap-4 p-4 rounded-xl border border-gray-100 bg-white hover:border-[#E8631A] transition-all mb-3;
+}
+
+.helpdesk-contact-icon-wrapper {
+  @apply w-10 h-10 rounded-full bg-[#FFF5F0] text-[#E8631A] flex items-center justify-center shrink-0;
+}
+
+.helpdesk-contact-title {
+  @apply text-[12px] font-bold text-[#E8631A] uppercase tracking-wider mb-0.5;
+}
+
+.helpdesk-contact-desc {
+  @apply text-[14px] font-medium text-[#212B36];
+}
+
+/* AI Container */
+.helpdesk-ai-container {
+  @apply flex flex-col h-full;
+}
+
+.helpdesk-ai-messages {
+  @apply flex-1 overflow-y-auto pr-1 flex flex-col;
 }
 
 /* ── HEADER COMPONENTS ── */
 .header-nav {
-  @apply fixed top-0 left-0 right-0 z-300 h-16 md:h-[66px] flex items-center justify-between px-6 md:px-8 bg-[rgba(253,248,241,0.96)] backdrop-blur-[24px] border-b border-[rgba(212,160,23,0.14)] shadow-[0_1px_6px_rgba(24,18,14,0.06)];
+  @apply fixed top-0 left-0 right-0 z-[9000] h-16 md:h-[66px] flex items-center justify-between px-6 md:px-8 bg-[rgba(253,248,241,0.96)] backdrop-blur-[24px] border-b border-[rgba(212,160,23,0.14)] shadow-[0_1px_6px_rgba(24,18,14,0.06)];
 }
 
 .header-brand {
@@ -7729,7 +7797,7 @@ tourist stats style
 }
 
 .header-dropdown-menu {
-  @apply absolute right-0 mt-2 min-w-[170px] overflow-hidden rounded-xl border border-[#E8DAC5] bg-white shadow-[0_8px_24px_rgba(24,18,14,0.12)] z-[1200];
+  @apply absolute right-0 mt-2 min-w-[170px] overflow-hidden rounded-xl border border-[#E8DAC5] bg-white shadow-[0_8px_24px_rgba(24,18,14,0.12)] z-[9001];
 }
 
 .header-dropdown-item {

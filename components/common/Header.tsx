@@ -136,7 +136,7 @@ export default function Header() {
         {/* Desktop Navigation Links */}
         <nav className="hidden lg:flex items-center gap-5">
           {navLinks.map((link) => (
-            <a
+            <Link
               key={link.href}
               href={link.href}
               onClick={() => handleNavClick(link.href)}
@@ -144,13 +144,13 @@ export default function Header() {
                 "header-nav-link",
                 activeLink === link.href
                   ? "text-[#E8631A]"
-                  : "text-[#7A6A58] hover:text-[#E8631A]",
+                  : "text-[#7A6A58] hover:text-[#E8631A]"
               )}
             >
               {link.label}
-            </a>
+            </Link>
           ))}
-          <NotificationBell />
+          {mounted && <NotificationBell />}
         </nav>
 
         {/* Right Actions */}
@@ -285,14 +285,14 @@ export default function Header() {
         )}
       >
         {navLinks.map((link) => (
-          <a
+          <Link
             key={link.href}
             href={link.href}
             onClick={() => handleNavClick(link.href)}
             className="header-drawer-link"
           >
             {link.label}
-          </a>
+          </Link>
         ))}
 
         <div className="flex flex-col gap-2 mt-3 pt-3.5 border-t border-[#E8DAC5]">
@@ -300,7 +300,7 @@ export default function Header() {
             <span className="text-[11px] font-semibold uppercase tracking-[1px] text-[#7A6A58]">
               Quick Access
             </span>
-            <NotificationBell mobile />
+            {mounted && <NotificationBell mobile />}
           </div>
           {!mounted ? (
             <div className="h-10 rounded-[10px] bg-[#F5E8CC] animate-pulse" />
