@@ -34,7 +34,7 @@ export default function Header() {
     user?.email ??
     "";
 
-  const { data: notificationData } = GetAllHelpDeskNotificationUpdate("", "") as any;
+  const { data: notificationData } = GetAllHelpDeskNotificationUpdate("", "", !!user) as any;
   const notificationCount = Number(notificationData?.result?.totalHelpdeskNotification || 0);
 
   const navLinks = [

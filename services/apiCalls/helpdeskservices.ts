@@ -98,7 +98,8 @@ export const GetDownloadTicketById= (id: string,callApi: boolean) => {
 
 export const GetAllHelpDeskListing = (
   search: string,
-  statusList: string[]
+  statusList: string[],
+  enabled = true,
 ) => {
   return useQuery({
     queryKey: [
@@ -115,9 +116,8 @@ export const GetAllHelpDeskListing = (
       );
       return data;
     },
-    //  enabled: !!seasonId,
+    enabled,
     staleTime: 0,
-    // refetchOnMount: true,
   });
 };
 

@@ -288,9 +288,9 @@ function MyGrievanceContent({ user }: { user: any }) {
 
   const overlayOpen = newQueryOpen || !!selectedId;
 
-  const ongoingQuery = GetAllHelpDeskListing('', [STATUS_META.ongoing.apiStatus]);
-  const resolvedQuery = GetAllHelpDeskListing('', [STATUS_META.resolved.apiStatus]);
-  const cancelledQuery = GetAllHelpDeskListing('', [STATUS_META.cancelled.apiStatus]);
+  const ongoingQuery = GetAllHelpDeskListing('', [STATUS_META.ongoing.apiStatus], !!user);
+  const resolvedQuery = GetAllHelpDeskListing('', [STATUS_META.resolved.apiStatus], !!user);
+  const cancelledQuery = GetAllHelpDeskListing('', [STATUS_META.cancelled.apiStatus], !!user);
 
   const placeQuery = GetFilterPlace({
     districtId: '',
