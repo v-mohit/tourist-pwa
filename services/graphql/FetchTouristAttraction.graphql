@@ -35,6 +35,7 @@ query FetchTouristAttraction(
         }
         popularity
         name
+        bookable
         categories {
           data {
             id

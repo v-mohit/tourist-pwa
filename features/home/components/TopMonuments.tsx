@@ -46,6 +46,7 @@ export default function TopMonuments({ data }: any) {
           const timeBlock = attr?.placeDetail?.data?.attributes?.content?.find(
             (c: any) => c.__typename === "ComponentPlaceDetailPlaceTime",
           );
+          
           const time = timeBlock?.card?.[0]?.content?.[0]?.value || "9AM–5PM";
 
           // ✅ Fee (Indian Adult fallback)
@@ -54,11 +55,11 @@ export default function TopMonuments({ data }: any) {
               (c: any) => c.__typename === "ComponentPlaceDetailPlacetickets",
             );
 
-          const fee = ticketBlock?.card?.[0]?.content?.find(
+          const fee = ticketBlock?.card?.[1]?.content?.find(
             (c: any) => c.name === "Indian Adult",
           )?.value
             ? `₹${
-                ticketBlock.card[0].content.find(
+                ticketBlock.card[1].content.find(
                   (c: any) => c.name === "Indian Adult",
                 ).value
               }`
