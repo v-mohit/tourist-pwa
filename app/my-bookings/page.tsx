@@ -11,6 +11,7 @@ import {
   CheckRefundable,
   GetDownloadTicket,
   WebCheckIn,
+  BookingReverified,
 } from '@/services/apiCalls/booking.services';
 import { showErrorToastMessage, showSuccessToastMessage } from '@/utils/toast.utils';
 import moment from 'moment-timezone';
@@ -37,16 +38,38 @@ function formatDate(ts?: number | string): string {
   return moment(ts).format('DD MMM YYYY');
 }
 
+/**
+ * Booking is "successful" only when paymentStatus contains "success".
+ * Everything else (FAIL / PENDING / IN_PROGRESS / null) is treated as Failed.
+ * Cancelled bookings keep their own status.
+ */
+function isPaymentSuccess(b: any): boolean {
+  return String(b?.paymentStatus || '').toLowerCase().includes('success');
+}
+
 function getBookingStatus(b: any): { label: string; key: string; cls: string } {
   if (b.cancelled || b.refund)
     return { label: '✕ Cancelled', key: 'cancelled', cls: 'status-cancelled' };
-  if (b.paymentStatus === 'FAIL')
+  if (!isPaymentSuccess(b))
     return { label: '⚠ Failed', key: 'failed', cls: 'status-cancelled' };
-  if (b.paymentStatus === 'PENDING' || b.paymentStatus === 'IN_PROGRESS')
-    return { label: '⏳ Payment Pending', key: 'pending', cls: 'status-upcoming' };
   if (b.bookingDate && b.bookingDate < Date.now())
     return { label: '✔ Completed', key: 'completed', cls: 'status-completed' };
   return { label: '✅ Confirmed', key: 'confirmed', cls: 'status-confirmed' };
+}
+
+/**
+ * Returns true if the booking is within its 5-minute reverify window
+ * (measured from updatedDate for JKK, otherwise createdDate).
+ */
+function isWithinReverifyWindow(b: any): boolean {
+  if (isPaymentSuccess(b)) return false;
+  if (b?.cancelled || b?.refund) return false;
+  const isJkk = String(b?.placeName || '').toLowerCase().includes('jawahar');
+  const t = isJkk ? b?.updatedDate : b?.createdDate;
+  if (!t) return false;
+  const start = new Date(t).getTime();
+  const now = Date.now();
+  return now >= start && now <= start + 5 * 60 * 1000;
 }
 
 export default function MyBookingsPage() {
@@ -150,6 +173,25 @@ export default function MyBookingsPage() {
     webCheckIn.mutate({ ticketBookingId: String(b.id || b.bookingId) }, {
       onSuccess: (data: any) => { showSuccessToastMessage(data?.message || 'Web check-in successful'); refetchBookings(); },
       onError:   (err: any)  => showErrorToastMessage(err?.response?.data?.message || 'Check-in failed'),
+    });
+  }
+
+  // ─── Reverify mutation + 5-min countdown tick ─────────────────────────────
+  const reverifyMutation = BookingReverified();
+  // Force a re-render every 30s so the reverify button auto-hides at the 5-min mark.
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((n) => n + 1), 30000);
+    return () => clearInterval(id);
+  }, []);
+
+  function handleReverify(b: any) {
+    const id = String(b.bookingId || b.id);
+    reverifyMutation.mutate({ bookingId: id }, {
+      onSuccess: () => {
+        showSuccessToastMessage('Payment status refreshed');
+        refetchBookings();
+      },
     });
   }
 
@@ -1226,10 +1268,15 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                         <div className="booking-price-sub">Booked {formatDate(b.createdDate)}</div>
                       </div>
                       <div className="booking-actions">
-                        <button className="bc-btn bc-btn-primary" onClick={(e) => { e.stopPropagation(); openDrawer(b); }}>
-                          View Ticket
-                        </button>
-                        {!b.cancelled && !b.refund && status.key !== 'failed' && status.key !== 'pending' && (
+                        {/* View Ticket — only when payment succeeded */}
+                        {isPaymentSuccess(b) && !b.cancelled && !b.refund && (
+                          <button className="bc-btn bc-btn-primary" onClick={(e) => { e.stopPropagation(); openDrawer(b); }}>
+                            View Ticket
+                          </button>
+                        )}
+
+                        {/* Download — only when payment succeeded */}
+                        {isPaymentSuccess(b) && !b.cancelled && !b.refund && (
                           <button
                             className="bc-btn bc-btn-outline"
                             disabled={isGen}
@@ -1238,23 +1285,38 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                             {isGen ? '⏳ Generating...' : '📥 Download'}
                           </button>
                         )}
-                        {isCheckinEligible(b) && (
+
+                        {/* Reverify Payment — for non-success bookings, within 5-min window */}
+                        {!isPaymentSuccess(b) && !b.cancelled && !b.refund && isWithinReverifyWindow(b) && (
+                          <button
+                            className="bc-btn bc-btn-primary"
+                            disabled={reverifyMutation.isPending}
+                            onClick={(e) => { e.stopPropagation(); handleReverify(b); }}
+                          >
+                            {reverifyMutation.isPending ? '⏳ Verifying…' : '🔄 Re-verify Payment'}
+                          </button>
+                        )}
+
+                        {/* Web Check-in — only when payment succeeded */}
+                        {isPaymentSuccess(b) && isCheckinEligible(b) && (
                           <button
                             className="bc-btn bc-btn-outline"
                             style={{ background: '#E8F5E9', borderColor: '#4CAF50', color: '#2E7D32' }}
                             onClick={(e) => { e.stopPropagation(); handleWebCheckIn(b); }}
                           >✓ Web Check-in</button>
                         )}
-                        {b.checkedIn === 'Yes' && (
+                        {isPaymentSuccess(b) && b.checkedIn === 'Yes' && (
                           <span style={{ fontSize: 10, color: '#2E7D32', padding: '4px 8px', background: '#E8F5E9', borderRadius: 12 }}>
                             ✓ Checked In
                           </span>
                         )}
-                        {canCancel(b) && (
+
+                        {isPaymentSuccess(b) && canCancel(b) && (
                           <button className="bc-btn bc-btn-ghost" onClick={(e) => { e.stopPropagation(); handleCancelClick(b); }}>
                             Cancel
                           </button>
                         )}
+
                         <button
                           className="bc-btn bc-btn-ghost"
                           style={{ color: '#7A6A58' }}
@@ -1370,7 +1432,8 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                               ))}
                             </div>
                           </div>
-                          {(b.qrDetail || b.id) && status.key !== 'failed' && status.key !== 'cancelled' && (
+                          {/* QR Code — only when payment succeeded */}
+                          {isPaymentSuccess(b) && (b.qrDetail || b.id) && (
                             <div style={{ textAlign: 'center', padding: '14px 0', cursor: 'pointer' }} onClick={() => { setQrData(b.qrDetail || JSON.stringify({ type: 'BOOKING', data: { ticketBookingId: b.id || b.bookingId } })); setQrModalOpen(true); }}>
                               <div className="ticket-field-lbl">QR Code</div>
                               <div style={{ display: 'inline-block', padding: 10, background: '#fff', border: '1px solid #E8DAC5', borderRadius: 8, marginTop: 8 }}/>
@@ -1384,12 +1447,23 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                         </div>
                       </div>
                       <div className="drawer-actions">
-                        {!b.cancelled && !b.refund && status.key !== 'failed' && status.key !== 'pending' && (
+                        {/* Print / Download — only for successful payments */}
+                        {isPaymentSuccess(b) && !b.cancelled && !b.refund && (
                           <button className="btn-drawer btn-drawer-primary" disabled={isGen} onClick={() => handleDownloadTicket(b)}>
                             {isGen ? '⏳ Generating...' : '🖨 Print / Download Ticket'}
                           </button>
                         )}
-                        {isCheckinEligible(b) && (
+                        {/* Reverify Payment — for non-success bookings, within 5-min window */}
+                        {!isPaymentSuccess(b) && !b.cancelled && !b.refund && isWithinReverifyWindow(b) && (
+                          <button
+                            className="btn-drawer btn-drawer-primary"
+                            disabled={reverifyMutation.isPending}
+                            onClick={() => handleReverify(b)}
+                          >
+                            {reverifyMutation.isPending ? '⏳ Verifying…' : '🔄 Re-verify Payment'}
+                          </button>
+                        )}
+                        {isPaymentSuccess(b) && isCheckinEligible(b) && (
                           <button className="btn-drawer btn-drawer-outline" style={{ borderColor: '#2E7D32', color: '#2E7D32' }} onClick={() => handleWebCheckIn(b)}>
                             ✓ Web Check-in
                           </button>
@@ -1404,9 +1478,11 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                             JKK Status: {b.approved}
                           </div>
                         )}
-                        <button className="btn-drawer btn-drawer-outline" onClick={() => openShareModalForBooking(b)}>📤 Share Ticket</button>
+                        {isPaymentSuccess(b) && (
+                          <button className="btn-drawer btn-drawer-outline" onClick={() => openShareModalForBooking(b)}>📤 Share Ticket</button>
+                        )}
                         <button className="btn-drawer btn-drawer-outline" onClick={() => openRaiseIssue(b)}>🛟 Raise Issue</button>
-                        {canCancel(b) && <button className="btn-drawer btn-drawer-danger" onClick={() => handleCancelClick(b)}>✕ Cancel Booking</button>}
+                        {isPaymentSuccess(b) && canCancel(b) && <button className="btn-drawer btn-drawer-danger" onClick={() => handleCancelClick(b)}>✕ Cancel Booking</button>}
                       </div>
                     </div>
                   </div>
