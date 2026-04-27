@@ -23,7 +23,7 @@ const ExploreSeeAll = ({ cityData }: any) => {
         ? (rawUrl.startsWith('http')
           ? rawUrl
           : `${imgUrl}${rawUrl}`)
-        : 'https://images.unsplash.com/photo-1603262110263-fb0112e7cc33?w=600&auto=format&fit=crop&q=80';
+        : null;
 
       // Dummy data for missing fields to match premium UI reqs
       const regions = ['Eastern', 'Western', 'Northern', 'Southern', 'Central'];

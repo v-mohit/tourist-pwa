@@ -42,7 +42,7 @@ export default function PackagesSection({ data }: any) {
 
           const img = pkgAttr.image?.data?.attributes?.url
             ? `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL}${pkgAttr.image.data.attributes.url}`
-            : "https://images.unsplash.com/photo-1603262110263-fb0112e7cc33?w=600&auto=format&fit=crop&q=80";
+            : null;
           const placeId = pkgAttr.package_detail?.data?.id || "";
           const slug = pkgAttr.package_detail?.data?.attributes?.slug;
           const locationId = pkgAttr.package_detail?.data?.id;

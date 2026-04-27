@@ -88,7 +88,7 @@ const TouristAttraction: React.FC<TouristAttractionProps> = ({ data }) => {
     ? (headerRawUrl.startsWith('http')
       ? headerRawUrl
       : `${imgUrlBase}${headerRawUrl}`)
-    : 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=1200';
+    : null;
 
   // Filter places based on categoryId + search query
   const filteredPlaces = useMemo(() => {
@@ -184,7 +184,7 @@ const TouristAttraction: React.FC<TouristAttractionProps> = ({ data }) => {
               ? (placeRawUrl.startsWith('http')
                 ? placeRawUrl
                 : `${imgUrlBase}${placeRawUrl}`)
-              : 'https://images.unsplash.com/photo-1477587458883-47145ed31f5e?w=500';
+              : null;
 
             const cityName = attr.city?.data?.attributes?.name || "Rajasthan";
             const firstCat = attr.categories?.data?.[0]?.attributes?.Name || "Attraction";

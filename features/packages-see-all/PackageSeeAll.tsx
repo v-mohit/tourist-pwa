@@ -27,7 +27,7 @@ const PackageSeeAll = ({ packageData }: any) => {
         ? (rawImgUrl.startsWith('http')
           ? rawImgUrl
           : `${imgUrl}${rawImgUrl}`)
-        : 'https://images.unsplash.com/photo-1603262110263-fb0112e7cc33?w=600&auto=format&fit=crop&q=80';
+        : null;
 
       const city = pkgAttr.cityDetail?.data?.attributes?.name || 'Multiple Cities';
       const price = pkgAttr.price || 150;

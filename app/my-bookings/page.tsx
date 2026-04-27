@@ -232,7 +232,7 @@ export default function MyBookingsPage() {
       const resolved = buildBookingImageUrl(candidate);
       if (resolved) return resolved;
     }
-    return 'https://images.unsplash.com/photo-1477587458883-47145ed31f5e?w=800&auto=format&fit=crop&q=80';
+    return "";
   }
 
   // ─── PDF API fallback ──────────────────────────────────────────────────────
