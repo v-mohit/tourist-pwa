@@ -1,7 +1,10 @@
+"use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import BookNowButton from '@/features/booking/components/BookNowButton';
 
 export default function TopMonuments({ data }: any) {
+  const router = useRouter();
   const places = data?.category?.data?.attributes?.places?.data || [];
 
   return (
@@ -71,47 +74,51 @@ export default function TopMonuments({ data }: any) {
               className="mon-card relative group"
               style={{ display: "block" }}
             >
-              {/* Main clickable area linking to details */}
-              <Link
-                href={`/place-detail/${placeId}`}
-                className="absolute inset-0 z-0"
-                aria-label={`View details for ${name}`}
-              />
+              {/* Clickable area linking to details */}
+              <div 
+                className="cursor-pointer"
+                onClick={() => {
+                  if (placeId) {
+                    router.push(`/place-detail/${placeId}`);
+                  }
+                }}
+              >
+                {/* Image */}
+                <div className="mon-img">
+                  <div
+                    className="dimg"
+                    style={{ backgroundImage: `url('${img}')` }}
+                  />
+                  <div className="mon-img-grad" />
+                  <div className="mon-img-tag">
+                    <span className="tag tg" style={{ fontSize: 8 }}>
+                      🏆 Heritage
+                    </span>
+                  </div>
+                </div>
 
-              {/* Image */}
-              <div className="mon-img">
-                <div
-                  className="dimg"
-                  style={{ backgroundImage: `url('${img}')` }}
-                />
-                <div className="mon-img-grad" />
-                <div className="mon-img-tag">
-                  <span className="tag tg" style={{ fontSize: 8 }}>
-                    🏆 Heritage
-                  </span>
+                {/* Body */}
+                <div className="mon-body">
+                  <div className="mon-name">{name}</div>
+                  <div className="mon-loc">
+                    <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
+                    {loc}
+                  </div>
+
+                  {/* Static chips (since API doesn't provide) */}
+                  <div className="mon-chips">
+                    <span className="mon-chip">🏯 Monument</span>
+                    <span className="mon-chip">Historic</span>
+                  </div>
+
+                  <div className="mon-foot">
+                    <span className="mon-time">⏰ {time}</span>
+                    <span className="mon-fee">{fee}</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Body */}
-              <div className="mon-body relative z-10 pointer-events-none">
-                <div className="mon-name">{name}</div>
-                <div className="mon-loc">
-                  <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
-                  {loc}
-                </div>
-
-                {/* Static chips (since API doesn't provide) */}
-                <div className="mon-chips">
-                  <span className="mon-chip">🏯 Monument</span>
-                  <span className="mon-chip">Historic</span>
-                </div>
-
-                <div className="mon-foot">
-                  <span className="mon-time">⏰ {time}</span>
-                  <span className="mon-fee">{fee}</span>
-                </div>
-
-                <div className="pointer-events-auto">
+                <div className="pointer-events-auto px-4 pb-4">
                   {attr?.bookable !== false ? (
                     <BookNowButton
                       config={{
@@ -133,7 +140,6 @@ export default function TopMonuments({ data }: any) {
                   )}
                 </div>
               </div>
-            </div>
           );
         })}
       </div>

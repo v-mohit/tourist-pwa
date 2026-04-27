@@ -1,5 +1,7 @@
+"use client";
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import BookNowButton from "@/features/booking/components/BookNowButton";
 
 const fallbackData = [
@@ -30,6 +32,7 @@ const fallbackData = [
 ];
 
 const LightSoundShow = ({ data }: any) => {
+  const router = useRouter();
   const buildImageUrl = (rawUrl?: string) => {
     if (!rawUrl) return "";
     if (/^https?:\/\//i.test(rawUrl)) return rawUrl;
@@ -61,7 +64,7 @@ const LightSoundShow = ({ data }: any) => {
       </div>
 
       <div className="ls-grid rv in">
-        {places?.splice(0,2)?.map((item: any, index: number) => {
+        {places?.slice(0,2)?.map((item: any, index: number) => {
           // Handle API + fallback structure
           const attributes = item?.attributes || item;
 
@@ -120,41 +123,45 @@ const LightSoundShow = ({ data }: any) => {
 
           return (
             <div className="ls-card relative group" key={item?.id || index}>
-              {/* Main clickable area linking to details */}
-              <Link
-                href={`/place-detail/${slug}`}
-                className="absolute inset-0 z-0"
-                aria-label={`View details for ${name}`}
-              />
-
-              <div
-                className="dimg"
-                style={{
-                  backgroundImage: `url(${image})`,
+              {/* Clickable area linking to details */}
+              <div 
+                className="cursor-pointer"
+                onClick={() => {
+                  if (slug) {
+                    router.push(`/place-detail/${slug}`);
+                  }
                 }}
-              ></div>
+              >
+                <div
+                  className="dimg"
+                  style={{
+                    backgroundImage: `url(${image})`,
+                  }}
+                ></div>
 
-              <div className="ls-grad"></div>
+                <div className="ls-grad"></div>
 
-              <div className="ls-top relative z-10 pointer-events-none">
-                {/* <span className="tag to">✨ Light & Sound</span> */}
-                <span className={`tag ${isNew ? "tw" : "tg"}`}>
-                  {isNew ? "🌟" : "⭐"} {tag}
-                </span>
-              </div>
-
-              <div className="ls-body relative z-10 pointer-events-none">
-                <h3>{name}</h3>
-
-                <div className="ls-dets">
-                  <div className="ls-det">⏰ {time}</div>
-                  <div className="ls-det">🗣 {language}</div>
-                  <div className="ls-det">⏱ {duration}</div>
-                  {extraText ? <div className="ls-det">{extraWithIcon}</div> : null}
+                <div className="ls-top">
+                  <span className={`tag ${isNew ? "tw" : "tg"}`}>
+                    {isNew ? "🌟" : "⭐"} {tag}
+                  </span>
                 </div>
 
-                <p className="ls-desc">{desc}</p>
+                <div className="ls-body">
+                  <h3>{name}</h3>
 
+                  <div className="ls-dets">
+                    <div className="ls-det">⏰ {time}</div>
+                    <div className="ls-det">🗣 {language}</div>
+                    <div className="ls-det">⏱ {duration}</div>
+                    {extraText ? <div className="ls-det">{extraWithIcon}</div> : null}
+                  </div>
+
+                  <p className="ls-desc">{desc}</p>
+                </div>
+              </div>
+
+              <div className="px-4 pb-4">
                 {attributes?.bookable !== false ? (
                   <BookNowButton
                     config={{
@@ -164,11 +171,11 @@ const LightSoundShow = ({ data }: any) => {
                       locationId: item?.id,
                     }}
                     label="Book Seats →"
-                    className="btn-s pointer-events-auto"
+                    className="btn-s w-full justify-center"
                   />
                 ) : (
                   <button
-                    className="btn-s pointer-events-auto opacity-40 cursor-not-allowed"
+                    className="btn-s w-full justify-center opacity-40 cursor-not-allowed"
                     disabled
                   >
                     Booking Unavailable

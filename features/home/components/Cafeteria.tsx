@@ -1,5 +1,7 @@
+"use client";
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import BookNowButton from "@/features/booking/components/BookNowButton";
 
 const fallbackData = [
@@ -45,6 +47,7 @@ const fallbackData = [
 ];
 
 const Cafeteria = ({ data }: { data?: any }) => {
+  const router = useRouter();
   const buildImageUrl = (rawUrl?: string) => {
     if (!rawUrl) return "";
     if (/^https?:\/\//i.test(rawUrl)) return rawUrl;
@@ -122,37 +125,41 @@ const Cafeteria = ({ data }: { data?: any }) => {
               className="cafe-card relative group"
               style={{ display: "block" }}
             >
-              {/* Main clickable area linking to details */}
-              <Link
-                href={`/place-detail/${slug}`}
-                className="absolute inset-0 z-0"
-                aria-label={`View details for ${name}`}
-              />
+              {/* Clickable area linking to details */}
+              <div 
+                className="cursor-pointer"
+                onClick={() => {
+                  if (slug) {
+                    router.push(`/place-detail/${slug}`);
+                  }
+                }}
+              >
+                <div className="cafe-img">
+                  <div
+                    className="dimg"
+                    style={{ backgroundImage: `url('${image}')` }}
+                  />
+                  <div className="cafe-img-grad" />
+                  <div className="cafe-img-foot">
+                    <span className={`tag ${tagClass}`} style={{ fontSize: 9 }}>
+                      {tagText}
+                    </span>
+                  </div>
+                </div>
 
-              <div className="cafe-img">
-                <div
-                  className="dimg"
-                  style={{ backgroundImage: `url('${image}')` }}
-                />
-                <div className="cafe-img-grad" />
-                <div className="cafe-img-foot">
-                  <span className={`tag ${tagClass}`} style={{ fontSize: 9 }}>
-                    {tagText}
-                  </span>
+                <div className="cafe-body">
+                  <h4>{name}</h4>
+                  <p>{desc}</p>
+
+                  <div className="cafe-row">
+                    <span className="cafe-ri">
+                      <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
+                      {location}
+                    </span>
+                    <span className="cafe-ri">⭐ {fallback.rating}</span>
+                  </div>
                 </div>
               </div>
-
-              <div className="cafe-body relative z-10 pointer-events-none">
-                <h4>{name}</h4>
-                <p>{desc}</p>
-
-                <div className="cafe-row">
-                  <span className="cafe-ri">
-                    <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
-                    {location}
-                  </span>
-                  <span className="cafe-ri">⭐ {fallback.rating}</span>
-                </div>
 
                 <div className="cafe-foot">
                   <div>
@@ -169,7 +176,7 @@ const Cafeteria = ({ data }: { data?: any }) => {
                       ⏰ {time}
                     </div>
                   </div>
-                  <div className="pointer-events-auto">
+                  <div className="pointer-events-auto px-4 pb-4">
                     {attributes?.bookable !== false ? (
                       <BookNowButton
                         config={{
@@ -179,11 +186,11 @@ const Cafeteria = ({ data }: { data?: any }) => {
                           locationId: item?.id,
                         }}
                         label="Reserve →"
-                        className="btn-s"
+                        className="btn-s w-full justify-center"
                       />
                     ) : (
                       <button
-                        className="btn-s opacity-40 cursor-not-allowed"
+                        className="btn-s w-full justify-center opacity-40 cursor-not-allowed"
                         disabled
                       >
                         Booking Unavailable
@@ -192,7 +199,6 @@ const Cafeteria = ({ data }: { data?: any }) => {
                   </div>
                 </div>
               </div>
-            </div>
           );
         })}
       </div>
