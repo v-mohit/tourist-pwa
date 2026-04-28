@@ -6,16 +6,21 @@ import { useAuth } from '@/features/auth/context/AuthContext';
 import QRCode from 'qrcode-generator';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import {
-  GetBookingDetails,
   CancelBookingById,
   CheckRefundable,
   GetDownloadTicket,
   WebCheckIn,
   BookingReverified,
 } from '@/services/apiCalls/booking.services';
+import { ConfirmJkkBookingById } from '@/services/apiCalls/jkk.service';
+import { handlePaymentRedirect } from '@/features/booking/utils/payment';
 import { showErrorToastMessage, showSuccessToastMessage } from '@/utils/toast.utils';
 import moment from 'moment-timezone';
 import RaiseIssueModal from '@/features/booking/components/RaiseIssueModal';
+import { useMergedBookings } from '@/features/my-bookings/hooks/useMergedBookings';
+import { isAsiBooking, isIgprsBooking } from '@/features/my-bookings/utils/bookingTypes';
+import IgprsBookingCard from '@/features/my-bookings/components/IgprsBookingCard';
+import AsiBookingCard from '@/features/my-bookings/components/AsiBookingCard';
 
 type TabKey = 'all' | 'upcoming' | 'completed' | 'cancelled' | 'failed';
 type DateFilterType = 'Visit' | 'Current' | '';
@@ -47,7 +52,43 @@ function isPaymentSuccess(b: any): boolean {
   return String(b?.paymentStatus || '').toLowerCase().includes('success');
 }
 
+function isPaymentFailed(b: any): boolean {
+  return String(b?.paymentStatus || '').toLowerCase().includes('fail');
+}
+
+function isJkkBookingRow(b: any): boolean {
+  if (!b) return false;
+  if (b.bookingSource === 'jkk') return true;
+  return String(b?.placeName || '').toLowerCase().includes('jawahar');
+}
+
+/**
+ * JKK bookings show the admin-approval status (APPROVED / PENDING / REJECT)
+ * instead of the payment status — the approval is what the user is waiting on.
+ * Payment only happens after approval, so surfacing `paymentStatus=FAIL` on an
+ * unapproved application is misleading.
+ */
+function getJkkStatus(b: any): { label: string; key: string; cls: string } {
+  if (b.cancelled || b.refund)
+    return { label: '✕ Cancelled', key: 'cancelled', cls: 'status-cancelled' };
+  if (isPaymentFailed(b))
+    return { label: '⚠ Payment Failed', key: 'failed', cls: 'status-cancelled' };
+  const approved = String(b?.approved || '').toUpperCase();
+  if (approved === 'REJECT' || approved === 'REJECTED')
+    return { label: '✕ Rejected', key: 'rejected', cls: 'status-cancelled' };
+  if (approved === 'APPROVED') {
+    if (isPaymentSuccess(b)) {
+      if (b.bookingDate && b.bookingDate < Date.now())
+        return { label: '✔ Completed', key: 'completed', cls: 'status-completed' };
+      return { label: '✅ Approved & Paid', key: 'confirmed', cls: 'status-confirmed' };
+    }
+    return { label: '💳 Approved · Pay Now', key: 'approved', cls: 'status-confirmed' };
+  }
+  return { label: '⏳ Pending Approval', key: 'pending', cls: 'status-pending' };
+}
+
 function getBookingStatus(b: any): { label: string; key: string; cls: string } {
+  if (isJkkBookingRow(b)) return getJkkStatus(b);
   if (b.cancelled || b.refund)
     return { label: '✕ Cancelled', key: 'cancelled', cls: 'status-cancelled' };
   if (!isPaymentSuccess(b))
@@ -129,12 +170,11 @@ export default function MyBookingsPage() {
     return { ...base, isOld: false };
   }, [activeTab, searchTerm, user, appliedDateType, appliedStartDay, appliedEndDay]);
 
-  const { data: bookingResp, refetch: refetchBookings } = GetBookingDetails(queryParams);
-
-  const allBookings: any[] = useMemo(
-    () => bookingResp?.result?.ticketBookingDetailDtos ?? [],
-    [bookingResp],
-  );
+  const userId = (user as any)?.sub ?? (user as any)?.id ?? '';
+  const { bookings: allBookings, refetchAll: refetchBookings } = useMergedBookings({
+    ...queryParams,
+    userId,
+  });
 
   const filteredBookings = useMemo(() => {
     if (activeTab === 'cancelled') return allBookings.filter((b) => b.cancelled || b.refund);
@@ -195,8 +235,51 @@ export default function MyBookingsPage() {
     });
   }
 
+  // ─── JKK Make Payment (only for approved JKK bookings) ────────────────────
+  const confirmJkk = ConfirmJkkBookingById(
+    (res: any) => {
+      // Backend may return EMITRA params { ENCDATA, MERCHANTCODE, SERVICEID }
+      // OR a paymentUrl — handlePaymentRedirect handles both.
+      handlePaymentRedirect(res);
+    },
+    () => {},
+  );
+
+  function handleJkkMakePayment(b: any) {
+    const id = String(b.id || b.bookingId);
+    if (!id) { showErrorToastMessage('Booking ID is missing'); return; }
+    confirmJkk.mutate({ bookingId: id });
+  }
+
   // ─── Helpers ──────────────────────────────────────────────────────────────
   function isJkkBooking(b: any)    { return (b?.placeName || '').toLowerCase().includes('jawahar'); }
+  /**
+   * JKK "application" view / download buttons should appear on any JKK row that
+   * still represents a live application. Skip when the booking is:
+   *   - cancelled/refunded
+   *   - payment has failed (user needs to re-pay, not view a ticket)
+   *   - the admin has rejected the application
+   */
+  function canViewJkkApplication(b: any): boolean {
+    if (!isJkkBooking(b)) return false;
+    if (b.cancelled || b.refund) return false;
+    if (isPaymentFailed(b)) return false;
+    const approved = String(b.approved || '').toUpperCase();
+    if (approved === 'REJECT' || approved === 'REJECTED') return false;
+    return true;
+  }
+  /** Show "Make Payment" only for JKK bookings that admin has APPROVED and
+   *  haven't been paid yet (matches old project rj-tourism-fe). */
+  function canMakeJkkPayment(b: any): boolean {
+    if (!isJkkBooking(b)) return false;
+    if (b.cancelled || b.refund) return false;
+    const approved = String(b.approved || '').toLowerCase();
+    const pay     = String(b.paymentStatus || '').toLowerCase();
+    return approved.includes('approved')
+        && b.makePayment === false
+        && !pay.includes('success')
+        && !pay.includes('fail');
+  }
   function isInventoryType(b: any) { return Boolean(b?.zoneName || b.ticketUserDto?.[0]?.ticketUserDocs?.[0]?.documentNo); }
   function isCheckinEligible(b: any) { return !!b?.zoneName && b.checkedIn !== 'Yes' && !b.cancelled && !b.refund; }
   function canCancel(b: any) {
@@ -429,8 +512,174 @@ export default function MyBookingsPage() {
 
   // ─── Download router ───────────────────────────────────────────────────────
   async function dispatchTicketDownload(ticket: any) {
-    if (isInventoryType(ticket)) printInventoryTicket(ticket);
+    if (isJkkBooking(ticket)) printJkkApplication(ticket);
+    else if (isInventoryType(ticket)) printInventoryTicket(ticket);
     else printSandstoneImperialTicket(ticket);
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  //  JKK → Application form / Ticket print (matches old DownloadJkkUI layout)
+  // ══════════════════════════════════════════════════════════════════════════
+  function printJkkApplication(ticket: any) {
+    const w = window.open('', '_blank', 'width=900,height=1100');
+    if (!w) { showErrorToastMessage('Please allow popups to download the ticket'); return; }
+
+    const id            = String(ticket.bookingId || ticket.id || '');
+    const placeName     = ticket.placeDetailDto?.name || ticket.placeName || 'Jawahar Kala Kendra';
+    const district      = ticket.placeDetailDto?.districtName || 'Jaipur';
+    const categoryName  = ticket.categoryName  || ticket.jkkCategory?.name    || '—';
+    const subCategoryName = ticket.subCategoryName || ticket.jkkSubCategory?.name || '—';
+    const exhibitionName  = ticket.typeName || ticket.exhibitionType || '—';
+    const startDate     = ticket.bookingStartDate ? moment(ticket.bookingStartDate).format('DD MMM YYYY') : '';
+    const endDate       = ticket.bookingEndDate   ? moment(ticket.bookingEndDate).format('DD MMM YYYY')   : '';
+    const dateRange     = startDate === endDate ? startDate : `${startDate} → ${endDate}`;
+    const createdDate   = ticket.createdDate ? moment(ticket.createdDate).format('DD-MM-YYYY hh:mm A') : '';
+    const totalAmount   = ticket.totalAmount || 0;
+    const approved      = (ticket.approved || 'PENDING').toString().toUpperCase();
+    const paymentStatus = isPaymentSuccess(ticket) ? 'PAID' : 'PENDING';
+
+    const applicantName = ticket.applicantName || '—';
+    const mobileNo      = ticket.mobileNo || '—';
+    const email         = ticket.email || '—';
+    const address       = ticket.address || '—';
+    const sponsoredName = ticket.sponsoredName || '';
+    const gstNo         = ticket.gstNo || '';
+    const projector     = ticket.projector ? 'Yes' : 'No';
+    const ac            = ticket.ac ? 'Yes' : 'No';
+
+    const shifts = (ticket.jkkShiftList || ticket.shiftList || []).map((s: any) => s?.name || s).filter(Boolean).join(', ') || '—';
+
+    const program       = ticket.detailsOfProgram?.[0]?.description || '';
+    const previous      = ticket.previousDetails?.[0]?.description || '';
+    const guests        = ticket.guestDetails?.[0]?.description || '';
+    const organisation  = ticket.organizationDetails?.[0]?.description || '';
+
+    const bank          = ticket.jkkBankDetails || {};
+
+    const qrValue = ticket.qrDetail || JSON.stringify({ type: 'BOOKING', data: { ticketBookingId: ticket.id || ticket.bookingId } });
+    const { rects: qrRects, count: qrCount } = generateQrSvgRects(qrValue, 100);
+
+    const approvedColor = approved === 'APPROVED' ? '#2E7D32' : approved === 'REJECT' ? '#C62828' : '#F57F17';
+
+    const html = `<!DOCTYPE html><html><head><title>JKK ${approved === 'APPROVED' ? 'Ticket' : 'Application'} #${id}</title>
+      <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:Arial,sans-serif;background:#fff;color:#323232;padding:20px}
+        .wrap{width:1024px;max-width:100%;margin:0 auto}
+        .head{display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#ff016e 0%,#c2185b 100%);color:#fff;padding:18px 24px;border-radius:10px 10px 0 0}
+        .head .gov{font-size:11px;opacity:.85;letter-spacing:1px;text-transform:uppercase}
+        .head h1{font-size:22px;font-weight:700;margin-top:2px}
+        .head .qr{background:#fff;padding:6px;border-radius:6px;width:96px;height:96px;display:flex;align-items:center;justify-content:center}
+        .head .qr svg{width:100%;height:100%}
+        .body-c{background:#fff;border:2px solid #ff016e;border-top:none;border-radius:0 0 10px 10px;padding:20px}
+        .meta{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+        .meta .cell{padding:10px 12px;background:#fff5fa;border-radius:6px;border:1px solid #ffd6e6}
+        .meta .lbl{font-size:10px;color:#8a4a6a;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+        .meta .val{font-size:13px;font-weight:700;color:#323232}
+        .section{margin-top:18px}
+        .section h3{font-size:14px;font-weight:700;color:#ff016e;margin-bottom:10px;border-bottom:2px solid #ffd6e6;padding-bottom:6px}
+        .row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:8px}
+        .field{padding:8px 10px;background:#fafafa;border:1px solid #eee;border-radius:6px}
+        .field .lbl{font-size:10px;color:#7A6A58;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+        .field .val{font-size:12px;font-weight:600;color:#323232;word-break:break-word}
+        .total{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:#fff5fa;border:2px solid #ff016e;border-radius:8px;margin-top:18px}
+        .total .l{font-weight:700;color:#323232;font-size:14px}
+        .total .v{font-weight:700;color:#ff016e;font-size:20px}
+        .status-pill{display:inline-block;padding:4px 12px;border-radius:14px;font-size:11px;font-weight:700;letter-spacing:.5px}
+        .footer{text-align:center;font-size:10px;color:#7A6A58;margin-top:18px;padding-top:14px;border-top:1px dashed #ddd}
+        @media print{body{padding:0}}
+      </style></head>
+      <body>
+      <div class="wrap">
+        <div class="head">
+          <div>
+            <div class="gov">Government of Rajasthan · Department of Tourism</div>
+            <h1>${placeName}</h1>
+            <div style="font-size:11px;opacity:.85;margin-top:4px">${district} · Rajasthan</div>
+            <div style="margin-top:10px">
+              <span class="status-pill" style="background:rgba(255,255,255,.2);color:#fff">Application: ${approved}</span>
+              <span class="status-pill" style="background:rgba(255,255,255,.2);color:#fff;margin-left:6px">Payment: ${paymentStatus}</span>
+            </div>
+          </div>
+          <div class="qr">
+            <svg viewBox="0 0 ${qrCount} ${qrCount}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" shape-rendering="crispEdges">${qrRects}</svg>
+          </div>
+        </div>
+
+        <div class="body-c">
+          <div class="meta">
+            <div class="cell"><div class="lbl">Booking ID</div><div class="val">#${id}</div></div>
+            <div class="cell"><div class="lbl">Date Range</div><div class="val">${dateRange}</div></div>
+            <div class="cell"><div class="lbl">Booked On</div><div class="val">${createdDate}</div></div>
+          </div>
+
+          <div class="section">
+            <h3>Booking Details</h3>
+            <div class="row">
+              <div class="field"><div class="lbl">Booking Type</div><div class="val">${categoryName}</div></div>
+              <div class="field"><div class="lbl">Venue</div><div class="val">${subCategoryName}</div></div>
+            </div>
+            <div class="row">
+              <div class="field"><div class="lbl">Exhibition Type</div><div class="val">${exhibitionName}</div></div>
+              <div class="field"><div class="lbl">Shift</div><div class="val">${shifts}</div></div>
+            </div>
+            <div class="row">
+              <div class="field"><div class="lbl">Projector</div><div class="val">${projector}</div></div>
+              <div class="field"><div class="lbl">Air Conditioning</div><div class="val">${ac}</div></div>
+            </div>
+          </div>
+
+          <div class="section">
+            <h3>Applicant Details</h3>
+            <div class="row">
+              <div class="field"><div class="lbl">Name</div><div class="val">${applicantName}</div></div>
+              <div class="field"><div class="lbl">Mobile</div><div class="val">${mobileNo}</div></div>
+            </div>
+            <div class="row">
+              <div class="field"><div class="lbl">Email</div><div class="val">${email}</div></div>
+              <div class="field"><div class="lbl">GST</div><div class="val">${gstNo || '—'}</div></div>
+            </div>
+            <div class="field" style="margin-top:8px"><div class="lbl">Address</div><div class="val">${address}</div></div>
+            ${sponsoredName ? `<div class="field" style="margin-top:8px"><div class="lbl">Sponsored By</div><div class="val">${sponsoredName}</div></div>` : ''}
+          </div>
+
+          ${(program || previous || guests || organisation) ? `
+          <div class="section">
+            <h3>Programme &amp; Other Details</h3>
+            ${program      ? `<div class="field" style="margin-bottom:8px"><div class="lbl">Programme Details</div><div class="val">${program}</div></div>` : ''}
+            ${previous     ? `<div class="field" style="margin-bottom:8px"><div class="lbl">Previous Programme</div><div class="val">${previous}</div></div>` : ''}
+            ${guests       ? `<div class="field" style="margin-bottom:8px"><div class="lbl">Guest Details</div><div class="val">${guests}</div></div>` : ''}
+            ${organisation ? `<div class="field" style="margin-bottom:8px"><div class="lbl">Organisation</div><div class="val">${organisation}</div></div>` : ''}
+          </div>` : ''}
+
+          ${bank.bankName || bank.accountNumber ? `
+          <div class="section">
+            <h3>Bank / Refund Details</h3>
+            <div class="row">
+              <div class="field"><div class="lbl">Bank Name</div><div class="val">${bank.bankName || '—'}</div></div>
+              <div class="field"><div class="lbl">Account Holder</div><div class="val">${bank.accountHolderName || '—'}</div></div>
+            </div>
+            <div class="row">
+              <div class="field"><div class="lbl">Account No.</div><div class="val">${maskId(bank.accountNumber)}</div></div>
+              <div class="field"><div class="lbl">IFSC</div><div class="val">${bank.bankIfsc || bank.ifscCode || '—'}</div></div>
+            </div>
+          </div>` : ''}
+
+          <div class="total">
+            <span class="l">Total Amount${paymentStatus === 'PAID' ? ' Paid' : ' Payable'}</span>
+            <span class="v">₹${totalAmount}</span>
+          </div>
+
+          <div class="footer">
+            For queries: helpdesk.tourist@rajasthan.gov.in · 0141-2820384<br/>
+            Application Status: <strong style="color:${approvedColor}">${approved}</strong>
+          </div>
+        </div>
+      </div>
+      <script>setTimeout(() => window.print(), 800);</script>
+      </body></html>`;
+    w.document.write(html);
+    w.document.close();
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -1053,7 +1302,12 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
 
   // ─── Main download entry point ─────────────────────────────────────────────
   function handleDownloadTicket(b: any) {
-    if (isJkkBooking(b)) { void downloadJkkApplication(b); return; }
+    // JKK applications/tickets use the HTML-print flow (matches old project's
+    // DownloadJkkUI approach — no boarding-pass API call).
+    if (isJkkBooking(b)) {
+      printJkkApplication(b);
+      return;
+    }
     const bId = String(b.bookingId || b.id);
     setPdfGenerating(bId);
     if (Array.isArray(b.ticketUserDto)) {
@@ -1200,6 +1454,32 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                 </button>
               </div>
             ) : filteredBookings.map((b) => {
+              // IGPRS (guest house) and ASI (monument) bookings have bespoke
+              // layouts — delegate to dedicated card components. Everything
+              // else (regular + JKK) keeps using the inline card below.
+              if (isIgprsBooking(b)) {
+                return (
+                  <IgprsBookingCard
+                    key={`igprs-${b.id ?? b.bookingId}`}
+                    booking={b}
+                    onOpen={openDrawer}
+                    onRaiseIssue={openRaiseIssue}
+                  />
+                );
+              }
+              if (isAsiBooking(b)) {
+                return (
+                  <AsiBookingCard
+                    key={`asi-${b.id ?? b.bookingId}`}
+                    booking={b}
+                    onOpen={openDrawer}
+                    onRaiseIssue={openRaiseIssue}
+                    onDownload={handleDownloadTicket}
+                    pdfGenerating={pdfGenerating}
+                  />
+                );
+              }
+
               const status    = getBookingStatus(b);
               const placeName = b.placeName || b.placeDetailDto?.name || b.packageDto?.packageName || 'Booking';
               const district  = b.placeDetailDto?.districtName || '';
@@ -1268,21 +1548,21 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                         <div className="booking-price-sub">Booked {formatDate(b.createdDate)}</div>
                       </div>
                       <div className="booking-actions">
-                        {/* View Ticket — only when payment succeeded */}
-                        {isPaymentSuccess(b) && !b.cancelled && !b.refund && (
+                        {/* View Ticket — successful bookings, OR live JKK applications (not failed / not rejected) */}
+                        {((isPaymentSuccess(b) && !b.cancelled && !b.refund) || canViewJkkApplication(b)) && (
                           <button className="bc-btn bc-btn-primary" onClick={(e) => { e.stopPropagation(); openDrawer(b); }}>
-                            View Ticket
+                            {isJkkBooking(b) && !isPaymentSuccess(b) ? 'View Application' : 'View Ticket'}
                           </button>
                         )}
 
-                        {/* Download — only when payment succeeded */}
-                        {isPaymentSuccess(b) && !b.cancelled && !b.refund && (
+                        {/* Download — successful bookings, OR live JKK applications (not failed / not rejected) */}
+                        {((isPaymentSuccess(b) && !b.cancelled && !b.refund) || canViewJkkApplication(b)) && (
                           <button
                             className="bc-btn bc-btn-outline"
                             disabled={isGen}
                             onClick={(e) => { e.stopPropagation(); handleDownloadTicket(b); }}
                           >
-                            {isGen ? '⏳ Generating...' : '📥 Download'}
+                            {isGen ? '⏳ Generating...' : (isJkkBooking(b) && !isPaymentSuccess(b) ? '📥 Download Application' : '📥 Download')}
                           </button>
                         )}
 
@@ -1294,6 +1574,17 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                             onClick={(e) => { e.stopPropagation(); handleReverify(b); }}
                           >
                             {reverifyMutation.isPending ? '⏳ Verifying…' : '🔄 Re-verify Payment'}
+                          </button>
+                        )}
+
+                        {/* JKK Make Payment — only when APPROVED + payment not yet done */}
+                        {canMakeJkkPayment(b) && (
+                          <button
+                            className="bc-btn bc-btn-primary"
+                            disabled={confirmJkk.isPending}
+                            onClick={(e) => { e.stopPropagation(); handleJkkMakePayment(b); }}
+                          >
+                            {confirmJkk.isPending ? '⏳ Redirecting…' : '💳 Make Payment'}
                           </button>
                         )}
 
@@ -1447,10 +1738,10 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                         </div>
                       </div>
                       <div className="drawer-actions">
-                        {/* Print / Download — only for successful payments */}
-                        {isPaymentSuccess(b) && !b.cancelled && !b.refund && (
+                        {/* Print / Download — successful bookings, OR live JKK applications (not failed / not rejected) */}
+                        {((isPaymentSuccess(b) && !b.cancelled && !b.refund) || canViewJkkApplication(b)) && (
                           <button className="btn-drawer btn-drawer-primary" disabled={isGen} onClick={() => handleDownloadTicket(b)}>
-                            {isGen ? '⏳ Generating...' : '🖨 Print / Download Ticket'}
+                            {isGen ? '⏳ Generating...' : (isJkkBooking(b) && !isPaymentSuccess(b) ? '🖨 Print Application' : '🖨 Print / Download Ticket')}
                           </button>
                         )}
                         {/* Reverify Payment — for non-success bookings, within 5-min window */}
@@ -1468,8 +1759,15 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                             ✓ Web Check-in
                           </button>
                         )}
-                        {isJkkBooking(b) && b.makePayment && (
-                          <button className="btn-drawer btn-drawer-primary" onClick={() => showSuccessToastMessage('Redirecting to payment...')}>💳 Make Payment</button>
+                        {/* JKK Make Payment — only when APPROVED + payment not yet done */}
+                        {canMakeJkkPayment(b) && (
+                          <button
+                            className="btn-drawer btn-drawer-primary"
+                            disabled={confirmJkk.isPending}
+                            onClick={() => handleJkkMakePayment(b)}
+                          >
+                            {confirmJkk.isPending ? '⏳ Redirecting…' : '💳 Make Payment'}
+                          </button>
                         )}
                         {isJkkBooking(b) && b.approved && (
                           <div style={{ padding: '10px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600, textAlign: 'center',
