@@ -61,7 +61,7 @@ const MobileSection = () => {
           </div>
 
           <div className="flex flex-wrap gap-4 pt-6">
-            <a 
+            <a
               href={appleStoreLink}
               target="_blank"
               rel="noopener noreferrer"
@@ -73,7 +73,7 @@ const MobileSection = () => {
                 <span className="text-sm font-bold">App Store</span>
               </div>
             </a>
-            <a 
+            <a
               href={playStoreLink}
               target="_blank"
               rel="noopener noreferrer"
@@ -92,11 +92,11 @@ const MobileSection = () => {
         <div className="relative flex justify-center items-center">
           <div className="absolute w-[400px] h-[400px] bg-[#E8631A] opacity-5 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute w-[300px] h-[300px] bg-[#D4A017] opacity-5 rounded-full blur-3xl animate-pulse delay-700"></div>
-          
+
           {/* Phone Frame */}
           <div className="relative w-[280px] h-[560px] bg-[#18120E] rounded-[3rem] p-3 shadow-2xl border-4 border-[#2C2017]">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-[#18120E] rounded-b-2xl z-20"></div>
-            
+
             <div className="w-full h-full bg-white rounded-[2.5rem] overflow-hidden relative flex flex-col">
               {/* Status Bar */}
               <div className="px-6 py-4 flex justify-between items-center text-[10px] font-bold text-[#18120E]">
@@ -108,44 +108,68 @@ const MobileSection = () => {
               </div>
 
               {/* App Content */}
-               <div className="flex-1 overflow-y-auto [ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                 <div className="relative h-32 m-3 rounded-2xl overflow-hidden group">
-                  {/* <Image 
-                    src="https://images.unsplash.com/photo-1603262110263-fb0112e7cc33?w=400&auto=format&fit=crop&q=80" 
+              <div className="flex-1 overflow-y-auto [ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <div className="relative h-32 m-3 rounded-2xl overflow-hidden group">
+                  <Image
+                    src="/images/hawawebp.webp"
                     alt="Hawa Mahal"
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  /> */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
                   <div className="absolute bottom-3 left-4 text-white font-bold text-sm">Hawa Mahal</div>
                 </div>
 
                 <div className="px-4 py-2">
                   <div className="text-[10px] font-bold text-[#18120E] mb-3">Quick Book</div>
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-[#FDF8F1] rounded-xl p-2 border border-[#E8DAC5]">
+                    <div className="bg-white rounded-xl p-2 border border-[#E8DAC5] shadow-sm">
                       <div className="relative h-16 rounded-lg overflow-hidden mb-2">
-                        {/* <Image src="https://images.unsplash.com/photo-1477587458883-47145ed31f5e?w=200&auto=format&fit=crop&q=60" alt="Amber Fort" fill className="object-cover" /> */}
+                        <Image
+                          src="/images/amberWebp.webp"
+                          alt="Amber Fort"
+                          fill
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/20"></div>
                       </div>
-                      <div className="text-[9px] font-bold text-center">Amber Fort</div>
+                      <div className="text-[9px] font-bold text-center text-[#18120E]">Amber Fort</div>
                     </div>
-                    <div className="bg-[#FDF8F1] rounded-xl p-2 border border-[#E8DAC5]">
+                    <div className="bg-white rounded-xl p-2 border border-[#E8DAC5] shadow-sm">
                       <div className="relative h-16 rounded-lg overflow-hidden mb-2">
-                        {/* <Image src="https://images.unsplash.com/photo-1561731216-c3a4d99437d5?w=200&auto=format&fit=crop&q=60" alt="Safari" fill className="object-cover" /> */}
+                        <Image
+                          src="/images/tiger.webp"
+                          alt="Safari"
+                          fill
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/20"></div>
                       </div>
-                      <div className="text-[9px] font-bold text-center">Safari</div>
+                      <div className="text-[9px] font-bold text-center text-[#18120E]">Sariska Tiger Reserve</div>
                     </div>
-                    <div className="bg-[#FDF8F1] rounded-xl p-2 border border-[#E8DAC5]">
+                    <div className="bg-white rounded-xl p-2 border border-[#E8DAC5] shadow-sm">
                       <div className="relative h-16 rounded-lg overflow-hidden mb-2">
-                        {/* <Image src="https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=200&auto=format&fit=crop&q=60" alt="Mehrangarh" fill className="object-cover" /> */}
+                        <Image
+                          src="/images/hawawebp.webp"
+                          alt="Mehrangarh"
+                          fill
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/20"></div>
                       </div>
-                      <div className="text-[9px] font-bold text-center">Mehrangarh</div>
+                      <div className="text-[9px] font-bold text-center text-[#18120E]">Hawa Mahal</div>
                     </div>
-                    <div className="bg-[#FDF8F1] rounded-xl p-2 border border-[#E8DAC5]">
+                    <div className="bg-white rounded-xl p-2 border border-[#E8DAC5] shadow-sm">
                       <div className="relative h-16 rounded-lg overflow-hidden mb-2">
-                        {/* <Image src="https://images.unsplash.com/photo-1599661046289-e31897846e41?w=200&auto=format&fit=crop&q=60" alt="Udaipur" fill className="object-cover" /> */}
+                        <Image
+                          src="/images/lake-palace.webp"
+                          alt="Udaipur"
+                          fill
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/20"></div>
                       </div>
-                      <div className="text-[9px] font-bold text-center">Udaipur</div>
+                      <div className="text-[9px] font-bold text-center text-[#18120E]">Udaipur</div>
                     </div>
                   </div>
                 </div>

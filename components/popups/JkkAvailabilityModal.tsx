@@ -629,7 +629,7 @@ const AvailabilityModal: React.FC<AvailabilityModalProps> = ({
                     label: "Not Available",
                     dot: STATUS_CONFIG["Not Available"].dot,
                   },
-                  { label: "Past", dot: "#BDBDBD" },
+                 
                 ].map((l) => (
                   <div
                     key={l.label}
@@ -660,31 +660,6 @@ const AvailabilityModal: React.FC<AvailabilityModalProps> = ({
                     </span>
                   </div>
                 ))}
-                {/* Today indicator */}
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "5px" }}
-                >
-                  <span
-                    style={{
-                      width: "14px",
-                      height: "14px",
-                      borderRadius: "4px",
-                      border: "2px solid #E8631A",
-                      background: "transparent",
-                      flexShrink: 0,
-                      display: "inline-block",
-                    }}
-                  />
-                  <span
-                    style={{
-                      fontSize: "11px",
-                      color: "#7A6A58",
-                      fontWeight: 600,
-                    }}
-                  >
-                    Today
-                  </span>
-                </div>
               </div>
             </>
           )}

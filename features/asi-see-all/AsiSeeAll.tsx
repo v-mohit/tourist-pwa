@@ -46,7 +46,7 @@ const AsiSeeAll = ({ data }: any) => {
             const attr = place.attributes;
             const imageUrl = attr.images?.data?.[0]?.attributes?.url 
               ? `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL || ''}${attr.images.data[0].attributes.url}`
-              : 'https://images.unsplash.com/photo-1477587458883-47145ed31f5e?w=600&auto=format&fit=crop&q=80';
+              : null;
             
             const cityName = attr.city?.data?.attributes?.name || 'Rajasthan';
             

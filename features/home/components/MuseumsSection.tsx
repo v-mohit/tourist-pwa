@@ -1,7 +1,10 @@
+"use client";
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import BookNowButton from '@/features/booking/components/BookNowButton';
 
 export default function MuseumsSection({ data }: any) {
+  const router = useRouter();
   const places = data?.category?.data?.attributes?.places?.data || [];
 
   return (
@@ -66,54 +69,58 @@ export default function MuseumsSection({ data }: any) {
               className="mus-card relative group"
               style={{ display: 'block' }}
             >
-              {/* Main clickable area linking to details */}
-              <Link
-                href={`/place-detail/${placeId}`}
-                className="absolute inset-0 z-0"
-                aria-label={`View details for ${name}`}
-              />
+              {/* Clickable area linking to details */}
+              <div 
+                className="cursor-pointer"
+                onClick={() => {
+                  if (placeId) {
+                    router.push(`/place-detail/${placeId}`);
+                  }
+                }}
+              >
+                {/* Image */}
+                <div className="mus-img">
+                  <div
+                    className="dimg"
+                    style={{ backgroundImage: `url('${img}')` }}
+                  />
+                  <div className="mus-img-grad" />
 
-              {/* Image */}
-              <div className="mus-img">
-                <div
-                  className="dimg"
-                  style={{ backgroundImage: `url('${img}')` }}
-                />
-                <div className="mus-img-grad" />
+                  {/* Static tag + estd fallback */}
+                  <div className="mus-img-foot">
+                    <span className="tag tg" style={{ fontSize: 9 }}>
+                      🏛 Museum
+                    </span>
+                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,.7)' }}>
+                      Est. —
+                    </span>
+                  </div>
+                </div>
 
-                {/* Static tag + estd fallback */}
-                <div className="mus-img-foot">
-                  <span className="tag tg" style={{ fontSize: 9 }}>
-                    🏛 Museum
-                  </span>
-                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,.7)' }}>
-                    Est. —
-                  </span>
+                {/* Body */}
+                <div className="mus-body">
+                  <h4>{name}</h4>
+
+                  {/* Fallback description */}
+                  <p>
+                    Explore historical artifacts and cultural exhibits from {city}.
+                  </p>
+
+                  {/* Static tags */}
+                  <div className="mus-tags">
+                    <span className="mus-tag">🏺 History</span>
+                    <span className="mus-tag">🎨 Art</span>
+                    <span className="mus-tag">📜 Culture</span>
+                  </div>
+
+                  <div className="mus-foot">
+                    <span className="mus-time">⏰ {time}</span>
+                    <span className="mus-fee">{fee}</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Body */}
-              <div className="mus-body relative z-10 pointer-events-none">
-                <h4>{name}</h4>
-
-                {/* Fallback description */}
-                <p>
-                  Explore historical artifacts and cultural exhibits from {city}.
-                </p>
-
-                {/* Static tags */}
-                <div className="mus-tags">
-                  <span className="mus-tag">🏺 History</span>
-                  <span className="mus-tag">🎨 Art</span>
-                  <span className="mus-tag">📜 Culture</span>
-                </div>
-
-                <div className="mus-foot">
-                  <span className="mus-time">⏰ {time}</span>
-                  <span className="mus-fee">{fee}</span>
-                </div>
-
-                <div className="pointer-events-auto">
+                <div className="pointer-events-auto px-4 pb-4">
                   {attr?.bookable !== false ? (
                     <BookNowButton
                       config={{
@@ -135,7 +142,6 @@ export default function MuseumsSection({ data }: any) {
                   )}
                 </div>
               </div>
-            </div>
           );
         })}
       </div>

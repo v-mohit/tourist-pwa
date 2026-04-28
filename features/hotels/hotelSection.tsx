@@ -4,63 +4,63 @@ const HotelSection = () => {
   const hotels = [
     {
       id: 1,
-      name: "Hotel Khasa Kothi",
+      name: "Hotel Khasa Khoti",
       loc: "Jaipur — Near Railway Station",
       price: "₹2,200",
       star: "4.1",
-      tags: ["Heritage Property", "3 Star"],
+      tags: ["Heritage Property", "4 Star"],
       amenities: ["Restaurant", "Pool", "Wi-Fi"],
-      img: "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=700&auto=format&fit=crop&q=80"
+      img: "/images/KhasaKoti.webp"
     },
     {
       id: 2,
-      name: "Hotel Gajner Palace",
-      loc: "Bikaner — Gajner Lake",
+      name: "Hotel Anand Bhawan",
+      loc: "Udaipur — Near Lake",
       price: "₹4,500",
       star: "4.4",
       tags: ["Palace Hotel", "4 Star", "Lakeside"],
       amenities: ["Restaurant", "Boating", "Room Service"],
-      img: "https://images.unsplash.com/photo-1599661046289-e31897846e41?w=700&auto=format&fit=crop&q=80"
+      img: "/images/AnandBhawan.webp"
     },
     {
       id: 3,
-      name: "Moomal Tourist Bungalow",
-      loc: "Jaisalmer — Near Fort",
+      name: "Hotel Gavdi Talab",
+      loc: "Jhalawar",
       price: "₹1,400",
       star: "3.9",
       tags: ["Desert Stay", "Budget"],
       amenities: ["Cafeteria", "Wi-Fi", "Parking"],
-      img: "https://images.unsplash.com/photo-1610236025-94f824d40652?w=700&auto=format&fit=crop&q=80"
+      img: "/images/gavdiTalab.webp"
     },
     {
       id: 4,
-      name: "Hotel Kajri",
-      loc: "Jodhpur — City Centre",
+      name: "Hotel Teej",
+      loc: "Jaipur — City Centre",
       price: "₹2,800",
       star: "4.0",
       tags: ["Government Hotel", "3 Star"],
       amenities: ["Restaurant", "Wi-Fi", "Gym"],
-      img: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=700&auto=format&fit=crop&q=80"
+      img: "/images/hotel-teej.webp"
     },
     {
       id: 5,
       name: "Hotel Lake Palace",
-      loc: "Alwar — Siliserh Lake",
+      loc: "Alwar-siliserh",
       price: "₹3,600",
       star: "4.3",
       tags: ["Lakeside Palace", "Heritage"],
       amenities: ["Fine Dining", "Boating", "Lake View"],
-      img: "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=700&auto=format&fit=crop&q=80"
+      img: "/images/lake-palace.webp"
     },
     {
       id: 6,
-      name: "Hotel Swagat",
-      loc: "Udaipur — Near City Palace",
+      name: "Hotel Jhoomar Baori",
+      loc: "Sawai Madhopur",
       price: "₹1,800",
       star: "3.8",
       tags: ["Government Hotel", "Budget"],
       amenities: ["Restaurant", "Wi-Fi", "City View"],
-      img: "https://images.unsplash.com/photo-1594822971994-28bb761c3ef9?w=700&auto=format&fit=crop&q=80"
+      img: "/images/JhoomarBaori.webp"
     }
   ];
 

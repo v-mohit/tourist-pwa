@@ -20,6 +20,7 @@ query FetchCityDetails($slug: String) {
                   id
                   attributes {
                     name
+                    bookable
                     categories {
                       data {
                         attributes {

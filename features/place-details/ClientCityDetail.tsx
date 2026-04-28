@@ -10,6 +10,7 @@ import { useAuth } from "@/features/auth/context/AuthContext";
 import type { PlaceBookingConfig } from "@/features/booking/types/booking.types";
 import CategoryWiseGalleryNew from "@/components/ui/CategoryWiseGalleryNew";
 import ReactMarkdown from "react-markdown";
+import Link from "next/link";
 
 // ---------------- TAB CONFIG ----------------
 const TAB_CONFIG: Record<
@@ -70,7 +71,9 @@ function PlaceDetailContent({
   contentData,
   placeEntityId,
   placeCategories,
+  slug,
 }: {
+  slug: string;
   placeData: any;
   contentData: any;
   placeEntityId?: string;
@@ -91,7 +94,7 @@ function PlaceDetailContent({
     }[];
   }[];
 }) {
-  console.log("placeCategories---", placeCategories);
+  console.log("placeCategories---", slug);
 
   const router = useRouter();
 
@@ -200,12 +203,24 @@ function PlaceDetailContent({
 
   // ---------------- UI ----------------
   return (
-     <div className="pd-panel" style={{ position: 'relative', minHeight: '100vh' }}>
-      <button 
+    <div
+      className="pd-panel"
+      style={{ position: "relative", minHeight: "100vh" }}
+    >
+      <button
         type="button"
-        onClick={() => (window.history.length > 1 ? router.back() : router.push('/'))} 
+        onClick={() =>
+          window.history.length > 1 ? router.back() : router.push("/")
+        }
         className="see-all-back"
-        style={{ cursor: 'pointer', background: 'none', border: 'none', borderBottom: '1px solid currentColor', paddingLeft: '5px', paddingBottom: '2px' }}
+        style={{
+          cursor: "pointer",
+          background: "none",
+          border: "none",
+          borderBottom: "1px solid currentColor",
+          paddingLeft: "5px",
+          paddingBottom: "2px",
+        }}
       >
         ← Back
       </button>
@@ -261,6 +276,7 @@ function PlaceDetailContent({
           {/* Tab Content */}
           {tabs.map((tab: any) => {
             if (currentTabKey !== tab.key) return null;
+            console.log("tabs----", tabs);
 
             switch (tab.key) {
               case "overview":
@@ -289,6 +305,41 @@ function PlaceDetailContent({
                 );
 
               case "prices":
+                if (isJawahar) {
+                  return (
+                    <div key={tab.key}>
+                      <CategoryWiseGalleryNew
+                        placeName={name}
+                        bookNowClick={(payload) => {
+                          const openModal = () =>
+                            openBookingModal({
+                              placeId: (obmsPlaceId ?? locationId)!,
+                              placeName: name,
+                              category: bookingCategory,
+                              locationId: locationId ?? undefined,
+                              preferredVenueName: payload.venueName,
+                              preferredCategory: payload.category,
+                              preferredSubCategory: payload.subCategory,
+                            });
+                          if (!user) {
+                            setPostLoginAction(() => openModal());
+                            openLoginModal();
+                            return;
+                          }
+                          openModal();
+                        }}
+                        disclaimerOpen={false}
+                        data={
+                          Array.isArray(placeCategories) ? placeCategories : []
+                        }
+                        prices={prices}
+                        placeCategory={bookingCategory}
+                        isbookingData={!!locationId}
+                        obmsId={obmsPlaceId as any}
+                      />
+                    </div>
+                  );
+                }
                 return (
                   <div key={tab.key} className="pd-price-table">
                     {tab.content?.card?.[0]?.content?.map(
@@ -305,11 +356,15 @@ function PlaceDetailContent({
               case "exhibits":
                 return (
                   <div key={tab.key} className="pd-exhibit-list">
-                    {tab.content?.card?.map((exhibit: any, i: number) => (
-                      <div key={i} className="pd-exhibit-item">
-                        <h4 className="pd-exhibit-title">{exhibit.name}</h4>
-                        <p className="pd-exhibit-desc">{exhibit.value}</p>
-                      </div>
+                    {tab.content?.exhibit?.map((exhibit: any, i: number) => (
+                      <Link
+                        key={i}
+                        href={`/place-detail/${slug}/exhibits/${exhibit.slug}`}
+                        className="pd-exhibit-item"
+                      >
+                        <span className="pd-exhibit-name">{exhibit.name}</span>
+                        <span className="pd-exhibit-arrow">›</span>
+                      </Link>
                     ))}
                   </div>
                 );
@@ -333,15 +388,16 @@ function PlaceDetailContent({
                       <CategoryWiseGalleryNew
                         placeName={name}
                         bookNowClick={(payload) => {
-                          const openModal = () => openBookingModal({
-                            placeId: (obmsPlaceId ?? locationId)!,
-                            placeName: name,
-                            category: bookingCategory,
-                            locationId: locationId ?? undefined,
-                            preferredVenueName: payload.venueName,
-                            preferredCategory: payload.category,
-                            preferredSubCategory: payload.subCategory,
-                          });
+                          const openModal = () =>
+                            openBookingModal({
+                              placeId: (obmsPlaceId ?? locationId)!,
+                              placeName: name,
+                              category: bookingCategory,
+                              locationId: locationId ?? undefined,
+                              preferredVenueName: payload.venueName,
+                              preferredCategory: payload.category,
+                              preferredSubCategory: payload.subCategory,
+                            });
                           if (!user) {
                             setPostLoginAction(() => openModal());
                             openLoginModal();
@@ -490,7 +546,7 @@ function PlaceDetailContent({
   );
 }
 
-export default function PlaceDetailPage({ data }: { data: any }) {
+export default function PlaceDetailPage({ data, slug }: { data: any; slug: string }) {
   const attributes = data?.placeDetails?.data?.[0]?.attributes;
   const placeFromApi = attributes?.place?.data?.attributes;
   const contentFromApi = attributes?.content;
@@ -500,6 +556,7 @@ export default function PlaceDetailPage({ data }: { data: any }) {
   return (
     <Suspense fallback={<div className="p-10 text-center">Loading...</div>}>
       <PlaceDetailContent
+        slug={slug}
         placeData={placeFromApi}
         contentData={contentFromApi}
         placeEntityId={placeEntityId}

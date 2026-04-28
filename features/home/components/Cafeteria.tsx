@@ -1,50 +1,11 @@
+"use client";
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import BookNowButton from "@/features/booking/components/BookNowButton";
 
-const fallbackData = [
-  {
-    id: 1,
-    name: "RTDC Durg Cafeteria Padao",
-    image:
-      "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop&q=80",
-    tag: "🏯 Fort View",
-    desc: "Scenic hilltop dining at Nahargarh with panoramic Jaipur city views.",
-    location: "Nahargarh Fort",
-    rating: "4.2",
-    price: "₹200–400",
-    per: "/ meal",
-    time: "9AM–10PM",
-  },
-  {
-    id: 2,
-    name: "Masala Chowk (JDA)",
-    image:
-      "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&auto=format&fit=crop&q=80",
-    tag: "🍛 Street Food",
-    desc: "Vibrant open-air food court with Rajasthani street food and live cooking.",
-    location: "Jaipur",
-    rating: "4.5",
-    price: "₹100–250",
-    per: "/ meal",
-    time: "11AM–11PM",
-  },
-  {
-    id: 3,
-    name: "RTDC Lake Palace, Siliserh",
-    image:
-      "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&auto=format&fit=crop&q=80",
-    tag: "🌊 Lakeside",
-    desc: "Fine lakeside dining at Alwar's serene 19th-century palace setting.",
-    location: "Alwar",
-    rating: "4.3",
-    price: "₹400–800",
-    per: "/ meal",
-    time: "8AM–9PM",
-  },
-];
-
 const Cafeteria = ({ data }: { data?: any }) => {
+  const router = useRouter();
   const buildImageUrl = (rawUrl?: string) => {
     if (!rawUrl) return "";
     if (/^https?:\/\//i.test(rawUrl)) return rawUrl;
@@ -52,10 +13,9 @@ const Cafeteria = ({ data }: { data?: any }) => {
     return `${base}${rawUrl}`;
   };
 
-  const places =
-    data?.category?.data?.attributes?.places?.data?.length > 0
-      ? data.category.data.attributes.places.data
-      : fallbackData;
+  const places = data?.category?.data?.attributes?.places?.data || [];
+
+  if (places.length === 0) return null;
 
   return (
     <section className="sec" id="cafeteria">
@@ -77,32 +37,26 @@ const Cafeteria = ({ data }: { data?: any }) => {
       <div className="cafe-grid rv in">
         {places.map((item: any, index: number) => {
           const attributes = item?.attributes || item;
-          const fallback = fallbackData[index % fallbackData.length];
 
-          const name = attributes?.name || fallback.name;
-          const rawImage =
-            attributes?.images?.data?.[0]?.attributes?.url ||
-            attributes?.image ||
-            fallback.image;
+          const name = attributes?.name || "Cafeteria";
+          const rawImage = attributes?.images?.data?.[0]?.attributes?.url || "";
           const image = buildImageUrl(rawImage);
 
-          const cityName =
-            attributes?.city?.data?.attributes?.name || attributes?.location || "";
+          const cityName = attributes?.city?.data?.attributes?.name || "Rajasthan";
 
-          const placeDetails =
-            attributes?.placeDetail?.data?.attributes?.content || [];
+          const placeDetails = attributes?.placeDetail?.data?.attributes?.content || [];
           const ticketData = placeDetails.find(
             (x: any) => x.__typename === "ComponentPlaceDetailPlacetickets",
           );
           const info = ticketData?.information || [];
 
-          const desc = info?.[0]?.description || attributes?.desc || fallback.desc;
-          const location = cityName || fallback.location;
+          const desc = info?.[0]?.description || attributes?.description || "Experience local flavors and stunning views.";
+          const location = cityName;
 
-          const price = info?.[1]?.description || fallback.price;
-          const time = info?.[2]?.description || fallback.time;
+          const price = info?.[1]?.description || "₹200–500";
+          const time = info?.[2]?.description || "10AM–10PM";
 
-          const tagText = attributes?.tag || fallback.tag;
+          const tagText = attributes?.tag || "Dining";
           const tagClass =
             typeof tagText === "string" && tagText.includes("Street")
               ? "tg"
@@ -122,42 +76,46 @@ const Cafeteria = ({ data }: { data?: any }) => {
               className="cafe-card relative group"
               style={{ display: "block" }}
             >
-              {/* Main clickable area linking to details */}
-              <Link
-                href={`/place-detail/${slug}`}
-                className="absolute inset-0 z-0"
-                aria-label={`View details for ${name}`}
-              />
+              {/* Clickable area linking to details */}
+              <div 
+                className="cursor-pointer"
+                onClick={() => {
+                  if (slug) {
+                    router.push(`/place-detail/${slug}`);
+                  }
+                }}
+              >
+                <div className="cafe-img">
+                  <div
+                    className="dimg"
+                    style={{ backgroundImage: `url('${image}')` }}
+                  />
+                  <div className="cafe-img-grad" />
+                  <div className="cafe-img-foot">
+                    <span className={`tag ${tagClass}`} style={{ fontSize: 9 }}>
+                      {tagText}
+                    </span>
+                  </div>
+                </div>
 
-              <div className="cafe-img">
-                <div
-                  className="dimg"
-                  style={{ backgroundImage: `url('${image}')` }}
-                />
-                <div className="cafe-img-grad" />
-                <div className="cafe-img-foot">
-                  <span className={`tag ${tagClass}`} style={{ fontSize: 9 }}>
-                    {tagText}
-                  </span>
+                <div className="cafe-body">
+                  <h4>{name}</h4>
+                  <p>{desc}</p>
+
+                  <div className="cafe-row">
+                    <span className="cafe-ri">
+                      <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
+                      {location}
+                    </span>
+                    <span className="cafe-ri">⭐ 4.5</span>
+                  </div>
                 </div>
               </div>
-
-              <div className="cafe-body relative z-10 pointer-events-none">
-                <h4>{name}</h4>
-                <p>{desc}</p>
-
-                <div className="cafe-row">
-                  <span className="cafe-ri">
-                    <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
-                    {location}
-                  </span>
-                  <span className="cafe-ri">⭐ {fallback.rating}</span>
-                </div>
 
                 <div className="cafe-foot">
                   <div>
                     <div className="cafe-price">
-                      {price} <span>{fallback.per}</span>
+                      {price} <span>/ meal</span>
                     </div>
                     <div
                       style={{
@@ -169,7 +127,7 @@ const Cafeteria = ({ data }: { data?: any }) => {
                       ⏰ {time}
                     </div>
                   </div>
-                  <div className="pointer-events-auto">
+                  <div className="pointer-events-auto px-4 pb-4">
                     {attributes?.bookable !== false ? (
                       <BookNowButton
                         config={{
@@ -179,11 +137,11 @@ const Cafeteria = ({ data }: { data?: any }) => {
                           locationId: item?.id,
                         }}
                         label="Reserve →"
-                        className="btn-s"
+                        className="btn-s w-full justify-center"
                       />
                     ) : (
                       <button
-                        className="btn-s opacity-40 cursor-not-allowed"
+                        className="btn-s w-full justify-center opacity-40 cursor-not-allowed"
                         disabled
                       >
                         Booking Unavailable
@@ -192,7 +150,6 @@ const Cafeteria = ({ data }: { data?: any }) => {
                   </div>
                 </div>
               </div>
-            </div>
           );
         })}
       </div>

@@ -1,6 +1,16 @@
 "use client";
 import React from "react";
-import { Dialog } from "@mui/material";
+import { Dialog, Slide } from "@mui/material";
+import { TransitionProps } from "@mui/material/transitions";
+
+const Transition = React.forwardRef(function Transition(
+  props: TransitionProps & {
+    children: React.ReactElement<any, any>;
+  },
+  ref: React.Ref<unknown>
+) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 
 interface SosPopupProps {
   isOpen: boolean;
@@ -25,29 +35,26 @@ const SosPopup: React.FC<SosPopupProps> = ({ isOpen, setIsOpen }) => {
     <Dialog
       open={isOpen}
       onClose={closePopup}
+      TransitionComponent={Transition}
+      keepMounted
       PaperProps={{
-        style: {
-          width: "300px",
-          margin: "auto",
-          borderRadius: "16px",
-          padding: "16px",
-        },
+        className: "sos-paper",
       }}
     >
-      <div className="flex flex-col gap-3">
-        <h3 className="text-center font-bold text-lg text-[#DC2626] mb-2">Emergency Contacts</h3>
+      <div className="sos-btn-list">
         {emergencyNumbers.map((item) => (
           <a
             key={item.number}
             href={`tel:${item.number}`}
             className="sos-emergency-btn"
           >
-            {item.label}: {item.number}
+            {item.label} - {item.number}
           </a>
         ))}
+
         <button
           onClick={closePopup}
-          className="sos-close-btn"
+          className="sos-modal-close-btn"
         >
           Close
         </button>

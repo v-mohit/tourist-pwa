@@ -32,7 +32,7 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
   const description = city.description || 'Welcome to one of the most vibrant cities in Rajasthan.';
   const mainImage = city.image?.data?.attributes?.url
     ? `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL}${city.image.data.attributes.url}`
-    : 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=1200&auto=format&fit=crop&q=85';
+    : null;
 
   const places = city.places?.data || [];
 
@@ -196,7 +196,7 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
             const attr = place.attributes;
             const placeImg = attr.images?.data?.[0]?.attributes?.url
               ? `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL}${attr.images.data[0].attributes.url}`
-              : 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=400&auto=format&fit=crop&q=80';
+              : null;
 
             const category = attr.categories?.data?.[0]?.attributes?.Name || 'Attraction';
             const slug = attr.placeDetail?.data?.attributes?.slug;
@@ -260,21 +260,31 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
                     <span className="cc-pc-fee">
                       {formattedPrice ? `Starting from ₹${formattedPrice}` : 'Click on book now'}
                     </span>
-                    {slug ? (
-                      <BookNowButton
-                        config={{
-                          placeId: attr.obmsId ?? place.id,
-                          placeName: attr.name,
-                          category: 'inventory',
-                          locationId: place.id,
-                        }}
-                        label="Book →"
-                        className="cc-pc-btn"
-                      />
+                    {attr?.bookable !== false ? (
+                      slug ? (
+                        <BookNowButton
+                          config={{
+                            placeId: attr.obmsId ?? place.id,
+                            placeName: attr.name,
+                            category: "inventory",
+                            locationId: place.id,
+                          }}
+                          label="Book →"
+                          className="cc-pc-btn"
+                        />
+                      ) : (
+                        <span className="cc-pc-btn opacity-50 cursor-not-allowed">
+                          No Details
+                        </span>
+                      )
                     ) : (
-                      <span className="cc-pc-btn opacity-50 cursor-not-allowed">
-                        No Details
-                      </span>
+                      <button
+                        className="cc-pc-btn opacity-40 cursor-not-allowed"
+                        style={{ fontSize: "9px" }}
+                        disabled
+                      >
+                        Booking Unavailable
+                      </button>
                     )}
                   </div>
                 </div>

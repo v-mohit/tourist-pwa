@@ -315,7 +315,7 @@ export default function MyBookingsPage() {
       const resolved = buildBookingImageUrl(candidate);
       if (resolved) return resolved;
     }
-    return 'https://images.unsplash.com/photo-1477587458883-47145ed31f5e?w=800&auto=format&fit=crop&q=80';
+    return "";
   }
 
   // ─── PDF API fallback ──────────────────────────────────────────────────────
@@ -1382,7 +1382,7 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                 <h1>My Bookings</h1>
                 <p>View and manage all your ticket reservations across Rajasthan</p>
               </div>
-              <div className="header-actions">
+              <div  style={{marginTop: '16px'}} className="header-actions">
                 <div className="filter-bar">
                   <div className="search-input-wrap">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

@@ -122,7 +122,7 @@ const JkkSection = ({
 
             const image =
               attr?.eventPhoto?.data?.attributes?.url ||
-              "https://images.unsplash.com/photo-1515169067865-5387ec356754";
+              null;
 
             return (
               <div

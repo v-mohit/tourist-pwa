@@ -8285,3 +8285,77 @@ tourist stats style
 @media (max-width: 600px) {
   .pkg-v2-grid { grid-template-columns: 1fr; }
 }
+
+/* ─── exhibit ─── */
+/* Container becomes grid */
+.pd-exhibit-list {
+  display: grid;
+  grid-template-columns: 1fr; /* mobile: 1 per row */
+  gap: 16px;
+}
+
+/* Tablet */
+@media (min-width: 640px) {
+  .pd-exhibit-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .pd-exhibit-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Card style */
+.pd-exhibit-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #eef1f6;
+  padding: 16px 18px;
+  border-radius: 14px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.pd-exhibit-item:hover {
+  background: #e2e7ef;
+}
+
+.pd-exhibit-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.pd-exhibit-arrow {
+  font-size: 18px;
+  color: #6b7280;
+}
+
+/* --- SOS POPUP --- */
+.sos-paper {
+  @apply !w-[320px] !m-auto !rounded-xl !p-5 !bg-white !shadow-2xl;
+}
+
+.sos-btn-list {
+  @apply flex flex-col gap-3;
+}
+
+.sos-emergency-btn {
+  @apply flex items-center justify-center w-full py-3.5 text-white font-semibold rounded-[14px] transition-all active:scale-[0.97] no-underline shadow-md;
+  background: linear-gradient(135deg, #E8631A 0%, #C04E0A 100%);
+  font-size: 15px;
+  letter-spacing: 0.5px;
+}
+
+.sos-emergency-btn:hover {
+  @apply brightness-110;
+}
+
+.sos-modal-close-btn {
+  @apply w-full py-3.5 bg-[#2D2114] text-white font-medium rounded-[14px] transition-all active:scale-[0.97] mt-1 shadow-sm hover:bg-black;
+  font-size: 15px;
+}
