@@ -7,6 +7,7 @@ import { useCreateBooking, useConfirmBooking, useCreatePackageBooking, useTicket
 import { formatRupees, handlePaymentRedirect } from '../../utils/payment';
 import { showErrorToastMessage, showSuccessToastMessage } from '@/utils/toast.utils';
 import { getIpAddress } from '@/utils/common.utils';
+import Link from 'next/link';
 
 interface Props {
   state: BookingState;
@@ -477,9 +478,9 @@ export default function ReviewPayStep({ state, onBack }: Props) {
         />
         <span className="text-xs text-[#7A6A58] leading-relaxed">
           I agree to the{' '}
-          <a href="#" target="_blank" className="text-[#E8631A] underline" rel="noopener noreferrer">
+          <Link href={`/terms-conditions/${config.placeName}`} target="_blank" className="text-[#E8631A] underline" rel="noopener noreferrer">
             Terms & Conditions
-          </a>
+          </Link>
           {hasVisitorDetails ? ' and confirm all visitor details are correct.' : '.'}
         </span>
       </label>
