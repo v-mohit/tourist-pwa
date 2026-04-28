@@ -150,8 +150,8 @@ const MobileSection = () => {
                     <div className="bg-white rounded-xl p-2 border border-[#E8DAC5] shadow-sm">
                       <div className="relative h-16 rounded-lg overflow-hidden mb-2">
                         <Image
-                          src="/images/TalchaparWebp.webp"
-                          alt="Mehrangarh"
+                          src="/images/TalChaparwebp.jpg"
+                          alt="Tal Chapar"
                           fill
                           className="object-cover"
                         />
