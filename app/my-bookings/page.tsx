@@ -149,14 +149,22 @@ export default function MyBookingsPage() {
   const [shareBooking,      setShareBooking]      = useState<any>(null);
   const [shareLoading,      setShareLoading]      = useState('');
 
+  useEffect(() => {
+    const handle = window.setTimeout(() => setSearchTerm(searchInput), 350);
+    return () => window.clearTimeout(handle);
+  }, [searchInput]);
+
   // ─── Query params ──────────────────────────────────────────────────────────
   const queryParams = useMemo(() => {
-    const isNumeric = /^\d+$/.test(searchTerm.trim());
+    const normalized = searchTerm.trim().replace(/^#/, '').trim();
+    const compact = normalized.replace(/\s+/g, '');
+    const isNumeric = /^\d+$/.test(compact);
+    const isBookingIdLike = /^[a-z0-9]+$/i.test(compact) && /\d/.test(compact);
     const base: any = {
       callApi:    !!user,
       setLoading: setLoadingTickets,
-      bookingId:  isNumeric ? searchTerm.trim() : undefined,
-      searchKey:  !isNumeric ? searchTerm.trim() || undefined : undefined,
+      bookingId:  (isNumeric || isBookingIdLike) ? compact : undefined,
+      searchKey:  (!isNumeric && !isBookingIdLike) ? normalized || undefined : undefined,
       size:       100,
       dateFilter: appliedDateType || undefined,
       startDay:   appliedStartDay,
@@ -1020,13 +1028,29 @@ body{background:#1a0e06;background-image:radial-gradient(ellipse at 20% 20%,rgba
     const shiftEnd   = ticket.shiftDto?.endTime   ? moment(ticket.shiftDto.endTime).format('hh:mm A')   : '';
     const totalAmt   = ticket.totalAmount || 0;
 
-    const visitors: any[] = ticket.ticketUserDto || [];
-    const totalQty   = visitors.reduce((s, t) => s + (t.qty || 0), 0);
-    const firstLabel = visitors[0]?.ticketName || 'General';
-    const visitorVal = totalQty > 0 ? `${totalQty} ${firstLabel}` : '—';
-    const visitorSub = visitors.length > 1
-      ? visitors.slice(1).map((t) => `${t.qty} ${t.ticketName}`).join(', ')
-      : (visitors[0]?.ticketName || 'General');
+    const visitors: any[] = Array.isArray(ticket.ticketUserDto) ? ticket.ticketUserDto : [];
+    const visitorGroups = (() => {
+      const map = new Map<string, { name: string; qty: number }>();
+      for (const v of visitors) {
+        const name = String(v?.ticketName || 'Visitor').trim() || 'Visitor';
+        const key = name.toLowerCase();
+        let qty = Number(v?.qty ?? v?.quantity ?? v?.count);
+        if (!Number.isFinite(qty) || qty <= 0) {
+          const docsCount = Array.isArray(v?.ticketUserDocs) ? v.ticketUserDocs.length : 0;
+          qty = docsCount > 0 ? docsCount : 1;
+        }
+        const existing = map.get(key);
+        if (existing) existing.qty += qty;
+        else map.set(key, { name, qty });
+      }
+      return Array.from(map.values()).filter((x) => x.qty > 0);
+    })();
+
+    const totalQty = visitorGroups.reduce((s, t) => s + (t.qty || 0), 0);
+    const visitorVal = totalQty > 0 ? `${totalQty} Visitor${totalQty === 1 ? '' : 's'}` : '—';
+    const visitorSub = visitorGroups.length
+      ? visitorGroups.map((t) => `${t.qty} ${t.name}`).join(', ')
+      : '—';
 
     const timeVal = shiftName || (shiftStart ? 'Slot' : 'Full Day');
     const timeSub = shiftStart ? `${shiftStart} – ${shiftEnd}` : '9:00 AM – 5:00 PM';
@@ -1036,8 +1060,8 @@ body{background:#1a0e06;background-image:radial-gradient(ellipse at 20% 20%,rgba
       .flatMap((t) => (t.addonItems || []).filter((a: any) => a?.name).map((a: any) => a.name))
       .join(', ');
 
-    const visitorBreakdownRows = visitors
-      .map((t) => `<div class="d1-info-item"><span class="d1-check">✓</span><span>${t.ticketName} × ${t.qty}</span></div>`)
+    const visitorBreakdownRows = visitorGroups
+      .map((t) => `<div class="d1-info-item"><span class="d1-check">✓</span><span>${t.name} × ${t.qty}</span></div>`)
       .join('');
 
     const qrValue = ticket.qrDetail || JSON.stringify({ type: 'BOOKING', data: { ticketBookingId: ticket.id || ticket.bookingId } });
@@ -1135,7 +1159,7 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
 .d1-meta-cell .icon{font-size:20px;margin-bottom:6px;display:block;}
 .d1-meta-cell .lbl{font-family:'Rajdhani',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#9B5520;margin-bottom:3px;}
 .d1-meta-cell .val{font-family:'Cinzel',serif;font-size:15px;font-weight:600;color:#3D1F00;line-height:1.1;}
-.d1-meta-cell .sub2{font-family:'Rajdhani',sans-serif;font-size:11px;color:#9B5520;}
+.d1-meta-cell .sub2{font-family:'Rajdhani',sans-serif;font-size:11px;color:#7A6A58;}
 .d1-divider{border:none;border-top:1px dashed rgba(184,74,14,.25);margin:0 -8px 20px;position:relative;}
 .d1-divider::before,.d1-divider::after{content:'';position:absolute;top:-10px;width:18px;height:18px;background:#F5ECD7;border-radius:50%;border:1px dashed rgba(184,74,14,.25);}
 .d1-divider::before{left:-24px;} .d1-divider::after{right:-24px;}
@@ -1145,6 +1169,7 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
 .d1-breakdown{margin-bottom:20px;}
 .d1-breakdown-title{font-family:'Rajdhani',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#9B5520;margin-bottom:8px;}
 .d1-breakdown-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;}
+.d1-breakdown-grid .d1-info-item{color:#7A6A58;}
 .d1-ref{background:#3D1F00;border-radius:4px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;}
 .d1-ref .rl{font-family:'Rajdhani',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.4);}
 .d1-ref .rv{font-family:'Space Mono',monospace;font-size:13px;color:#D4A017;letter-spacing:1.5px;}
@@ -1589,13 +1614,13 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                         )}
 
                         {/* Web Check-in — only when payment succeeded */}
-                        {isPaymentSuccess(b) && isCheckinEligible(b) && (
+                        {/* {isPaymentSuccess(b) && isCheckinEligible(b) && (
                           <button
                             className="bc-btn bc-btn-outline"
                             style={{ background: '#E8F5E9', borderColor: '#4CAF50', color: '#2E7D32' }}
                             onClick={(e) => { e.stopPropagation(); handleWebCheckIn(b); }}
                           >✓ Web Check-in</button>
-                        )}
+                        )} */}
                         {isPaymentSuccess(b) && b.checkedIn === 'Yes' && (
                           <span style={{ fontSize: 10, color: '#2E7D32', padding: '4px 8px', background: '#E8F5E9', borderRadius: 12 }}>
                             ✓ Checked In
@@ -1725,11 +1750,23 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                           </div>
                           {/* QR Code — only when payment succeeded */}
                           {isPaymentSuccess(b) && (b.qrDetail || b.id) && (
-                            <div style={{ textAlign: 'center', padding: '14px 0', cursor: 'pointer' }} onClick={() => { setQrData(b.qrDetail || JSON.stringify({ type: 'BOOKING', data: { ticketBookingId: b.id || b.bookingId } })); setQrModalOpen(true); }}>
-                              <div className="ticket-field-lbl">QR Code</div>
-                              <div style={{ display: 'inline-block', padding: 10, background: '#fff', border: '1px solid #E8DAC5', borderRadius: 8, marginTop: 8 }}/>
-                              <div style={{ fontSize: 10, color: '#7A6A58', marginTop: 4 }}>Tap to enlarge · Scan at entry</div>
-                            </div>
+                            (() => {
+                              const qrValue = b.qrDetail || JSON.stringify({ type: 'BOOKING', data: { ticketBookingId: b.id || b.bookingId } });
+                              const qrUrl = generateQrDataUrl(qrValue);
+                              return (
+                                <div style={{ textAlign: 'center', padding: '14px 0', cursor: 'pointer' }} onClick={() => { setQrData(qrValue); setQrModalOpen(true); }}>
+                                  <div className="ticket-field-lbl">QR Code</div>
+                                  <div style={{ display: 'inline-block', padding: 10, background: '#fff', border: '1px solid #E8DAC5', borderRadius: 8, marginTop: 8 }}>
+                                    {qrUrl ? (
+                                      <img src={qrUrl} alt="QR Code" style={{ width: 130, height: 130, display: 'block' }}/>
+                                    ) : (
+                                      <div style={{ width: 130, height: 130 }}/>
+                                    )}
+                                  </div>
+                                  <div style={{ fontSize: 10, color: '#7A6A58', marginTop: 4 }}>Tap to enlarge · Scan at entry</div>
+                                </div>
+                              );
+                            })()
                           )}
                         </div>
                         <div className="ticket-total-bar">
@@ -1754,11 +1791,11 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                             {reverifyMutation.isPending ? '⏳ Verifying…' : '🔄 Re-verify Payment'}
                           </button>
                         )}
-                        {isPaymentSuccess(b) && isCheckinEligible(b) && (
+                        {/* {isPaymentSuccess(b) && isCheckinEligible(b) && (
                           <button className="btn-drawer btn-drawer-outline" style={{ borderColor: '#2E7D32', color: '#2E7D32' }} onClick={() => handleWebCheckIn(b)}>
                             ✓ Web Check-in
                           </button>
-                        )}
+                        )} */}
                         {/* JKK Make Payment — only when APPROVED + payment not yet done */}
                         {canMakeJkkPayment(b) && (
                           <button
@@ -1874,7 +1911,13 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                   <button className="modal-close" onClick={() => setQrModalOpen(false)}>✕</button>
                 </div>
                 <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 24 }}>
-                  <div style={{ padding: 16, background: '#fff', border: '2px solid #E8DAC5', borderRadius: 12 }}/>
+                  <div style={{ padding: 16, background: '#fff', border: '2px solid #E8DAC5', borderRadius: 12 }}>
+                    {qrData && generateQrDataUrl(qrData) ? (
+                      <img src={generateQrDataUrl(qrData)} alt="Entry QR Code" style={{ width: 240, height: 240, display: 'block' }}/>
+                    ) : (
+                      <div style={{ width: 240, height: 240 }}/>
+                    )}
+                  </div>
                   <p style={{ fontSize: 12, color: '#7A6A58', marginTop: 16 }}>Show this QR code at the entry gate for quick scanning</p>
                 </div>
               </div>
