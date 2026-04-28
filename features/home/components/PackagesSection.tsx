@@ -22,7 +22,7 @@ export default function PackagesSection({ data }: any) {
           <h2 className="sec-ttl sec-ttl-w">
             Curated Darshan Experiences
             <br />
-            
+
           </h2>
         </div>
         <Link href="/packageseeall" className="see-all sag">
@@ -47,16 +47,17 @@ export default function PackagesSection({ data }: any) {
           const slug = pkgAttr.package_detail?.data?.attributes?.slug;
           const locationId = pkgAttr.package_detail?.data?.id;
 
+          const days = pkgAttr.package_detail?.data?.attributes?.days || "Valid for 2 days";
+          const isBookable = pkgAttr.package_detail?.data?.attributes?.bookable;
+
           // Fields not provided in common are made static as per instructions
           const infos = [
-            "🏯 10 Places",
+            `📅 ${days}`,
             "🕐 Full Day",
             "🚌 Transport not Incl.",
             "🎟 Entry Tickets",
           ];
           const badge = { label: "COMPOSITE", cls: "tg" };
-
-          const isBookable = pkgAttr.package_detail?.data?.attributes?.bookable;
 
           return (
             <div
