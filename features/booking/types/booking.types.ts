@@ -206,6 +206,38 @@ export interface IgprsCategory {
   name: string;
 }
 
+// ─── ASI ──────────────────────────────────────────────────────────────────────
+export interface AsiNationality {
+  label: string;        // "INDIAN" | "SAARC" | "BIMSTEC" | "FOREIGNER"
+  code: number;         // 101 | 103 | 104 | 102
+}
+
+export interface AsiVisitorInfo {
+  visitorName: string;
+  mobileNo: string;
+  email: string;
+  age: number | '';
+  gender: string;
+  countryCode: number | '';
+  nationality: string;  // ISO country name or "INDIAN"
+  idProofType: { label: string; code: number } | null;
+  documentNumber: string;
+}
+
+export interface AsiState {
+  nationality: AsiNationality | null;
+  shiftSlot: 'F' | 'A' | 'E' | '';   // Forenoon / Afternoon / Evening
+  availability: Record<string, number>; // { F: 123, A: 40, E: 0 }
+  token: string | null;
+  orderId: string | null;
+  childCount: number;                // 0-3, kids < 15 yrs, free
+  visitor: AsiVisitorInfo;
+  captcha: string;                   // rendered text
+  captchaInput: string;
+  captchaVerified: boolean;
+}
+
+
 // ─── Booking State (the full accumulated state across all steps) ───────────────
 export interface BookingState {
   config: PlaceBookingConfig;
@@ -268,6 +300,9 @@ export interface BookingState {
     priceData: any;
   };
 
+  // ── ASI Flow ──
+  asi: AsiState;
+
   // ── Booking result ──
   bookingId: string | null;
   paymentData: any | null;
@@ -322,6 +357,28 @@ export function createInitialBookingState(config: PlaceBookingConfig): BookingSt
       calculatedPrice: null,
       priceData: null,
     },
+    asi: {
+      nationality: null,
+      shiftSlot: '',
+      availability: {},
+      token: null,
+      orderId: null,
+      childCount: 0,
+      visitor: {
+        visitorName: '',
+        mobileNo: '',
+        email: '',
+        age: '',
+        gender: '',
+        countryCode: '',
+        nationality: '',
+        idProofType: null,
+        documentNumber: '',
+      },
+      captcha: '',
+      captchaInput: '',
+      captchaVerified: false,
+    },
     bookingId: null,
     paymentData: null,
   };
@@ -332,7 +389,7 @@ export const BOOKING_STEPS: Record<BookingCategory, string[]> = {
   standard: ['Date & Shift', 'Select Tickets', 'Review & Pay'],
   inventory: ['Date & Zone', 'Vehicle & Shift', 'Visitor Details', 'Review & Pay'],
   package:   ['Date', 'Select Tickets', 'Review & Pay'],
-  asi:       ['Date', 'Select Tickets', 'Visitor Details', 'Review & Pay'],
+  asi:       ['Date & Shift', 'Visitor & Tickets', 'Review & Pay'],
   jkk:       ['Category & Date', 'Booking Details', 'Review & Pay'],
   igprs:     ['Room & Dates', 'Price Summary', 'Review & Pay'],
 };

@@ -12,6 +12,9 @@ import ReviewPayStep from './steps/ReviewPayStep';
 import InventoryStep from './steps/InventoryStep';
 import JkkStep from './steps/JkkStep';
 import IgprsStep from './steps/IgprsStep';
+import AsiDateShiftStep from './steps/asi/AsiDateShiftStep';
+import AsiVisitorStep from './steps/asi/AsiVisitorStep';
+import AsiReviewPayStep from './steps/asi/AsiReviewPayStep';
 
 // ─── Step index mapping per booking category ──────────────────────────────────
 // Returns a JSX component for the given step index and category
@@ -73,10 +76,14 @@ function BookingModalBody({
   }
 
   function renderAsiSteps() {
+    // ASI flow mirrors the old project's `AsiSelectTicketAndShiftModal` ->
+    // `AsiTicketOptions` -> payment sequence: date+shift+nationality, then a
+    // combined primary-visitor / adult-ticket / child-count form, then review
+    // with captcha.
     switch (stepIndex) {
       case 0:
         return (
-          <DateShiftStep
+          <AsiDateShiftStep
             state={bookingState}
             onUpdate={updateBookingState}
             onNext={goNext}
@@ -84,7 +91,7 @@ function BookingModalBody({
         );
       case 1:
         return (
-          <TicketSelectionStep
+          <AsiVisitorStep
             state={bookingState}
             onUpdate={updateBookingState}
             onNext={goNext}
@@ -92,21 +99,7 @@ function BookingModalBody({
           />
         );
       case 2:
-        return (
-          <VisitorFormsStep
-            state={bookingState}
-            onUpdate={updateBookingState}
-            onNext={goNext}
-            onBack={goBack}
-          />
-        );
-      case 3:
-        return (
-          <ReviewPayStep
-            state={bookingState}
-            onBack={goBack}
-          />
-        );
+        return <AsiReviewPayStep state={bookingState} onBack={goBack} />;
       default:
         return null;
     }

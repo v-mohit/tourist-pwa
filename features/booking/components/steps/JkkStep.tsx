@@ -10,18 +10,14 @@ import {
   useJkkShifts,
   useJkkPriceCalculation,
   useCreateJkkBooking,
-  useConfirmJkkBooking,
   useJkkCalendarAvailability,
   useJkkCheckAvailability,
   useObmsPlaceId,
   useFileUpload,
-} from "../../hooks/useBookingApi";
-import LoadingSpinner from "../shared/LoadingSpinner";
-import { formatRupees, handlePaymentRedirect } from "../../utils/payment";
-import {
-  showSuccessToastMessage,
-  showErrorToastMessage,
-} from "@/utils/toast.utils";
+} from '../../hooks/useBookingApi';
+import LoadingSpinner from '../shared/LoadingSpinner';
+import { formatRupees } from '../../utils/payment';
+import { showSuccessToastMessage, showErrorToastMessage } from '@/utils/toast.utils';
 import Link from "next/link";
 
 const ALLOWED_FILE_TYPES = [
@@ -178,7 +174,6 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
   const shiftsMutation = useJkkShifts();
   const priceCalc = useJkkPriceCalculation();
   const createJkk = useCreateJkkBooking();
-  const confirmJkk = useConfirmJkkBooking();
   const calendarAvail = useJkkCalendarAvailability();
   const shiftAvail = useJkkCheckAvailability();
   const obmsPlaceMutation = useObmsPlaceId();
@@ -428,8 +423,21 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
         fifteenLights: applicant.fifteenLights,
         thirtyLights: applicant.thirtyLights,
       });
-      updateJkk({ calculatedPrice: result?.totalAmount ?? result?.total ?? 0 });
-      setSubStep("review");
+      // /jkk/priceCalculation returns the amount as a plain number in `result`
+      // (not an object). Fall back to nested keys for forward-compat.
+      let price = 0;
+      if (typeof result === 'number') {
+        price = result;
+      } else if (result?.totalAmount != null) {
+        price = Number(result.totalAmount) || 0;
+      } else if (result?.total != null) {
+        price = Number(result.total) || 0;
+      } else {
+        const n = Number(result);
+        price = Number.isFinite(n) ? n : 0;
+      }
+      updateJkk({ calculatedPrice: price });
+      setSubStep('review');
     } catch {
       // error handled by hook
     }
@@ -615,11 +623,12 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
         return;
       }
 
-      showSuccessToastMessage("JKK booking created! Proceeding to payment...");
-      const confirmResult = await confirmJkk.mutateAsync({
-        bookingId: bookingResult.id,
-      });
-      handlePaymentRedirect(confirmResult);
+      // For JKK, do NOT call /jkk/confirm here. The application must first be
+      // approved by the JKK admin. Once approved, the user sees a "Make Payment"
+      // button on the booking in My Bookings — that's where /jkk/confirm runs.
+      showSuccessToastMessage('JKK application submitted successfully. You will be notified once approved.');
+      setProcessing(false);
+      onBack(); // close the booking modal
     } catch {
       setProcessing(false);
     }

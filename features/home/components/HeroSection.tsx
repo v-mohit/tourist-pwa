@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import SearchBar, { type SearchBarHandle } from "./SearchBar";
 
 const SLIDES = [
@@ -10,8 +11,8 @@ const SLIDES = [
     title1: "Pink City",
     title2: "Hawa Mahal",
     sub: "Wander through the vibrant streets of Jaipur, where every wall tells a story of royal hospitality and timeless architectural brilliance.",
-    img: "./images/hawawebp.webp",
-    thumbImg: "./images/hawawebp.webp",
+    img: "/images/hawawebp.jpg",
+    thumbImg: "/images/hawawebp.jpg",
     label: "Hawa Mahal",
     tag: "Jaipur · Pink City",
   },
@@ -20,8 +21,8 @@ const SLIDES = [
     title1: "Alwar",
     title2: "Sariska Tiger Reserve",
     sub: "Venture into the wild heart of the Aravallis, a sanctuary of untamed beauty where the stripes of the majestic tiger rule the rugged landscape.",
-    img: "./images/tiger.webp",
-    thumbImg: "./images/tiger.webp",
+    img: "/images/tiger.webp",
+    thumbImg: "/images/tiger.webp",
     label: "Sariska Tiger Reserve",
     tag: "Alwar · Project Tiger",
   },
@@ -30,8 +31,8 @@ const SLIDES = [
     title1: "Churu",
     title2: "Tal Chhapar Sanctuary",
     sub: "Witness the sanctuary of the elegant Blackbuck, a unique grassland ecosystem where nature thrives in its purest, most serene form.",
-    img: "./images/TalchaparWebp.webp",
-    thumbImg: "./images/TalchaparWebp.webp",
+    img: "/images/TalchaparWebp.jpg",
+    thumbImg: "/images/TalchaparWebp.jpg",
     label: "Tal Chhapar Sanctuary",
     tag: "Churu · Grassland",
   },
@@ -40,17 +41,11 @@ const SLIDES = [
     title1: "Jaipur",
     title2: "Amber Fort",
     sub: "Experience the royal majesty of Amber Fort, a breathtaking masterpiece of Rajput architecture perched atop the rugged Aravalli hills.",
-    img: "./images/amberWebp.webp",
-    thumbImg: "./images/amberWebp.webp",
+    img: "/images/amberWebp.jpg",
+    thumbImg: "/images/amberWebp.jpg",
     label: "Amber Fort",
     tag: "Jaipur · Hill Fort",
   },
-];
-
-const BADGES = [
-  { label: "🏆 SKOCH Award 2024", cls: "hkb-gold" },
-  { label: "Official Govt. Portal", cls: "hkb-white" },
-  { label: "⭐ Incredible India", cls: "hkb-white" },
 ];
 
 const PILLS = [
@@ -94,14 +89,26 @@ export default function HeroSection() {
 
   return (
     <section className="hero" id="hero">
-      {/* Fullscreen slideshow backgrounds */}
+      {/* Fullscreen slideshow backgrounds with Next.js Image */}
       <div className="hero-slides">
         {SLIDES.map((slide, idx) => (
           <div
             key={idx}
             className={`hero-slide ${idx === activeIndex ? "active" : ""}`}
-            style={{ backgroundImage: `url('${slide.img}')` }}
-          />
+            // style={{ position: "relative", zIndex: idx === activeIndex ? 2 : 1 }}
+          >
+            <Image
+              src={slide.img}
+              alt={slide.label}
+              fill
+              style={{ objectFit: "cover" }}
+              quality={90}
+              priority={idx === activeIndex}
+              loading={idx === activeIndex ? "eager" : "lazy"}
+              sizes="100vw"
+              placeholder="empty"
+            />
+          </div>
         ))}
       </div>
 
@@ -163,8 +170,19 @@ export default function HeroSection() {
           >
             <div
               className="hero-thumb-img"
-              style={{ backgroundImage: `url('${slide.thumbImg}')` }}
-            />
+              style={{ position: "relative", width: "100%", height: "100%" }}
+            >
+              <Image
+                src={slide.thumbImg}
+                alt={slide.label}
+                fill
+                style={{ objectFit: "cover" }}
+                quality={90}
+                loading="eager"
+                sizes="(max-width: 768px) 60px, 100px"
+                placeholder="empty"
+              />
+            </div>
             <div className="hero-thumb-ov" />
             <div className="hero-thumb-label">
               <h5>{slide.label}</h5>
