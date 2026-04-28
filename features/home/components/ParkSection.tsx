@@ -12,7 +12,14 @@ const ParkSection = (data: any) => {
   const parks = places.map((item: any) => {
     const attr = item?.attributes;
     const pdAttr = attr?.placeDetail?.data?.attributes;
+    const content = pdAttr?.content || [];
 
+    // --- TIMING LOGIC ---
+    const timingComp = content.find((c: any) => c.__typename === 'ComponentPlaceDetailPlaceTime');
+    const timeCard = timingComp?.card?.find((c: any) => c.title?.toLowerCase().includes("timing"));
+    const timings = timeCard?.content || [];
+    const timeStr = timings.map((t: any) => t.value).join(", ") || null;
+"ComponentPlaceDetailPlaceTime"
     return {
       slug: pdAttr?.slug || attr?.name?.toLowerCase().replace(/\s+/g, "-"),
       title: attr?.name || "Unnamed Park",
@@ -24,7 +31,7 @@ const ParkSection = (data: any) => {
         : null,
       meta: [
         attr?.city?.data?.attributes?.name || "Rajasthan",
-        "6AM-9PM",
+        timeStr,
         "Free Entry",
       ],
     };

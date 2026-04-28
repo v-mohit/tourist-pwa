@@ -45,16 +45,29 @@ const Cafeteria = ({ data }: { data?: any }) => {
           const cityName = attributes?.city?.data?.attributes?.name || "Rajasthan";
 
           const placeDetails = attributes?.placeDetail?.data?.attributes?.content || [];
-          const ticketData = placeDetails.find(
+          
+          // --- PRICE LOGIC ---
+          const ticketComponent = placeDetails.find(
             (x: any) => x.__typename === "ComponentPlaceDetailPlacetickets",
           );
-          const info = ticketData?.information || [];
+          const entryFeeCard = ticketComponent?.card?.find((c: any) => c.title?.toLowerCase().includes("fee") || c.title?.toLowerCase().includes("charge") || c.title?.toLowerCase().includes("price"));
+          const fees = entryFeeCard?.content || [];
+          
+          const studentFee = fees.find((f: any) => f.name?.toLowerCase().includes("student"))?.value;
+          const indianFee = fees.find((f: any) => f.name?.toLowerCase().includes("indian"))?.value;
+          
+          const price = studentFee ? `₹${studentFee.trim()}` : indianFee ? `₹${indianFee.trim()}` : null;
 
-          const desc = info?.[0]?.description || attributes?.description || "Experience local flavors and stunning views.";
+          // --- TIMING LOGIC ---
+          const timingComp = placeDetails.find(
+            (x: any) => x.__typename === "ComponentPlaceDetailPlaceTime" || x.__typename === "ComponentPlaceDetailPlaceothers"
+          );
+          const timingCard = timingComp?.card?.find((c: any) => c.title?.toLowerCase().includes("timing"));
+          const timings = timingCard?.content || [];
+          const time = timings.map((t: any) => t.value).join(", ") || null;
+
+          const desc = ticketComponent?.information?.[0]?.description || attributes?.description || "Experience local flavors and stunning views.";
           const location = cityName;
-
-          const price = info?.[1]?.description || "₹200–500";
-          const time = info?.[2]?.description || "10AM–10PM";
 
           const tagText = attributes?.tag || "Dining";
           const tagClass =
@@ -113,19 +126,23 @@ const Cafeteria = ({ data }: { data?: any }) => {
               </div>
 
                 <div className="cafe-foot">
-                  <div>
-                    <div className="cafe-price">
-                      {price} <span>/ meal</span>
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 10,
-                        color: "var(--mu)",
-                        marginTop: 2,
-                      }}
-                    >
-                      ⏰ {time}
-                    </div>
+                  <div> 
+                    {price && (
+                      <div className="cafe-price">
+                        Starting from {price}
+                      </div>
+                    )}
+                    {time && (
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: "var(--mu)",
+                          marginTop: 2,
+                        }}
+                      >
+                        ⏰ {time}
+                      </div>
+                    )}
                   </div>
                   <div className="pointer-events-auto px-4 pb-4">
                     {attributes?.bookable !== false ? (

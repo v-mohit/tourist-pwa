@@ -1407,8 +1407,15 @@ button {
   padding: 10px 13px;
 }
 
+.cafe-img-foot .tag {
+  font-size: 9px;
+}
+
 .cafe-body {
   padding: 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .cafe-body h4 {
@@ -1423,6 +1430,10 @@ button {
   color: var(--mu);
   line-height: 1.6;
   margin-bottom: 11px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .cafe-row {
@@ -1430,6 +1441,7 @@ button {
   gap: 10px;
   align-items: center;
   flex-wrap: wrap;
+  margin-top: auto;
   margin-bottom: 12px;
 }
 
@@ -1441,11 +1453,17 @@ button {
   gap: 4px;
 }
 
+.cafe-rating {
+  margin-left: auto;
+  color: #E8631A;
+  font-weight: 700;
+}
+
 .cafe-foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 11px;
+  padding: 11px 18px 18px;
   border-top: 1px solid var(--bdr);
 }
 
@@ -1453,6 +1471,12 @@ button {
   font-size: 13px;
   font-weight: 700;
   color: var(--ch);
+}
+
+.cafe-time {
+  font-size: 10px;
+  color: var(--mu);
+  margin-top: 2px;
 }
 
 .cafe-price span {
@@ -5391,6 +5415,25 @@ tourist stats style
   color: var(--mu);
 }
 
+.asi-section {
+  background: var(--cream) !important;
+}
+
+.asi-logo {
+  font-size: 52px;
+  margin-bottom: 12px;
+}
+
+.asi-btn {
+  margin-top: 16px;
+  width: 100%;
+  justify-content: center;
+}
+
+.asi-tag {
+  font-size: 8px !important;
+}
+
 @media(max-width:1060px) {
   .asi-intro {
     grid-template-columns: 1fr;
@@ -7813,7 +7856,7 @@ tourist stats style
 }
 
 .header-drawer {
-  @apply lg:hidden fixed top-16 left-0 right-0 bg-white border-b border-[#E8DAC5] px-6 py-4 z-290 flex flex-col gap-0.5 shadow-[0_12px_48px_rgba(24,18,14,0.16)] transition-all duration-300 origin-top;
+  @apply lg:hidden fixed top-16 left-0 right-0 bg-white border-b border-[#E8DAC5] px-6 py-4 z-[9001] flex flex-col gap-0.5 shadow-[0_12px_48px_rgba(24,18,14,0.16)] transition-all duration-300 origin-top;
 }
 
 .header-drawer-link {

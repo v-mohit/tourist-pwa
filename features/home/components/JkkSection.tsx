@@ -2,6 +2,9 @@
 
 import React from "react";
 import Link from "next/link";
+import dayjs from "dayjs";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+dayjs.extend(isSameOrAfter);
 
 const JkkSection = ({
   JkkplaceDetailsData,
@@ -19,16 +22,17 @@ const JkkSection = ({
 
   const images = place?.images?.data || [];
 
-  const events = upcomingEventsData?.upcomingEvents?.data || [];
+  const allEvents = upcomingEventsData?.upcomingEvents?.data || [];
 
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return { day: "12", month: "AUG" };
-    const d = new Date(dateStr);
-    return {
-      day: d.getDate(),
-      month: d.toLocaleString("en-US", { month: "short" }).toUpperCase(),
-    };
-  };
+  // Filter events to show only today and future ones
+  const today = dayjs().startOf("day");
+
+  const events = allEvents.filter((event: any) => {
+    const attr = event?.attributes;
+    const dateToCompare = attr?.eventEndDate || attr?.eventStartDate;
+    if (!dateToCompare) return false;
+    return dayjs(dateToCompare).isSameOrAfter(today, "day");
+  });
 
   return (
     <section className="sec" id="venues">
@@ -118,8 +122,6 @@ const JkkSection = ({
         <div className="events-grid">
           {(events.length ? events : [1, 2, 3]).map((event: any, i: number) => {
             const attr = event?.attributes || {};
-            const { day, month } = formatDate(attr.eventStartDate);
-
             const image =
               attr?.eventPhoto?.data?.attributes?.url ||
               null;
@@ -137,8 +139,23 @@ const JkkSection = ({
 
                 {/* CONTENT */}
                 <div className="event-content">
-                  <div className="event-date">
-                    {day} {month}
+                  <div className="event-date flex items-center gap-1.5">
+                    {/* <span className="text-[14px]">🗓</span> */}
+                    {(() => {
+                      if (!attr.eventStartDate) return "12 AUG";
+                      const s = dayjs(attr.eventStartDate);
+                      const e = attr.eventEndDate ? dayjs(attr.eventEndDate) : null;
+
+                      if (!e || s.isSame(e, 'day')) {
+                        return s.format("DD MMM").toUpperCase();
+                      }
+
+                      if (s.isSame(e, 'month')) {
+                        return `${s.format("DD")} — ${e.format("DD")} ${s.format("MMM").toUpperCase()}`;
+                      }
+
+                      return `${s.format("DD MMM")} — ${e.format("DD MMM")}`.toUpperCase();
+                    })()}
                   </div>
 
                   <h4>{attr?.eventTitle || "Cultural Event"}</h4>
@@ -148,13 +165,13 @@ const JkkSection = ({
                       "Experience a soulful cultural evening at JKK."}
                   </p>
 
-                    <div className="event-meta">
-                      <span>⏰ {attr?.eventTime || "6:00 PM"}</span>
-                      <span>
-                        <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
-                        {attr?.sectionName || "Rangayan Hall"}
-                      </span>
-                    </div>
+                  <div className="event-meta">
+                    <span>⏰ {attr?.eventTime || "6:00 PM"}</span>
+                    <span>
+                      <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
+                      {attr?.sectionName || "Rangayan Hall"}
+                    </span>
+                  </div>
 
                   {attr?.isFeatured && <span className="tag">Featured</span>}
                 </div>

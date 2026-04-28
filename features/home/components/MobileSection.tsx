@@ -150,14 +150,14 @@ const MobileSection = () => {
                     <div className="bg-white rounded-xl p-2 border border-[#E8DAC5] shadow-sm">
                       <div className="relative h-16 rounded-lg overflow-hidden mb-2">
                         <Image
-                          src="/images/hawawebp.webp"
+                          src="/images/TalchaparWebp.webp"
                           alt="Mehrangarh"
                           fill
                           className="object-cover"
                         />
                         <div className="absolute inset-0 bg-black/20"></div>
                       </div>
-                      <div className="text-[9px] font-bold text-center text-[#18120E]">Hawa Mahal</div>
+                      <div className="text-[9px] font-bold text-center text-[#18120E]">Tal Chapar</div>
                     </div>
                     <div className="bg-white rounded-xl p-2 border border-[#E8DAC5] shadow-sm">
                       <div className="relative h-16 rounded-lg overflow-hidden mb-2">
@@ -174,8 +174,8 @@ const MobileSection = () => {
                   </div>
                 </div>
 
-                <div className="m-4 mt-2 bg-[#DC2626] text-white py-3 rounded-xl text-center text-xs font-bold shadow-lg shadow-red-200 cursor-pointer hover:bg-red-700 transition-colors">
-                  🆘 SOS Emergency
+                <div className="m-4 mt-2 bg-[#e8631a] text-white py-3 rounded-xl text-center text-xs font-bold shadow-lg shadow-red-200 cursor-pointer hover:bg-red-700 transition-colors">
+                  Book Now
                 </div>
               </div>
             </div>

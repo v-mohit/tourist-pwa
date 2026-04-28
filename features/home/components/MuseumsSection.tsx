@@ -15,8 +15,8 @@ export default function MuseumsSection({ data }: any) {
           <div className="sec-lbl">✦ {data?.title || "Top Museums"}</div>
           <h2 className="sec-ttl">Preserving History</h2>
         </div>
-        <Link 
-          href={`/tourist-attraction?categoryId=${data?.category?.data?.id}`} 
+        <Link
+          href={`/tourist-attraction?categoryId=${data?.category?.data?.id}`}
           className="see-all"
         >
           See all →
@@ -27,6 +27,8 @@ export default function MuseumsSection({ data }: any) {
       <div className="mus-grid">
         {places.slice(0, 3).map((item: any) => {
           const attr = item?.attributes;
+          const pdAttr = attr?.placeDetail?.data?.attributes;
+          const content = pdAttr?.content || [];
 
           // ✅ Image
           const img =
@@ -38,40 +40,35 @@ export default function MuseumsSection({ data }: any) {
           const name = attr?.name || "Museum";
 
           // ✅ Timing
-          const timeBlock = attr?.placeDetail?.data?.attributes?.content?.find(
-            (c: any) => c.__typename === "ComponentPlaceDetailPlaceTime"
-          );
-
-          const time =
-            timeBlock?.card?.[0]?.content?.[0]?.value || "9AM–5PM";
+          const timingComp = content.find((c: any) => c.__typename === 'ComponentPlaceDetailPlaceTime' || c.__typename === 'ComponentPlaceDetailPlaceothers');
+          const timeCard = timingComp?.card?.find((c: any) => c.title?.toLowerCase().includes("timing"));
+          const timings = timeCard?.content || [];
+          const time = timings.map((t: any) => t.value).join(", ") || null;
 
           // ✅ Fee
-          const ticketBlock = attr?.placeDetail?.data?.attributes?.content?.find(
+          const ticketBlock = content.find(
             (c: any) => c.__typename === "ComponentPlaceDetailPlacetickets"
           );
-
           const feeValue =
-            ticketBlock?.card?.[0]?.content?.[0]?.value || "50";
-
+            ticketBlock?.card?.[0]?.content?.[0]?.value || null;
           const fee = `₹${feeValue}`;
 
-          // ✅ City (used in fallback desc)
+          // ✅ City
           const city = attr?.city?.data?.attributes?.name || "Rajasthan";
 
-          const placeId = attr?.placeDetail?.data?.attributes?.slug || 
-                          (name.toLowerCase().includes('hawa mahal') ? 'hawa-mahal' :
-                           name.toLowerCase().includes('amber') ? 'amber' :
-                           name.toLowerCase().replace(/\s+/g, '-'));
+          const placeId = pdAttr?.slug ||
+            (name.toLowerCase().includes('hawa mahal') ? 'hawa-mahal' :
+              name.toLowerCase().includes('amber') ? 'amber' :
+                name.toLowerCase().replace(/\s+/g, '-'));
 
           return (
-            <div 
-              key={item.id} 
-              className="mus-card relative group"
-              style={{ display: 'block' }}
+            <div
+              key={item.id}
+              className="mus-card relative group flex flex-col"
             >
               {/* Clickable area linking to details */}
-              <div 
-                className="cursor-pointer"
+              <div
+                className="cursor-pointer flex flex-col flex-1"
                 onClick={() => {
                   if (placeId) {
                     router.push(`/place-detail/${placeId}`);
@@ -88,17 +85,14 @@ export default function MuseumsSection({ data }: any) {
 
                   {/* Static tag + estd fallback */}
                   <div className="mus-img-foot">
-                    <span className="tag tg" style={{ fontSize: 9 }}>
+                    <span className="tag tg">
                       🏛 Museum
-                    </span>
-                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,.7)' }}>
-                      Est. —
                     </span>
                   </div>
                 </div>
 
                 {/* Body */}
-                <div className="mus-body">
+                <div className="mus-body flex flex-col flex-1">
                   <h4>{name}</h4>
 
                   {/* Fallback description */}
@@ -113,35 +107,35 @@ export default function MuseumsSection({ data }: any) {
                     <span className="mus-tag">📜 Culture</span>
                   </div>
 
-                  <div className="mus-foot">
+                  <div className="mus-foot mt-auto">
                     <span className="mus-time">⏰ {time}</span>
                     <span className="mus-fee">{fee}</span>
                   </div>
                 </div>
               </div>
 
-                <div className="pointer-events-auto px-4 pb-4">
-                  {attr?.bookable !== false ? (
-                    <BookNowButton
-                      config={{
-                        placeId: attr?.placeDetail?.data?.attributes?.obmsId ?? item.id,
-                        placeName: name,
-                        category: 'standard',
-                        locationId: item.id,
-                      }}
-                      label="Book Tickets →"
-                      className="btn-sm btn-sm--full-mus inline-flex items-center justify-center w-full"
-                    />
-                  ) : (
-                    <button
-                      className="btn-sm btn-sm--full-mus inline-flex items-center justify-center w-full opacity-40 cursor-not-allowed"
-                      disabled
-                    >
-                      Booking Unavailable
-                    </button>
-                  )}
-                </div>
+              <div className="pointer-events-auto">
+                {attr?.bookable !== false ? (
+                  <BookNowButton
+                    config={{
+                      placeId: attr?.placeDetail?.data?.attributes?.obmsId ?? item.id,
+                      placeName: name,
+                      category: 'standard',
+                      locationId: item.id,
+                    }}
+                    label="Book Tickets →"
+                    className="btn-sm btn-sm--full-mus inline-flex items-center justify-center w-full"
+                  />
+                ) : (
+                  <button
+                    className="btn-sm btn-sm--full-mus inline-flex items-center justify-center w-full opacity-40 cursor-not-allowed"
+                    disabled
+                  >
+                    Booking Unavailable
+                  </button>
+                )}
               </div>
+            </div>
           );
         })}
       </div>

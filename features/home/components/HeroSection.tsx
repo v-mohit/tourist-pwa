@@ -18,7 +18,7 @@ const SLIDES = [
   {
     id: 2,
     title1: "Alwar",
-    title2: "Sariska Reserve",
+    title2: "Sariska Tiger Reserve",
     sub: "Venture into the wild heart of the Aravallis, a sanctuary of untamed beauty where the stripes of the majestic tiger rule the rugged landscape.",
     img: "./images/tiger.webp",
     thumbImg: "./images/tiger.webp",
@@ -28,7 +28,7 @@ const SLIDES = [
   {
     id: 3,
     title1: "Churu",
-    title2: "Tal Chhapar",
+    title2: "Tal Chhapar Sanctuary",
     sub: "Witness the sanctuary of the elegant Blackbuck, a unique grassland ecosystem where nature thrives in its purest, most serene form.",
     img: "./images/TalchaparWebp.webp",
     thumbImg: "./images/TalchaparWebp.webp",

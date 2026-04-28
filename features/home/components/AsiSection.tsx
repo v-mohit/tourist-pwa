@@ -32,7 +32,7 @@ const AsiSection = ({ data }: any) => {
   }
 
   return (
-    <section className="sec" id="asi" style={{ background: 'var(--cream)' }}>
+    <section className="sec asi-section" id="asi">
       <div className="sec-hd rv in">
         <div>
           <div className="sec-lbl">✦ {deptName}</div>
@@ -48,19 +48,19 @@ const AsiSection = ({ data }: any) => {
       
       <div className="asi-intro rv in">
         <div className="asi-badge-block">
-          <div className="logo" style={{ fontSize: '52px', marginBottom: '12px' }}>🏛</div>
+          <div className="asi-logo">🏛</div>
           <h3>{deptName}</h3>
           <p>Preserving India&apos;s monumental heritage since 1861. {count > 0 ? count : 'Several'} premier Rajasthan sites onboarded on OBMS.</p>
           <div className="asi-count">{count}</div>
           <div className="asi-count-l">Sites Onboarded on OBMS</div>
-          <Link href="/asi" className="btn-s" style={{ marginTop: '16px', width: '100%', justifyContent: 'center' }}>
+          <Link href="/asi" className="btn-s asi-btn">
             Explore ASI Sites →
           </Link>
         </div>
         
         <div>
           <div className="asi-grid">
-            {places?.splice(0, 6)?.map((place: any) => {
+            {places?.slice(0, 8)?.map((place: any) => {
               const attr = place.attributes;
               const imageUrl = attr.images?.data?.[0]?.attributes?.url 
                 ? `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL || ''}${attr.images.data[0].attributes.url}`
@@ -68,34 +68,26 @@ const AsiSection = ({ data }: any) => {
               
               const cityName = attr.city?.data?.attributes?.name || 'Rajasthan';
               
-              // Try to find timing and entry fee from placeDetail tickets
-              let timing = "8:00 AM – 6:00 PM";
-              let entryFee = "₹50";
-
               const pdAttr = attr.placeDetail?.data?.attributes;
+              const content = pdAttr?.content || [];
+
+              // --- PRICE LOGIC ---
+              const ticketComp = content.find((c: any) => c.__typename === 'ComponentPlaceDetailPlacetickets');
+              const generalCard = ticketComp?.card?.find((c: any) => c.title?.toLowerCase().includes("general")) || ticketComp?.card?.[0];
+              const fees = generalCard?.content || [];
+              
+              const studentFee = fees.find((f: any) => f.name?.toLowerCase().includes("student"))?.value;
+              const indianFee = fees.find((f: any) => f.name?.toLowerCase().includes("indian"))?.value;
+              
+              const entryFee = studentFee ? `₹${studentFee.trim()}` : indianFee ? `₹${indianFee.trim()}` : null;
+
+              // --- TIMING LOGIC ---
+              const timingComp = content.find((c: any) => c.__typename === 'ComponentPlaceDetailPlaceTime' || c.__typename === 'ComponentPlaceDetailPlaceothers');
+              const timeCard = timingComp?.card?.find((c: any) => c.title?.toLowerCase().includes("timing"));
+              const timings = timeCard?.content || [];
+              const timing = timings.map((t: any) => t.value).join(", ") || null;
+
               const slug = pdAttr?.slug || attr.name?.toLowerCase().replace(/\s+/g, "-");
-
-              const ticketsContent = pdAttr?.content?.find(
-                (c: any) => c.__typename === 'ComponentPlaceDetailPlacetickets'
-              );
-
-              if (ticketsContent?.card) {
-                // Try to find "General Ticket" or Indian price
-                const feeCard = ticketsContent.card.find((c: any) => 
-                   c.title?.toLowerCase().includes('general') || c.title?.toLowerCase().includes('ticket')
-                ) || ticketsContent.card[0];
-
-                if (feeCard?.content) {
-                  const indianFee = feeCard.content.find((f: any) => 
-                    f.name.toLowerCase().includes('indian')
-                  );
-                  if (indianFee) {
-                    entryFee = `₹${indianFee.value}`;
-                  } else if (feeCard.content[0]) {
-                    entryFee = `₹${feeCard.content[0].value}`;
-                  }
-                }
-              }
 
               return (
                 <Link 
@@ -111,7 +103,7 @@ const AsiSection = ({ data }: any) => {
                     ></div>
                     <div className="asi-img-grad"></div>
                     <div className="asi-tag-wrap">
-                      <span className="tag tg" style={{ fontSize: '8px' }}>ASI</span>
+                      <span className="tag tg asi-tag">ASI</span>
                     </div>
                   </div>
                   <div className="asi-body">
@@ -130,7 +122,7 @@ const AsiSection = ({ data }: any) => {
             })}
             
             {/* View More Card */}
-            <Link 
+            {/* <Link 
               href="/asi"
               className="asi-card" 
               style={{ 
@@ -149,7 +141,7 @@ const AsiSection = ({ data }: any) => {
             >
               <div style={{ fontSize: '28px', color: 'var(--sf)' }}>+</div>
               <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--mu)' }}>View All ASI Sites</div>
-            </Link>
+            </Link> */}
           </div>
         </div>
       </div>
