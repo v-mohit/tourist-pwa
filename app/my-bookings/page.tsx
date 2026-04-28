@@ -38,11 +38,6 @@ function formatDate(ts?: number | string): string {
   return moment(ts).format('DD MMM YYYY');
 }
 
-/**
- * Booking is "successful" only when paymentStatus contains "success".
- * Everything else (FAIL / PENDING / IN_PROGRESS / null) is treated as Failed.
- * Cancelled bookings keep their own status.
- */
 function isPaymentSuccess(b: any): boolean {
   return String(b?.paymentStatus || '').toLowerCase().includes('success');
 }
@@ -57,10 +52,6 @@ function getBookingStatus(b: any): { label: string; key: string; cls: string } {
   return { label: '✅ Confirmed', key: 'confirmed', cls: 'status-confirmed' };
 }
 
-/**
- * Returns true if the booking is within its 5-minute reverify window
- * (measured from updatedDate for JKK, otherwise createdDate).
- */
 function isWithinReverifyWindow(b: any): boolean {
   if (isPaymentSuccess(b)) return false;
   if (b?.cancelled || b?.refund) return false;
@@ -178,7 +169,6 @@ export default function MyBookingsPage() {
 
   // ─── Reverify mutation + 5-min countdown tick ─────────────────────────────
   const reverifyMutation = BookingReverified();
-  // Force a re-render every 30s so the reverify button auto-hides at the 5-min mark.
   const [, setTick] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setTick((n) => n + 1), 30000);
@@ -248,11 +238,6 @@ export default function MyBookingsPage() {
   }, [pdfData?.result, shouldFetchPdf]);
 
   // ─── QR helpers ───────────────────────────────────────────────────────────
-  /**
-   * Returns { rects, count } where rects use 1×1 cells.
-   * Caller sets `viewBox="0 0 ${count} ${count}"` so the SVG scales to fill its
-   * container exactly — no gaps, no centering math needed.
-   */
   function generateQrSvgRects(value: string, _size = 96): { rects: string; count: number } {
     try {
       const qr = QRCode(0, 'M');
@@ -332,97 +317,22 @@ export default function MyBookingsPage() {
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  async function createShareTicketFile(ticket: any): Promise<File> {
-    const bookingId  = String(ticket.bookingId || ticket.id || '');
-    const placeName  = ticket.placeName || ticket.placeDetailDto?.name || ticket.packageDto?.packageName || 'Booking';
-    const district   = ticket.placeDetailDto?.districtName || '';
-    const status     = getBookingStatus(ticket);
-    const visitDate  = formatDate(ticket.bookingDate);
-    const bookedDate = formatDate(ticket.createdDate);
-    const totalAmt   = ticket.totalAmount || 0;
-    const visitors: any[] = ticket.ticketUserDto || [];
-    const visitorText = visitors.length
-      ? visitors.map((item: any) => `${item.ticketName || 'Visitor'} x ${item.qty || 0}`).join(', ')
-      : `${ticket.totalUsers || 0} visitor(s)`;
-    const qrValue = ticket.qrDetail || JSON.stringify({ type: 'BOOKING', data: { ticketBookingId: ticket.id || ticket.bookingId } });
-
-    const pdfDoc     = await PDFDocument.create();
-    const page       = pdfDoc.addPage([595.28, 841.89]);
-    const fontReg    = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const fontBold   = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-    const width      = page.getWidth();
-    const height     = page.getHeight();
-    const margin     = 42;
-    const orange     = rgb(0.91, 0.39, 0.10);
-    const dark       = rgb(0.17, 0.13, 0.09);
-    const muted      = rgb(0.48, 0.42, 0.35);
-    const sand       = rgb(0.96, 0.91, 0.84);
-
-    page.drawRectangle({ x: 0, y: height - 112, width, height: 112, color: dark });
-    page.drawRectangle({ x: 0, y: height - 118, width, height: 6, color: orange });
-    page.drawText('Government of Rajasthan - OBMS', { x: margin, y: height - 40, size: 12, font: fontBold, color: rgb(1, 1, 1) });
-    page.drawText(placeName, { x: margin, y: height - 72, size: 24, font: fontBold, color: rgb(1, 1, 1) });
-
-    const qrDataUrl = generateQrDataUrl(qrValue);
-    if (qrDataUrl) {
-      try {
-        const qrImage = await pdfDoc.embedPng(dataUrlToBytes(qrDataUrl));
-        page.drawImage(qrImage, { x: width - 132, y: height - 94, width: 76, height: 76 });
-      } catch {}
-    }
-
-    page.drawRectangle({ x: margin, y: height - 255, width: width - margin * 2, height: 118, color: sand });
-    let y = height - 155;
-    const drawRow = (label: string, value: string) => {
-      page.drawText(label, { x: margin + 16, y, size: 10, font: fontBold, color: muted });
-      page.drawText(value || '-', { x: margin + 150, y, size: 12, font: fontReg, color: dark });
-      y -= 22;
-    };
-    drawRow('Booking ID', `#${bookingId}`);
-    drawRow('Status', status.label.replace(/[^\x20-\x7E]/g, '').trim() || status.key);
-    drawRow('Visit Date', visitDate);
-    drawRow('Booked On', bookedDate);
-    drawRow('Location', [district, 'Rajasthan'].filter(Boolean).join(', ') || placeName);
-
-    y -= 8;
-    page.drawText('Visitor Details', { x: margin, y, size: 13, font: fontBold, color: dark });
-    y -= 18;
-    for (const line of wrapLines(visitorText, 68)) {
-      page.drawText(line, { x: margin, y, size: 11, font: fontReg, color: muted });
-      y -= 16;
-    }
-    y -= 8;
-    page.drawText(`Amount Paid: Rs ${totalAmt}`, { x: margin, y, size: 13, font: fontBold, color: orange });
-    y -= 30;
-    page.drawText('Official tourist ticket generated from My Bookings.', { x: margin, y, size: 10, font: fontReg, color: muted });
-
-    const bytes = await pdfDoc.save();
-    const normalized = new Uint8Array(bytes);
-    const buffer = new ArrayBuffer(normalized.byteLength);
-    new Uint8Array(buffer).set(normalized);
-    return new File([buffer], `ticket_${bookingId}.pdf`, { type: 'application/pdf' });
-  }
-
+  // ─── Share handler — opens same styled HTML popup as Download ─────────────
   function openShareModalForBooking(b: any) { setShareBooking(b); setShareModalOpen(true); }
 
-  async function handleShareTicket(platform: 'facebook' | 'whatsapp' | 'instagram') {
+  async function handleShareTicket(_platform: 'facebook' | 'whatsapp' | 'instagram') {
     if (!shareBooking) return;
-    const placeName = shareBooking.placeName || shareBooking.placeDetailDto?.name || shareBooking.packageDto?.packageName || 'Booking';
-    const bookingId = String(shareBooking.bookingId || shareBooking.id || '');
-    setShareLoading(platform);
+    const bId = String(shareBooking.bookingId || shareBooking.id);
+    setShareLoading(_platform);
     try {
-      const file = await createShareTicketFile(shareBooking);
-      const shareData: ShareData = { title: `${placeName} Ticket`, text: `${placeName} - Booking #${bookingId}`, files: [file] };
-      if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
-        await navigator.share(shareData);
-      } else {
-        downloadFile(file);
-        showSuccessToastMessage('Ticket PDF downloaded. Share it from your device.');
-      }
+      setPdfGenerating(bId);
+      await dispatchTicketDownload(shareBooking);
+      showSuccessToastMessage('Ticket opened — use "Print / Save as PDF" to share.');
     } catch (error: any) {
-      if (error?.name !== 'AbortError') showErrorToastMessage('Unable to share the ticket right now.');
+      if (error?.name !== 'AbortError') showErrorToastMessage('Unable to open ticket right now.');
     } finally {
       setShareLoading('');
+      setPdfGenerating('');
       setShareModalOpen(false);
     }
   }
@@ -750,10 +660,6 @@ body{background:#1a0e06;background-image:radial-gradient(ellipse at 20% 20%,rgba
 
   // ══════════════════════════════════════════════════════════════════════════
   //  NON-INVENTORY → Sandstone Imperial
-  //  Changes:
-  //    1. Header: place name + location left-aligned beside QR (same as inventory)
-  //    2. Arch removed (no longer needed with new layout)
-  //    3. QR box: padding 5px all sides, no label, SVG fills full size (100×100)
   // ══════════════════════════════════════════════════════════════════════════
   function printSandstoneImperialTicket(ticket: any) {
     const w = window.open('', '_blank', 'width=820,height=960');
@@ -792,7 +698,6 @@ body{background:#1a0e06;background-image:radial-gradient(ellipse at 20% 20%,rgba
       .join('');
 
     const qrValue = ticket.qrDetail || JSON.stringify({ type: 'BOOKING', data: { ticketBookingId: ticket.id || ticket.bookingId } });
-    // Use 100px viewBox for a larger, full-size QR with only 5px padding
     const { rects: qrRects, count: qrCount } = generateQrSvgRects(qrValue, 100);
 
     const html = `<!DOCTYPE html>
@@ -813,73 +718,23 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
 .valid-dot{width:7px;height:7px;background:#4ade80;border-radius:50%;box-shadow:0 0 6px #4ade80;}
 .valid-lbl{font-family:'Space Mono',monospace;font-size:9px;color:rgba(255,255,255,.7);letter-spacing:1px;text-transform:uppercase;}
 .booked-on{font-family:'Rajdhani',sans-serif;font-size:11px;color:rgba(255,255,255,.35);letter-spacing:.5px;}
-
-/* card */
 .d1{background:#F5ECD7;border-radius:4px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 0 1px rgba(184,74,14,.2);}
-
-/* ── header ── */
-.d1-top{
-  background:linear-gradient(135deg,#7C2D12 0%,#B84A0E 45%,#D4691A 100%);
-  /* reduced bottom padding — arch removed */
-  padding:26px 32px 22px;
-  position:relative;overflow:hidden;
-}
-.d1-top::before{
-  content:'';position:absolute;inset:0;
-  background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-}
-/* ── arch REMOVED — .d1-top::after deleted ── */
-
-/*
- * Header row: left column (gov badge + place name/location) + right column (QR)
- * Mirrors the inventory ticket layout exactly.
- */
-.d1-header-row{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  position:relative;z-index:2;
-  gap:16px;
-}
-/* left column */
+.d1-top{background:linear-gradient(135deg,#7C2D12 0%,#B84A0E 45%,#D4691A 100%);padding:26px 32px 22px;position:relative;overflow:hidden;}
+.d1-top::before{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");}
+.d1-header-row{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:2;gap:16px;}
 .d1-header-left{display:flex;flex-direction:column;gap:0;flex:1;min-width:0;}
 .d1-gov{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
-.d1-emblem{
-  width:44px;height:44px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
-  border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;
-}
+.d1-emblem{width:44px;height:44px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
 .d1-gov-text .sub{font-family:'Rajdhani',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.6);}
 .d1-gov-text .main{font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;color:#fff;letter-spacing:.5px;}
-
-/* place name + location — directly below gov badge, left-aligned, no extra margin */
 .d1-title-block{position:relative;z-index:2;}
 .d1-title-block h1{font-family:'Cinzel',serif;font-size:24px;font-weight:700;color:#fff;letter-spacing:1px;line-height:1.2;margin-bottom:6px;}
 .d1-title-block .loc{font-family:'Rajdhani',sans-serif;font-size:12px;color:rgba(255,255,255,.7);letter-spacing:2px;text-transform:uppercase;}
-
-/*
- * QR block:
- *   - padding: 5px all sides
- *   - no label text
- *   - SVG size 100×100 (full size, centred)
- *   - align-self: flex-start so it stays at the top-right
- */
-.d1-qr-wrap{
-  background:#fff;border-radius:8px;
-  padding:6px;
-  box-shadow:0 4px 16px rgba(0,0,0,.3);
-  flex-shrink:0;
-  margin:0 auto;
-  width:140px;height:140px;
-  display:flex;align-items:center;justify-content:center;
-}
+.d1-qr-wrap{background:#fff;border-radius:8px;padding:6px;box-shadow:0 4px 16px rgba(0,0,0,.3);flex-shrink:0;margin:0 auto;width:140px;height:140px;display:flex;align-items:center;justify-content:center;}
 .d1-qr-wrap svg{display:block;width:100%;height:100%;}
-
-/* pass strip */
 .d1-pass-strip{background:#D4A017;padding:8px 32px;display:flex;justify-content:space-between;align-items:center;}
 .d1-pass-strip .badge{font-family:'Cinzel',serif;font-size:11px;font-weight:600;color:#3D1F00;letter-spacing:2px;}
 .d1-pass-strip .price{font-family:'Space Mono',monospace;font-size:11px;color:#3D1F00;font-weight:700;}
-
-/* body */
 .d1-body{padding:28px 32px;}
 .d1-meta-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
 .d1-meta-cell{text-align:center;padding:14px 8px;border:1px solid rgba(184,74,14,.2);border-radius:4px;background:rgba(184,74,14,.04);}
@@ -908,13 +763,7 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
 .btn-print{background:linear-gradient(135deg,#7C2D12,#B84A0E);color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;border-radius:4px;padding:13px 36px;cursor:pointer;box-shadow:0 4px 16px rgba(184,74,14,.4);transition:opacity .15s;}
 .btn-print:hover{opacity:.88;}
 .btn-close{background:transparent;color:rgba(255,255,255,.45);font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;letter-spacing:1px;border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:13px 24px;cursor:pointer;}
-@media print{
-  body{background:#fff;padding:0;display:block;}
-  .action-bar,.top-row{display:none!important;}
-  .d1{box-shadow:none;border-radius:0;}
-  .wrap{max-width:100%;}
-  .d1-top,.d1-pass-strip,.d1-ref,.d1-footer{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-}
+@media print{body{background:#fff;padding:0;display:block;}.action-bar,.top-row{display:none!important;}.d1{box-shadow:none;border-radius:0;}.wrap{max-width:100%;}.d1-top,.d1-pass-strip,.d1-ref,.d1-footer{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
 </style>
 </head>
 <body>
@@ -923,13 +772,9 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
     <div class="valid-pill"><span class="valid-dot"></span><span class="valid-lbl">Valid Ticket</span></div>
     <span class="booked-on">Booked on ${bookedDate}</span>
   </div>
-
   <div class="d1">
-    <!-- ── HEADER: gov badge + place name LEFT, QR RIGHT (no arch) ── -->
     <div class="d1-top">
       <div class="d1-header-row">
-
-        <!-- Left: gov badge stacked above place name + location -->
         <div class="d1-header-left">
           <div class="d1-gov">
             <div class="d1-emblem">🏛</div>
@@ -943,22 +788,15 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
             <div class="loc">📍 ${location}</div>
           </div>
         </div>
-
-        <!-- Right: QR — 5px padding, no label, full-size SVG -->
         <div class="d1-qr-wrap">
           <svg viewBox="0 0 ${qrCount} ${qrCount}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" shape-rendering="crispEdges">${qrRects}</svg>
         </div>
-
       </div>
-      <!-- ── arch REMOVED ── -->
     </div>
-
-    <!-- pass strip unchanged -->
     <div class="d1-pass-strip">
       <span class="badge">✦ Single Entry Pass ✦</span>
       <span class="price">${priceBadge}</span>
     </div>
-
     <div class="d1-body">
       <div class="d1-meta-row">
         <div class="d1-meta-cell"><span class="icon">📅</span><div class="lbl">Visit Date</div><div class="val">${visitDay}</div><div class="sub2">${visitYear}</div></div>
@@ -977,13 +815,11 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
       </div>
       <div class="d1-ref"><span class="rl">Booking Reference</span><span class="rv">${bookingId}</span></div>
     </div>
-
     <div class="d1-footer">
       <div class="contact">📞 141-220-0234 &nbsp;|&nbsp; ✉ support@rajasthantourism.gov.in<br/>🌐 obms-tourist.rajasthan.gov.in</div>
       <div class="brand"><div class="bname">OBMS</div><div class="bsub">Rajasthan Tourism</div></div>
     </div>
   </div>
-
   <div class="action-bar">
     <button class="btn-print" onclick="window.print()">🖨 &nbsp;Print / Save as PDF</button>
     <button class="btn-close" onclick="window.close()">✕ Close</button>
@@ -1128,7 +964,7 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                 <h1>My Bookings</h1>
                 <p>View and manage all your ticket reservations across Rajasthan</p>
               </div>
-              <div  style={{marginTop: '16px'}} className="header-actions">
+              <div style={{marginTop: '16px'}} className="header-actions">
                 <div className="filter-bar">
                   <div className="search-input-wrap">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1268,14 +1104,11 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                         <div className="booking-price-sub">Booked {formatDate(b.createdDate)}</div>
                       </div>
                       <div className="booking-actions">
-                        {/* View Ticket — only when payment succeeded */}
                         {isPaymentSuccess(b) && !b.cancelled && !b.refund && (
                           <button className="bc-btn bc-btn-primary" onClick={(e) => { e.stopPropagation(); openDrawer(b); }}>
                             View Ticket
                           </button>
                         )}
-
-                        {/* Download — only when payment succeeded */}
                         {isPaymentSuccess(b) && !b.cancelled && !b.refund && (
                           <button
                             className="bc-btn bc-btn-outline"
@@ -1285,8 +1118,6 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                             {isGen ? '⏳ Generating...' : '📥 Download'}
                           </button>
                         )}
-
-                        {/* Reverify Payment — for non-success bookings, within 5-min window */}
                         {!isPaymentSuccess(b) && !b.cancelled && !b.refund && isWithinReverifyWindow(b) && (
                           <button
                             className="bc-btn bc-btn-primary"
@@ -1296,27 +1127,11 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                             {reverifyMutation.isPending ? '⏳ Verifying…' : '🔄 Re-verify Payment'}
                           </button>
                         )}
-
-                        {/* Web Check-in — only when payment succeeded */}
-                        {isPaymentSuccess(b) && isCheckinEligible(b) && (
-                          <button
-                            className="bc-btn bc-btn-outline"
-                            style={{ background: '#E8F5E9', borderColor: '#4CAF50', color: '#2E7D32' }}
-                            onClick={(e) => { e.stopPropagation(); handleWebCheckIn(b); }}
-                          >✓ Web Check-in</button>
-                        )}
-                        {isPaymentSuccess(b) && b.checkedIn === 'Yes' && (
-                          <span style={{ fontSize: 10, color: '#2E7D32', padding: '4px 8px', background: '#E8F5E9', borderRadius: 12 }}>
-                            ✓ Checked In
-                          </span>
-                        )}
-
                         {isPaymentSuccess(b) && canCancel(b) && (
                           <button className="bc-btn bc-btn-ghost" onClick={(e) => { e.stopPropagation(); handleCancelClick(b); }}>
                             Cancel
                           </button>
                         )}
-
                         <button
                           className="bc-btn bc-btn-ghost"
                           style={{ color: '#7A6A58' }}
@@ -1432,14 +1247,36 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                               ))}
                             </div>
                           </div>
-                          {/* QR Code — only when payment succeeded */}
-                          {isPaymentSuccess(b) && (b.qrDetail || b.id) && (
-                            <div style={{ textAlign: 'center', padding: '14px 0', cursor: 'pointer' }} onClick={() => { setQrData(b.qrDetail || JSON.stringify({ type: 'BOOKING', data: { ticketBookingId: b.id || b.bookingId } })); setQrModalOpen(true); }}>
-                              <div className="ticket-field-lbl">QR Code</div>
-                              <div style={{ display: 'inline-block', padding: 10, background: '#fff', border: '1px solid #E8DAC5', borderRadius: 8, marginTop: 8 }}/>
-                              <div style={{ fontSize: 10, color: '#7A6A58', marginTop: 4 }}>Tap to enlarge · Scan at entry</div>
-                            </div>
-                          )}
+
+                          {/* ── QR Code — rendered inline in drawer ── */}
+                          {isPaymentSuccess(b) && (b.qrDetail || b.id) && (() => {
+                            const qrValue = b.qrDetail || JSON.stringify({ type: 'BOOKING', data: { ticketBookingId: b.id || b.bookingId } });
+                            const { rects, count } = generateQrSvgRects(qrValue, 96);
+                            return (
+                              <div
+                                style={{ textAlign: 'center', padding: '14px 0', cursor: 'pointer' }}
+                                onClick={() => { setQrData(qrValue); setQrModalOpen(true); }}
+                              >
+                                <div className="ticket-field-lbl">QR Code</div>
+                                <div style={{
+                                  display: 'inline-block', padding: 10, background: '#fff',
+                                  border: '1px solid #E8DAC5', borderRadius: 8, marginTop: 8,
+                                }}>
+                                  <svg
+                                    viewBox={`0 0 ${count} ${count}`}
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width={120}
+                                    height={120}
+                                    style={{ display: 'block' }}
+                                    preserveAspectRatio="xMidYMid meet"
+                                    shapeRendering="crispEdges"
+                                    dangerouslySetInnerHTML={{ __html: rects }}
+                                  />
+                                </div>
+                                <div style={{ fontSize: 10, color: '#7A6A58', marginTop: 4 }}>Tap to enlarge · Scan at entry</div>
+                              </div>
+                            );
+                          })()}
                         </div>
                         <div className="ticket-total-bar">
                           <span className="ttb-lbl">{b.cancelled || b.refund ? 'Refunded Amount' : 'Total Amount Paid'}</span>
@@ -1447,13 +1284,11 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                         </div>
                       </div>
                       <div className="drawer-actions">
-                        {/* Print / Download — only for successful payments */}
                         {isPaymentSuccess(b) && !b.cancelled && !b.refund && (
                           <button className="btn-drawer btn-drawer-primary" disabled={isGen} onClick={() => handleDownloadTicket(b)}>
                             {isGen ? '⏳ Generating...' : '🖨 Print / Download Ticket'}
                           </button>
                         )}
-                        {/* Reverify Payment — for non-success bookings, within 5-min window */}
                         {!isPaymentSuccess(b) && !b.cancelled && !b.refund && isWithinReverifyWindow(b) && (
                           <button
                             className="btn-drawer btn-drawer-primary"
@@ -1461,11 +1296,6 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                             onClick={() => handleReverify(b)}
                           >
                             {reverifyMutation.isPending ? '⏳ Verifying…' : '🔄 Re-verify Payment'}
-                          </button>
-                        )}
-                        {isPaymentSuccess(b) && isCheckinEligible(b) && (
-                          <button className="btn-drawer btn-drawer-outline" style={{ borderColor: '#2E7D32', color: '#2E7D32' }} onClick={() => handleWebCheckIn(b)}>
-                            ✓ Web Check-in
                           </button>
                         )}
                         {isJkkBooking(b) && b.makePayment && (
@@ -1567,21 +1397,35 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
             </div>
           </div>
 
-          {/* ── QR Modal ── */}
-          {qrModalOpen && (
-            <div className="modal-overlay open" style={{ zIndex: 9994 }} onClick={(e) => { if (e.target === e.currentTarget) setQrModalOpen(false); }}>
-              <div className="modal" style={{ maxWidth: 360, textAlign: 'center' }}>
-                <div className="modal-header">
-                  <div className="modal-title">Entry QR Code</div>
-                  <button className="modal-close" onClick={() => setQrModalOpen(false)}>✕</button>
-                </div>
-                <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 24 }}>
-                  <div style={{ padding: 16, background: '#fff', border: '2px solid #E8DAC5', borderRadius: 12 }}/>
-                  <p style={{ fontSize: 12, color: '#7A6A58', marginTop: 16 }}>Show this QR code at the entry gate for quick scanning</p>
+          {/* ── QR Enlarge Modal ── */}
+          {qrModalOpen && (() => {
+            const { rects, count } = generateQrSvgRects(qrData, 96);
+            return (
+              <div className="modal-overlay open" style={{ zIndex: 9994 }} onClick={(e) => { if (e.target === e.currentTarget) setQrModalOpen(false); }}>
+                <div className="modal" style={{ maxWidth: 360, textAlign: 'center' }}>
+                  <div className="modal-header">
+                    <div className="modal-title">Entry QR Code</div>
+                    <button className="modal-close" onClick={() => setQrModalOpen(false)}>✕</button>
+                  </div>
+                  <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 24 }}>
+                    <div style={{ padding: 16, background: '#fff', border: '2px solid #E8DAC5', borderRadius: 12 }}>
+                      <svg
+                        viewBox={`0 0 ${count} ${count}`}
+                        xmlns="http://www.w3.org/2000/svg"
+                        width={220}
+                        height={220}
+                        style={{ display: 'block' }}
+                        preserveAspectRatio="xMidYMid meet"
+                        shapeRendering="crispEdges"
+                        dangerouslySetInnerHTML={{ __html: rects }}
+                      />
+                    </div>
+                    <p style={{ fontSize: 12, color: '#7A6A58', marginTop: 16 }}>Show this QR code at the entry gate for quick scanning</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* ── Share Modal ── */}
           {shareModalOpen && shareBooking && (
@@ -1593,7 +1437,7 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                 </div>
                 <div className="modal-body" style={{ paddingTop: 16 }}>
                   <div style={{ fontSize: 12, color: '#7A6A58', marginBottom: 18 }}>
-                    Choose an app to share the ticket PDF for booking #{shareBooking.bookingId || shareBooking.id}
+                    Choose an app to share the ticket for booking #{shareBooking.bookingId || shareBooking.id}
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
                     {[
@@ -1630,6 +1474,9 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                         </span>
                       </button>
                     ))}
+                  </div>
+                  <div style={{ marginTop: 16, padding: '10px 12px', background: '#FFF8F0', borderRadius: 8, border: '1px solid #F0D9C0', fontSize: 11, color: '#7A6A58', lineHeight: 1.5 }}>
+                    💡 The ticket will open in a new window. Use <strong>Print / Save as PDF</strong> to save and share it via any app.
                   </div>
                 </div>
               </div>
