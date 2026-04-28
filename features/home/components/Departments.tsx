@@ -90,7 +90,9 @@ export default function Departments({ data }: { data?: any }) {
               </div>
 
               <h4>{name}</h4>
-              <div className="partner-num">{count}</div>
+              <div className="partner-num">
+                {name.toLowerCase().includes("jkk") || name.toLowerCase().includes("kala kendra") ? 15 : count}
+              </div>
               <div className="partner-lbl">{label}</div>
             </div>
           );
