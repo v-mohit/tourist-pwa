@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import axiosInstance from '@/configs/axios.config';
@@ -15,7 +15,7 @@ import moment from 'moment-timezone';
 // "Retry" re-checks the booking status — if it has flipped to SUCCESS the
 // user is sent on to the booking ticket; otherwise we re-trigger the
 // EMITRA confirm flow so they can pay again.
-export default function PaymentFailedPage() {
+function PaymentFailedPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -118,5 +118,13 @@ export default function PaymentFailedPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function PaymentFailedPage() {
+  return (
+    <Suspense fallback={null}>
+      <PaymentFailedPageInner />
+    </Suspense>
   );
 }

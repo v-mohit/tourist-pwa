@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/features/auth/context/AuthContext';
@@ -114,7 +114,7 @@ function isWithinReverifyWindow(b: any): boolean {
   return now >= start && now <= start + 5 * 60 * 1000;
 }
 
-export default function MyBookingsPage() {
+function MyBookingsPageInner() {
   const { user, openLoginModal } = useAuth();
   const searchParams = useSearchParams();
 
@@ -2044,5 +2044,16 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
         </>
       )}
     </div>
+  );
+}
+
+// Next.js 16 requires `useSearchParams()` consumers to sit inside a Suspense
+// boundary so the static shell can prerender while the params-dependent UI
+// resolves on the client.
+export default function MyBookingsPage() {
+  return (
+    <Suspense fallback={null}>
+      <MyBookingsPageInner />
+    </Suspense>
   );
 }
