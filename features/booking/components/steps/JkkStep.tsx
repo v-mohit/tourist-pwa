@@ -28,6 +28,18 @@ const ALLOWED_FILE_TYPES = [
 ];
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
+// `<input type="date">` returns a YYYY-MM-DD string. `new Date(s).getTime()`
+// parses that as UTC midnight, but the backend keys JKK records off the IST
+// date — passing UTC epoch lands on the wrong day in the backend (5.5h off)
+// and shifts/availability come back empty. Old project used moment-timezone
+// with Asia/Kolkata to get IST-midnight; this preserves that behavior.
+function istMidnightMs(yyyymmdd: string): number {
+  if (!yyyymmdd) return 0;
+  // ISO with explicit +05:30 offset → epoch for IST midnight on that date.
+  const t = new Date(`${yyyymmdd}T00:00:00+05:30`).getTime();
+  return Number.isFinite(t) ? t : 0;
+}
+
 /* ─── Types ─────────────────────────────────────────────────────────────────── */
 
 interface Props {
@@ -322,8 +334,8 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
     setCalAvailMsg("");
     try {
       const result = await calendarAvail.mutateAsync({
-        bookingStartDate: new Date(jkk.bookingStartDate).getTime(),
-        bookingEndDate: new Date(jkk.bookingEndDate).getTime(),
+        bookingStartDate: istMidnightMs(jkk.bookingStartDate),
+        bookingEndDate: istMidnightMs(jkk.bookingEndDate),
         categoryId: jkk.selectedCategory.id,
         subCategoryId: jkk.selectedSubCategory.id,
         preDays: needsPrepDays ? prepDays : 0,
@@ -346,15 +358,15 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
 
   async function fetchShifts() {
     try {
-      const startMs = new Date(jkk.bookingStartDate).getTime();
-      const endMs = new Date(jkk.bookingEndDate).getTime();
+      const startMs = istMidnightMs(jkk.bookingStartDate);
+      const endMs = istMidnightMs(jkk.bookingEndDate);
       const result = await shiftsMutation.mutateAsync({
         startDate: String(startMs),
         endDate: String(endMs),
         categoryId: jkk.selectedCategory?.id ?? "",
         subCategoryId: jkk.selectedSubCategory?.id ?? "",
       });
-      setAvailShifts(result ?? []);
+      setAvailShifts(Array.isArray(result) ? result : []);
       setSelectedShifts([]);
       setShiftAvailMsg("");
       setSubStep("shifts");
@@ -370,8 +382,8 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
     setShiftAvailMsg("");
     try {
       const result = await shiftAvail.mutateAsync({
-        bookingStartDate: new Date(jkk.bookingStartDate).getTime(),
-        bookingEndDate: new Date(jkk.bookingEndDate).getTime(),
+        bookingStartDate: istMidnightMs(jkk.bookingStartDate),
+        bookingEndDate: istMidnightMs(jkk.bookingEndDate),
         categoryId: jkk.selectedCategory?.id,
         subCategoryId: jkk.selectedSubCategory?.id,
         shiftId: [shifts[0]?.id],
@@ -416,8 +428,8 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
           ? false
           : applicant.acRequired?.toLowerCase() === "yes",
         projector: eventForm.projectorRequired,
-        bookingStartDate: new Date(jkk.bookingStartDate).getTime(),
-        bookingEndDate: new Date(jkk.bookingEndDate).getTime(),
+        bookingStartDate: istMidnightMs(jkk.bookingStartDate),
+        bookingEndDate: istMidnightMs(jkk.bookingEndDate),
         shiftId: selectedShifts.map((s) => s.id),
         preDays: needsPrepDays ? prepDays : 0,
         fifteenLights: applicant.fifteenLights,
@@ -561,8 +573,8 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
         shiftId: selectedShifts.map((s) => s.id),
         typeId: jkk.selectedPlaceType?.id,
         exhibitionType: jkk.selectedPlaceType?.name,
-        bookingStartDate: new Date(jkk.bookingStartDate).getTime(),
-        bookingEndDate: new Date(jkk.bookingEndDate).getTime(),
+        bookingStartDate: istMidnightMs(jkk.bookingStartDate),
+        bookingEndDate: istMidnightMs(jkk.bookingEndDate),
         preDays: needsPrepDays ? prepDays : 0,
         applicantName: applicant.fullName,
         address: applicant.address,
@@ -651,6 +663,50 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
 
   /* ── File upload UI helper ───────────────────────────────────────────────── */
 
+  // Render a thumbnail (image) or PDF badge plus the file name and inline
+  // View / Remove actions. Used by both multi- and single-file uploaders.
+  function renderUploadedFile(
+    f: { url: string; name: string },
+    onRemove: () => void,
+  ) {
+    const isImage = /\.(jpe?g|png|gif|webp)$/i.test(f.name);
+    const isPdf = /\.pdf$/i.test(f.name);
+    return (
+      <div className="flex items-center gap-2 text-[10px] text-[#2C2017] bg-[#F5E8CC] px-2 py-1.5 rounded-lg">
+        {isImage ? (
+          <a href={f.url} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+            <img
+              src={f.url}
+              alt={f.name}
+              className="w-9 h-9 rounded object-cover border border-[#E8DAC5]"
+            />
+          </a>
+        ) : (
+          <div className="w-9 h-9 rounded bg-white border border-[#E8DAC5] flex items-center justify-center text-[8px] font-bold text-[#E8631A] flex-shrink-0">
+            {isPdf ? "PDF" : "FILE"}
+          </div>
+        )}
+        <span className="truncate flex-1" title={f.name}>{f.name}</span>
+        <a
+          href={f.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[#E8631A] text-[10px] font-semibold hover:underline"
+        >
+          View
+        </a>
+        <button
+          type="button"
+          onClick={onRemove}
+          className="text-red-500 text-xs"
+          aria-label="Remove file"
+        >
+          ✕
+        </button>
+      </div>
+    );
+  }
+
   function renderFileUpload(
     label: string,
     files: { url: string; name: string }[],
@@ -666,38 +722,62 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
         </label>
         <div className="space-y-1">
           {files.map((f, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-2 text-[10px] text-[#2C2017] bg-[#F5E8CC] px-2 py-1 rounded-lg"
-            >
-              <span className="truncate flex-1">{f.name}</span>
-              <button
-                type="button"
-                onClick={() => setter((p) => p.filter((_, j) => j !== i))}
-                className="text-red-500 text-xs"
-              >
-                ✕
-              </button>
+            <div key={i}>
+              {renderUploadedFile(f, () =>
+                setter((p) => p.filter((_, j) => j !== i)),
+              )}
             </div>
           ))}
           {files.length < maxCount && (
             <label className="inline-flex items-center gap-1 px-3 py-1.5 border border-dashed border-[#E8DAC5] rounded-lg text-[10px] text-[#7A6A58] cursor-pointer hover:border-[#E8631A] hover:text-[#E8631A] transition-colors">
-              {uploading ? "Uploading..." : "+ Upload File"}
+              {uploading ? "Uploading..." : "+ Upload Files"}
               <input
                 type="file"
+                multiple
                 className="hidden"
                 accept=".jpg,.jpeg,.png,.pdf"
                 disabled={uploading}
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file)
-                    handleFileUpload(
-                      file,
-                      setter as any,
-                      maxCount,
-                      files.length,
-                    );
+                onChange={async (e) => {
+                  const picked = e.target.files;
                   e.target.value = "";
+                  if (!picked || picked.length === 0) return;
+
+                  const valid: File[] = [];
+                  for (const f of Array.from(picked)) {
+                    if (!ALLOWED_FILE_TYPES.includes(f.type)) {
+                      showErrorToastMessage(
+                        "Only JPG, JPEG, PNG images or PDF files are allowed.",
+                      );
+                      continue;
+                    }
+                    if (f.size > MAX_FILE_SIZE) {
+                      showErrorToastMessage("File size must not exceed 2MB.");
+                      continue;
+                    }
+                    valid.push(f);
+                  }
+
+                  const remaining = maxCount - files.length;
+                  if (valid.length > remaining) {
+                    showErrorToastMessage(`Maximum ${maxCount} files allowed.`);
+                  }
+                  const toUpload = valid.slice(0, remaining);
+                  if (toUpload.length === 0) return;
+
+                  setUploading(true);
+                  try {
+                    const uploaded = await Promise.all(
+                      toUpload.map(async (f) => {
+                        const result = await fileUpload.mutateAsync(f);
+                        const url = result?.url || result;
+                        return { url, name: f.name };
+                      }),
+                    );
+                    setter((prev) => [...prev, ...uploaded]);
+                  } catch {
+                    /* handled by hook */
+                  }
+                  setUploading(false);
                 }}
               />
             </label>
@@ -722,16 +802,7 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
       <div>
         <label className={labelCls}>{label}</label>
         {file ? (
-          <div className="flex items-center gap-2 text-[10px] text-[#2C2017] bg-[#F5E8CC] px-2 py-1 rounded-lg">
-            <span className="truncate flex-1">{file.name}</span>
-            <button
-              type="button"
-              onClick={() => setter(null)}
-              className="text-red-500 text-xs"
-            >
-              ✕
-            </button>
-          </div>
+          renderUploadedFile(file, () => setter(null))
         ) : (
           <label
             className={`inline-flex items-center gap-1 px-3 py-1.5 border border-dashed border-[#E8DAC5] rounded-lg text-[10px] text-[#7A6A58] transition-colors ${disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer hover:border-[#E8631A] hover:text-[#E8631A]"}`}

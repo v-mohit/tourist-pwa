@@ -562,163 +562,290 @@ function MyBookingsPageInner() {
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  //  JKK → Application form / Ticket print (matches old DownloadJkkUI layout)
+  //  JKK → Application form / Receipt print
+  //  Faithful port of the old project's `DownloadJkkUI` layout — pink/rose
+  //  gradient header, three-column organiser+QR grid, event details, more
+  //  details & attachments with thumbnails, payment + transaction columns.
   // ══════════════════════════════════════════════════════════════════════════
   function printJkkApplication(ticket: any) {
-    const w = window.open('', '_blank', 'width=900,height=1100');
+    const w = window.open('', '_blank', 'width=1100,height=1200');
     if (!w) { showErrorToastMessage('Please allow popups to download the ticket'); return; }
 
     const id            = String(ticket.bookingId || ticket.id || '');
-    const placeName     = ticket.placeDetailDto?.name || ticket.placeName || 'Jawahar Kala Kendra';
-    const district      = ticket.placeDetailDto?.districtName || 'Jaipur';
-    const categoryName  = ticket.categoryName  || ticket.jkkCategory?.name    || '—';
-    const subCategoryName = ticket.subCategoryName || ticket.jkkSubCategory?.name || '—';
-    const exhibitionName  = ticket.typeName || ticket.exhibitionType || '—';
-    const startDate     = ticket.bookingStartDate ? moment(ticket.bookingStartDate).format('DD MMM YYYY') : '';
-    const endDate       = ticket.bookingEndDate   ? moment(ticket.bookingEndDate).format('DD MMM YYYY')   : '';
-    const dateRange     = startDate === endDate ? startDate : `${startDate} → ${endDate}`;
-    const createdDate   = ticket.createdDate ? moment(ticket.createdDate).format('DD-MM-YYYY hh:mm A') : '';
-    const totalAmount   = ticket.totalAmount || 0;
-    const approved      = (ticket.approved || 'PENDING').toString().toUpperCase();
-    const paymentStatus = isPaymentSuccess(ticket) ? 'PAID' : 'PENDING';
+    const createdDate   = ticket.createdDate
+      ? moment(Number(ticket.createdDate)).format('dddd, MMMM Do YYYY, h:mm:ss a')
+      : '—';
+    const approvedRaw   = (ticket.approved || 'PENDING').toString();
+    const approved      = approvedRaw.toLowerCase() === 'reject' ? 'REJECTED' : approvedRaw.toUpperCase();
+    const paymentStatus = isPaymentSuccess(ticket) ? 'SUCCESS' : 'Pending';
 
     const applicantName = ticket.applicantName || '—';
     const mobileNo      = ticket.mobileNo || '—';
     const email         = ticket.email || '—';
     const address       = ticket.address || '—';
-    const sponsoredName = ticket.sponsoredName || '';
     const gstNo         = ticket.gstNo || '';
-    const projector     = ticket.projector ? 'Yes' : 'No';
-    const ac            = ticket.ac ? 'Yes' : 'No';
+    const societyRegistered    = !!ticket.societyRegistered;
+    const societyDocUrl        = ticket.societyRegisteredDocUrl || '';
 
-    const shifts = (ticket.jkkShiftList || ticket.shiftList || []).map((s: any) => s?.name || s).filter(Boolean).join(', ') || '—';
+    const typeName        = ticket.typeName || ticket.exhibitionType || '—';
+    const subCategoryName = ticket.subCategoryName || ticket.jkkSubCategory?.name || '—';
+    const category        = ticket.category || ticket.categoryName || '—';
+    const projector       = ticket.projector ? 'Yes' : 'No';
+    const audienceEntry   = ticket.audienceEntryByInvitation
+      ? 'By Invitation'
+      : ticket.audienceEntryByTicket ? 'By Ticket' : 'N/A';
+    const shiftName       = ticket.shiftName
+      || (ticket.jkkShiftList || ticket.shiftList || []).map((s: any) => s?.name || s).filter(Boolean).join(', ')
+      || '';
 
-    const program       = ticket.detailsOfProgram?.[0]?.description || '';
-    const previous      = ticket.previousDetails?.[0]?.description || '';
-    const guests        = ticket.guestDetails?.[0]?.description || '';
-    const organisation  = ticket.organizationDetails?.[0]?.description || '';
+    const startMs = Number(ticket.bookingStartDate);
+    const endMs   = Number(ticket.bookingEndDate);
+    const reservationFor = startMs && endMs
+      ? `${moment(startMs).format('dddd, DD MMM')} - ${moment(endMs).format('dddd, DD MMM, YYYY')}`
+      : '—';
+    const durationDays = startMs && endMs
+      ? moment(endMs).startOf('day').diff(moment(startMs).startOf('day'), 'days') + 1
+      : 0;
 
-    const bank          = ticket.jkkBankDetails || {};
+    // Days for Preparation: range = (startDate - preDays) → (startDate - 1)
+    const preDays = Number(ticket.preDays || 0);
+    let prepRange = '';
+    if (preDays > 0 && startMs) {
+      const prepStart = moment(startMs).subtract(preDays, 'days');
+      const prepEnd   = moment(startMs).subtract(1, 'days');
+      prepRange = preDays === 1
+        ? `(${prepStart.format('DD MMM')})`
+        : `(${prepStart.format('DD MMM')} to ${prepEnd.format('DD MMM')})`;
+    }
+
+    // Mirrors DownloadJkkUI's image-vs-doc detection so we can render thumbnails
+    // inline for images and a generic PDF/icon link for everything else.
+    const isImageUrl = (url: string) =>
+      /\.(jpg|jpeg|png|gif|bmp|tiff|tif|webp|svg|heic|heif|ico|raw|cr2|nef|orf|arw|psd)(\?|$)/i.test(url || '');
+    const renderAttachments = (list: any[]) => {
+      if (!list || list.length === 0) return '';
+      return `<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">${list.map((it: any) => {
+        const url = it?.imageUrl || it?.url || '';
+        if (!url) return '';
+        if (isImageUrl(url)) {
+          return `<a href="${url}" target="_blank" rel="noopener"><img src="${url}" alt="attachment" style="width:48px;height:48px;border-radius:6px;border:2px solid #ccc;object-fit:cover" /></a>`;
+        }
+        return `<a href="${url}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:6px;border:2px solid #ccc;background:#f5f5f5;color:#EB5757;font-weight:700;font-size:11px;text-decoration:none">PDF</a>`;
+      }).join('')}</div>`;
+    };
+
+    const programDetails       = ticket.detailsOfProgram?.[0];
+    const guestDetails         = ticket.guestDetails?.[0];
+    const organizationDetails  = ticket.organizationDetails?.[0];
+    const previousDetails      = ticket.previousDetails?.[0];
+
+    const programDetailsBlock = (programDetails?.description || (programDetails?.imageList?.length ?? 0) > 0) ? `
+      <div class="more-cell">
+        <div class="more-lbl">Program Details</div>
+        <div class="more-val">${programDetails?.description || ''}</div>
+        ${renderAttachments(programDetails?.imageList || [])}
+      </div>` : '';
+    const guestDetailsBlock = (guestDetails?.description || (guestDetails?.imageList?.length ?? 0) > 0) ? `
+      <div class="more-cell">
+        <div class="more-lbl">Guest Details</div>
+        <div class="more-val">${guestDetails?.description || ''}</div>
+        ${renderAttachments(guestDetails?.imageList || [])}
+      </div>` : '';
+    const organizationDetailsBlock = (organizationDetails?.description || (organizationDetails?.imageList?.length ?? 0) > 0) ? `
+      <div class="more-cell">
+        <div class="more-lbl">Organization Details</div>
+        <div class="more-val">${organizationDetails?.description || ''}</div>
+        ${renderAttachments(organizationDetails?.imageList || [])}
+      </div>` : '';
+    const previousDetailsBlock = (previousDetails?.description || (previousDetails?.imageList?.length ?? 0) > 0) ? `
+      <div class="more-cell">
+        <div class="more-lbl">Previous Details</div>
+        <div class="more-val">${previousDetails?.description || ''}</div>
+        ${renderAttachments(previousDetails?.imageList || [])}
+      </div>` : '';
+
+    const ticketHeads: any[] = ticket.ticketHeads || [];
+    const ticketHeadsHtml = ticketHeads.map((th: any) => {
+      const labelLc = (th?.name || '').toLowerCase();
+      const label = labelLc === 'with ac'
+        ? 'Electricity Charges/ With Ac'
+        : th?.name === 'Security Charge'
+          ? `${th.name} (Refundable)`
+          : th?.name || '—';
+      const amt = typeof th?.amount === 'number' ? th.amount.toFixed(2) : (th?.amount || '0.00');
+      return `<div class="pay-cell">
+        <div class="pay-lbl">${label}</div>
+        <div class="pay-val">₹ ${amt}</div>
+      </div>`;
+    }).join('');
+
+    const totalAmount = typeof ticket.totalAmount === 'number'
+      ? ticket.totalAmount.toFixed(2)
+      : (ticket.totalAmount || '0.00');
+
+    const transactionId   = ticket.transactionId;
+    const transactionDate = ticket.transactionDate;
+    const hasTransaction  = !!transactionId && transactionId !== 0 && transactionId !== '0';
 
     const qrValue = ticket.qrDetail || JSON.stringify({ type: 'BOOKING', data: { ticketBookingId: ticket.id || ticket.bookingId } });
-    const { rects: qrRects, count: qrCount } = generateQrSvgRects(qrValue, 100);
+    const qrUrl   = generateQrDataUrl(qrValue);
 
-    const approvedColor = approved === 'APPROVED' ? '#2E7D32' : approved === 'REJECT' ? '#C62828' : '#F57F17';
-
-    const html = `<!DOCTYPE html><html><head><title>JKK ${approved === 'APPROVED' ? 'Ticket' : 'Application'} #${id}</title>
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>JKK ${approved === 'APPROVED' ? 'Ticket' : 'Application'} #${id}</title>
       <style>
-        *{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:Arial,sans-serif;background:#fff;color:#323232;padding:20px}
-        .wrap{width:1024px;max-width:100%;margin:0 auto}
-        .head{display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#ff016e 0%,#c2185b 100%);color:#fff;padding:18px 24px;border-radius:10px 10px 0 0}
-        .head .gov{font-size:11px;opacity:.85;letter-spacing:1px;text-transform:uppercase}
-        .head h1{font-size:22px;font-weight:700;margin-top:2px}
-        .head .qr{background:#fff;padding:6px;border-radius:6px;width:96px;height:96px;display:flex;align-items:center;justify-content:center}
-        .head .qr svg{width:100%;height:100%}
-        .body-c{background:#fff;border:2px solid #ff016e;border-top:none;border-radius:0 0 10px 10px;padding:20px}
-        .meta{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
-        .meta .cell{padding:10px 12px;background:#fff5fa;border-radius:6px;border:1px solid #ffd6e6}
-        .meta .lbl{font-size:10px;color:#8a4a6a;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
-        .meta .val{font-size:13px;font-weight:700;color:#323232}
-        .section{margin-top:18px}
-        .section h3{font-size:14px;font-weight:700;color:#ff016e;margin-bottom:10px;border-bottom:2px solid #ffd6e6;padding-bottom:6px}
-        .row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:8px}
-        .field{padding:8px 10px;background:#fafafa;border:1px solid #eee;border-radius:6px}
-        .field .lbl{font-size:10px;color:#7A6A58;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
-        .field .val{font-size:12px;font-weight:600;color:#323232;word-break:break-word}
-        .total{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:#fff5fa;border:2px solid #ff016e;border-radius:8px;margin-top:18px}
-        .total .l{font-weight:700;color:#323232;font-size:14px}
-        .total .v{font-weight:700;color:#ff016e;font-size:20px}
-        .status-pill{display:inline-block;padding:4px 12px;border-radius:14px;font-size:11px;font-weight:700;letter-spacing:.5px}
-        .footer{text-align:center;font-size:10px;color:#7A6A58;margin-top:18px;padding-top:14px;border-top:1px dashed #ddd}
-        @media print{body{padding:0}}
+        *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
+        body{background:#fff;color:#323232;padding:0}
+        .wrap{max-width:1100px;margin:0 auto;box-shadow:0 8px 32px rgba(0,0,0,.08);border-bottom-left-radius:12px;border-bottom-right-radius:12px;overflow:hidden}
+        .head{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to right,#db2777,#f43f5e);padding:16px 24px;border-top-left-radius:12px;border-top-right-radius:12px}
+        .head img.logo{height:38px;filter:brightness(0) invert(1)}
+        .head img.jkk{height:60px}
+        .reg{display:flex;justify-content:space-between;align-items:center;background:#fce7f3;border-left:4px solid #db2777;padding:12px 24px;font-size:14px;color:#323232}
+        .reg small{font-weight:500}
+        hr{border:0;border-top:1px solid #f1d3e1}
+        .grid{display:grid;grid-template-columns:2fr 1fr;background:#fff}
+        .org-col{padding:14px 24px;background:#eff6ff;border-left:4px solid #1d4ed8}
+        .qr-col{padding:14px 24px;background:#eff6ff;border-left:4px solid #1d4ed8}
+        .col-hd{font-size:18px;font-weight:600;color:#1e3a8a;border-bottom:2px solid #c7d8f7;padding-bottom:12px;margin-bottom:18px}
+        .pair{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+        .pair > div{margin-bottom:10px}
+        .pair-lbl, .item-lbl{font-size:12px;color:#9ca3af}
+        .pair-val, .item-val{font-weight:500;color:#323232;font-size:13px;word-break:break-word}
+        .event{padding:14px 24px;background:#fdf2f8;border-left:4px solid #be185d}
+        .event-hd{font-size:18px;font-weight:600;color:#831843;border-bottom:2px solid #f9c8d8;padding-bottom:12px;margin-bottom:18px}
+        .event-grid{display:flex;flex-wrap:wrap;gap:14px}
+        .event-grid > div{flex:1;min-width:240px;margin-bottom:10px}
+        .more{padding:14px 24px;background:#eff6ff;border-left:4px solid #1d4ed8}
+        .more-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+        .more-cell{margin-bottom:14px}
+        .more-lbl{font-size:13px;color:#6b7280}
+        .more-val{font-weight:500;font-size:14px;line-height:1.3;text-align:justify;color:#323232;word-break:break-word}
+        .pay-row{display:grid;grid-template-columns:2fr 1fr;background:#fff}
+        .pay-col{padding:14px 24px;background:#fdf2f8;border-left:4px solid #be185d}
+        .pay-col-full{padding:14px 24px;background:#fdf2f8;border-left:4px solid #be185d;grid-column:1/-1}
+        .pay-hd{display:flex;justify-content:space-between;align-items:center;font-size:18px;font-weight:600;color:#831843;border-bottom:2px solid #f9c8d8;padding-bottom:12px;margin-bottom:18px}
+        .pay-hd .pill{padding:4px 12px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.1);font-size:14px;background:#fff}
+        .pay-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+        .pay-cell{margin-bottom:14px}
+        .pay-lbl{font-size:13px;color:#6b7280}
+        .pay-val{font-weight:500;color:#323232;font-size:14px}
+        .txn-col{padding:14px 24px;background:#fdf2f8;border-left:4px solid #d1d5db}
+        .footer{text-align:center;padding:20px 20px 60px;font-size:14px;color:#6b7280;background:#f3f4f6;border-top:1px solid #e5e7eb}
+        .footer .row2{display:flex;justify-content:center;align-items:center;margin-top:6px}
+        .footer .row2 > p{padding:0 18px}
+        .footer .row2 > p:first-child{border-right:2px solid #cbd5e1}
+        a{color:inherit}
+        @media print{
+          body{background:#fff}
+          .wrap{box-shadow:none}
+        }
       </style></head>
       <body>
       <div class="wrap">
-        <div class="head">
-          <div>
-            <div class="gov">Government of Rajasthan · Department of Tourism</div>
-            <h1>${placeName}</h1>
-            <div style="font-size:11px;opacity:.85;margin-top:4px">${district} · Rajasthan</div>
-            <div style="margin-top:10px">
-              <span class="status-pill" style="background:rgba(255,255,255,.2);color:#fff">Application: ${approved}</span>
-              <span class="status-pill" style="background:rgba(255,255,255,.2);color:#fff;margin-left:6px">Payment: ${paymentStatus}</span>
+        <header class="head">
+          <img class="logo" src="/images/main-logo-dark.webp" alt="OBMS" onerror="this.style.display='none'"/>
+          <img class="jkk" src="/images/jkk.png" alt="JKK" onerror="this.style.display='none'"/>
+        </header>
+
+        <div class="reg">
+          <small>Reg Date: ${createdDate}</small>
+          <small>Booking Id: ${id}</small>
+          <small style="display:flex;align-items:center;gap:8px"><span>Booking Status:</span><span>${approved}</span></small>
+        </div>
+        <hr/>
+
+        <div class="grid">
+          <div class="org-col">
+            <div class="col-hd">Organiser Details</div>
+            <div class="pair">
+              <div><div class="pair-lbl">Full Name</div><div class="pair-val">${applicantName}</div></div>
+              <div><div class="pair-lbl">Mobile Number</div><div class="pair-val">${mobileNo}</div></div>
+              <div><div class="pair-lbl">Email Address</div><div class="pair-val">${email}</div></div>
+              <div><div class="pair-lbl">Address</div><div class="pair-val">${address}</div></div>
+              ${gstNo ? `<div><div class="pair-lbl">GST Number</div><div class="pair-val">${gstNo}</div></div>` : ''}
+              <div>
+                <div class="pair-lbl">Society Registered</div>
+                <div class="pair-val">${societyRegistered
+                  ? (societyDocUrl
+                    ? `<a href="${societyDocUrl}" target="_blank" rel="noopener" style="color:#1d4ed8;text-decoration:underline">View</a>`
+                    : 'Yes')
+                  : 'N/A'}</div>
+              </div>
             </div>
           </div>
-          <div class="qr">
-            <svg viewBox="0 0 ${qrCount} ${qrCount}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" shape-rendering="crispEdges">${qrRects}</svg>
+          <div class="qr-col">
+            <div class="col-hd">Booking</div>
+            ${qrUrl ? `<img src="${qrUrl}" width="100" height="100" alt="QR Image"/>` : ''}
           </div>
         </div>
+        <hr/>
 
-        <div class="body-c">
-          <div class="meta">
-            <div class="cell"><div class="lbl">Booking ID</div><div class="val">#${id}</div></div>
-            <div class="cell"><div class="lbl">Date Range</div><div class="val">${dateRange}</div></div>
-            <div class="cell"><div class="lbl">Booked On</div><div class="val">${createdDate}</div></div>
-          </div>
-
-          <div class="section">
-            <h3>Booking Details</h3>
-            <div class="row">
-              <div class="field"><div class="lbl">Booking Type</div><div class="val">${categoryName}</div></div>
-              <div class="field"><div class="lbl">Venue</div><div class="val">${subCategoryName}</div></div>
-            </div>
-            <div class="row">
-              <div class="field"><div class="lbl">Exhibition Type</div><div class="val">${exhibitionName}</div></div>
-              <div class="field"><div class="lbl">Shift</div><div class="val">${shifts}</div></div>
-            </div>
-            <div class="row">
-              <div class="field"><div class="lbl">Projector</div><div class="val">${projector}</div></div>
-              <div class="field"><div class="lbl">Air Conditioning</div><div class="val">${ac}</div></div>
-            </div>
-          </div>
-
-          <div class="section">
-            <h3>Applicant Details</h3>
-            <div class="row">
-              <div class="field"><div class="lbl">Name</div><div class="val">${applicantName}</div></div>
-              <div class="field"><div class="lbl">Mobile</div><div class="val">${mobileNo}</div></div>
-            </div>
-            <div class="row">
-              <div class="field"><div class="lbl">Email</div><div class="val">${email}</div></div>
-              <div class="field"><div class="lbl">GST</div><div class="val">${gstNo || '—'}</div></div>
-            </div>
-            <div class="field" style="margin-top:8px"><div class="lbl">Address</div><div class="val">${address}</div></div>
-            ${sponsoredName ? `<div class="field" style="margin-top:8px"><div class="lbl">Sponsored By</div><div class="val">${sponsoredName}</div></div>` : ''}
-          </div>
-
-          ${(program || previous || guests || organisation) ? `
-          <div class="section">
-            <h3>Programme &amp; Other Details</h3>
-            ${program      ? `<div class="field" style="margin-bottom:8px"><div class="lbl">Programme Details</div><div class="val">${program}</div></div>` : ''}
-            ${previous     ? `<div class="field" style="margin-bottom:8px"><div class="lbl">Previous Programme</div><div class="val">${previous}</div></div>` : ''}
-            ${guests       ? `<div class="field" style="margin-bottom:8px"><div class="lbl">Guest Details</div><div class="val">${guests}</div></div>` : ''}
-            ${organisation ? `<div class="field" style="margin-bottom:8px"><div class="lbl">Organisation</div><div class="val">${organisation}</div></div>` : ''}
-          </div>` : ''}
-
-          ${bank.bankName || bank.accountNumber ? `
-          <div class="section">
-            <h3>Bank / Refund Details</h3>
-            <div class="row">
-              <div class="field"><div class="lbl">Bank Name</div><div class="val">${bank.bankName || '—'}</div></div>
-              <div class="field"><div class="lbl">Account Holder</div><div class="val">${bank.accountHolderName || '—'}</div></div>
-            </div>
-            <div class="row">
-              <div class="field"><div class="lbl">Account No.</div><div class="val">${maskId(bank.accountNumber)}</div></div>
-              <div class="field"><div class="lbl">IFSC</div><div class="val">${bank.bankIfsc || bank.ifscCode || '—'}</div></div>
-            </div>
-          </div>` : ''}
-
-          <div class="total">
-            <span class="l">Total Amount${paymentStatus === 'PAID' ? ' Paid' : ' Payable'}</span>
-            <span class="v">₹${totalAmount}</span>
-          </div>
-
-          <div class="footer">
-            For queries: helpdesk.tourist@rajasthan.gov.in · 0141-2820384<br/>
-            Application Status: <strong style="color:${approvedColor}">${approved}</strong>
+        <div class="event">
+          <div class="event-hd">Event Details</div>
+          <div class="event-grid">
+            <div><div class="item-lbl">Applied For</div><div class="item-val">${typeName} - ${subCategoryName}</div></div>
+            <div><div class="item-lbl">Category</div><div class="item-val">${category}</div></div>
+            <div><div class="item-lbl">Projector Required</div><div class="item-val">${projector}</div></div>
+            <div><div class="item-lbl">Audience Entry</div><div class="item-val">${audienceEntry}</div></div>
+            <div><div class="item-lbl">Reservation For</div><div class="item-val">${reservationFor}</div></div>
+            <div><div class="item-lbl">Duration</div><div class="item-val">${durationDays} Day(s) ${shiftName}</div></div>
+            ${preDays > 0 ? `
+            <div>
+              <div class="item-lbl">Day's for Preparation</div>
+              <div class="item-val">${preDays} Day(s) <span style="font-size:12px;color:#6b7280">${prepRange}</span></div>
+            </div>` : ''}
           </div>
         </div>
+        <hr/>
+
+        ${(programDetailsBlock || guestDetailsBlock || organizationDetailsBlock || previousDetailsBlock) ? `
+        <div class="more">
+          <div class="col-hd">More Details &amp; Attachments</div>
+          <div class="more-grid">
+            ${programDetailsBlock}
+            ${guestDetailsBlock}
+            ${organizationDetailsBlock}
+            ${previousDetailsBlock}
+          </div>
+        </div>
+        <hr/>` : ''}
+
+        ${approvedRaw.toLowerCase() !== 'reject' ? `
+        <div class="pay-row">
+          <div class="${hasTransaction ? 'pay-col' : 'pay-col-full'}">
+            <div class="pay-hd">
+              <span>Payment Details</span>
+              ${approved !== 'REJECTED' ? `<span class="pill">${paymentStatus === 'SUCCESS' ? 'SUCCESS' : 'Pending'}</span>` : ''}
+            </div>
+            <div class="pay-grid">
+              ${ticketHeadsHtml}
+              <div class="pay-cell">
+                <div class="pay-lbl">Total Amount</div>
+                <div class="pay-val">₹ ${totalAmount}</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:14px"><small>GST is not applicable on the Security Charges.</small></div>
+          </div>
+          ${hasTransaction ? `
+          <div class="txn-col">
+            <div class="pay-hd"><span>Transaction Details</span></div>
+            <div class="pay-cell">
+              <div class="pay-lbl">Transaction Id</div>
+              <div class="pay-val">${transactionId}</div>
+            </div>
+            ${transactionDate ? `
+            <div class="pay-cell">
+              <div class="pay-lbl">Transaction Date &amp; Time</div>
+              <div class="pay-val">${moment(Number(transactionDate)).format('DD MMM YYYY h:mm:ss A')}</div>
+            </div>` : ''}
+          </div>` : ''}
+        </div>` : ''}
+
+        <footer class="footer">
+          <p>For any queries, please contact</p>
+          <div class="row2">
+            <p>Phone: 01412820384</p>
+            <p>Email: helpdesk[dot]tourist[at]rajasthan[dot]gov[dot]in</p>
+          </div>
+        </footer>
       </div>
       <script>setTimeout(() => window.print(), 800);</script>
       </body></html>`;
@@ -1837,6 +1964,46 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                           <span className="ttb-val">₹{b.totalAmount || 0}</span>
                         </div>
                       </div>
+                      {/* Transaction Details — visible whenever the booking carries a real
+                          transactionId (post-payment-success). Mirrors old DownloadJkkUI. */}
+                      {b.transactionId && String(b.transactionId) !== '0' && (
+                        <div
+                          style={{
+                            background: '#FDF2F8',
+                            border: '1px solid #F9C8D8',
+                            borderLeft: '4px solid #BE185D',
+                            borderRadius: 12,
+                            padding: 16,
+                            marginTop: 14,
+                          }}
+                        >
+                          <div style={{ fontSize: 14, fontWeight: 700, color: '#831843', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid #F9C8D8' }}>
+                            Transaction Details
+                          </div>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                            <div>
+                              <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 4 }}>Transaction ID</div>
+                              <div style={{ fontSize: 13, fontWeight: 600, color: '#323232', wordBreak: 'break-all' }}>{b.transactionId}</div>
+                            </div>
+                            {b.transactionDate && (
+                              <>
+                                <div>
+                                  <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 4 }}>Transaction Date</div>
+                                  <div style={{ fontSize: 13, fontWeight: 600, color: '#323232' }}>
+                                    {moment(Number(b.transactionDate)).format('DD MMM YYYY')}
+                                  </div>
+                                </div>
+                                <div>
+                                  <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 4 }}>Transaction Time</div>
+                                  <div style={{ fontSize: 13, fontWeight: 600, color: '#323232' }}>
+                                    {moment(Number(b.transactionDate)).format('h:mm:ss A')}
+                                  </div>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
                       <div className="drawer-actions">
                         {/* Print / Download — successful bookings, OR live JKK applications (not failed / not rejected) */}
                         {((isPaymentSuccess(b) && !b.cancelled && !b.refund) || canViewJkkApplication(b)) && (
