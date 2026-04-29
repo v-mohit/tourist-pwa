@@ -119,6 +119,8 @@ export default function MyBookingsPage() {
   const [activeTab,         setActiveTab]         = useState<TabKey>('all');
   const [searchTerm,        setSearchTerm]        = useState('');
   const [searchInput,       setSearchInput]       = useState('');
+  const [pageSize,          setPageSize]          = useState<10 | 50 | 100>(10);
+  const [page,              setPage]              = useState(1);
   const [dateFilterOpen,    setDateFilterOpen]    = useState(false);
   const [dateType,          setDateType]          = useState<DateFilterType>('');
   const [startDate,         setStartDate]         = useState('');
@@ -189,6 +191,24 @@ export default function MyBookingsPage() {
     if (activeTab === 'completed') return allBookings.filter((b) => getBookingStatus(b).key === 'completed');
     return allBookings;
   }, [allBookings, activeTab]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [activeTab, searchTerm, appliedDateType, appliedStartDay, appliedEndDay, pageSize]);
+
+  const totalPages = useMemo(() => {
+    const total = Math.ceil(filteredBookings.length / pageSize);
+    return total > 0 ? total : 1;
+  }, [filteredBookings.length, pageSize]);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
+  const pagedBookings = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredBookings.slice(start, start + pageSize);
+  }, [filteredBookings, page, pageSize]);
 
   const stats = useMemo(() => {
     const total     = allBookings.length;
@@ -1427,6 +1447,20 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                     </svg>
                     {appliedDateType ? `${appliedDateType} Date Filter` : 'Filter By Date'}
                   </button>
+                  <div className="page-size-wrap">
+                    <span className="page-size-label">Show</span>
+                    <div className="select-wrap">
+                      <select
+                        className="form-select"
+                        value={pageSize}
+                        onChange={(e) => setPageSize(Number(e.target.value) as 10 | 50 | 100)}
+                      >
+                        <option value={10}>10</option>
+                        <option value={50}>50</option>
+                        <option value={100}>100</option>
+                      </select>
+                    </div>
+                  </div>
                   {(appliedDateType || searchTerm) && (
                     <button
                       className="filter-btn"
@@ -1478,7 +1512,7 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                   View All Bookings
                 </button>
               </div>
-            ) : filteredBookings.map((b) => {
+            ) : pagedBookings.map((b) => {
               // IGPRS (guest house) and ASI (monument) bookings have bespoke
               // layouts — delegate to dedicated card components. Everything
               // else (regular + JKK) keeps using the inline card below.
@@ -1644,6 +1678,19 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                 </div>
               );
             })}
+            {totalPages > 1 && (
+              <div className="pagination-bar">
+                <button className="filter-btn" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+                  ‹ Prev
+                </button>
+                <div className="pagination-info">
+                  Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, filteredBookings.length)} of {filteredBookings.length} · Page {page} / {totalPages}
+                </div>
+                <button className="filter-btn" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>
+                  Next ›
+                </button>
+              </div>
+            )}
           </div>
 
           {/* ── Date Filter Modal ── */}
