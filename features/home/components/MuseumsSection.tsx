@@ -84,11 +84,11 @@ export default function MuseumsSection({ data }: any) {
                   <div className="mus-img-grad" />
 
                   {/* Static tag + estd fallback */}
-                  <div className="mus-img-foot">
+                  {/* <div className="mus-img-foot">
                     <span className="tag tg">
                       🏛 Museum
                     </span>
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* Body */}

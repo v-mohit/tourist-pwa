@@ -118,7 +118,11 @@ export default function TopDestinations({
             : `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL}${imageUrl}`;
 
           return (
-            <div key={name} className="dest-card">
+            <Link
+              key={name}
+              href={`/citydetail/${slug}`}
+              className="dest-card"
+            >
               <div
                 className="dimg"
                 style={{ backgroundImage: `url('${img}')` }}
@@ -126,9 +130,9 @@ export default function TopDestinations({
               <div className="dest-grad" />
               <div className="dest-top">
                 <span className="tag tg">⭐ Top Destination</span>
-                <Link href={`/citydetail/${slug}`} className="dest-arr">
+                <div className="dest-arr">
                   →
-                </Link>
+                </div>
               </div>
               <div className="dest-foot">
                 <h3>{name}</h3>
@@ -140,7 +144,7 @@ export default function TopDestinations({
                   <span>🏛 Must Visit</span>
                 </div>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>

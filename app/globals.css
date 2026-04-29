@@ -1222,6 +1222,8 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
+  padding-bottom: 24px;
+
 }
 
 .mus-body {
@@ -1431,9 +1433,28 @@ button {
   line-height: 1.6;
   margin-bottom: 11px;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.cafe-body p.expanded {
+  -webkit-line-clamp: unset;
+  display: block;
+}
+
+.cafe-more-btn {
+  font-size: 11px;
+  color: var(--sf);
+  background: none;
+  border: none;
+  padding: 0;
+  margin-top: -6px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  text-align: left;
+  display: inline-block;
 }
 
 .cafe-row {
@@ -7730,8 +7751,42 @@ tourist stats style
   right: 24px;
   z-index: 9999;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
+  padding-bottom: 100px;
   pointer-events: none;
+}
+
+.fab-main {
+  @apply fixed bottom-3 right-6 w-[70px] h-[70px] rounded-full border-none cursor-pointer flex items-center justify-center z-[9999] transition-all duration-300;
+  background: linear-gradient(135deg, #E8631A 0%, #D4A017 100%);
+  box-shadow: 0 8px 30px rgba(232, 99, 26, 0.4);
+}
+
+.fab-main:hover {
+  @apply scale-110;
+  box-shadow: 0 12px 40px rgba(232, 99, 26, 0.6);
+}
+
+.fab-main::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  background: linear-gradient(135deg, #E8631A, #D4A017);
+  border-radius: 50%;
+  opacity: 0;
+  animation: pulse-ring 2s infinite;
+  z-index: -1;
+}
+
+@keyframes pulse-ring {
+  0% { opacity: 0; transform: scale(1); }
+  50% { opacity: 0.3; }
+  100% { opacity: 0; transform: scale(1.45); }
+}
+
+.fab-main.active::before {
+  animation: none;
+  opacity: 0;
 }
 
 .helpdesk-modal {
@@ -7891,6 +7946,12 @@ tourist stats style
 
 .header-login-btn {
   @apply hidden md:block px-5 py-2 bg-[#E8631A] text-white text-sm font-semibold rounded-full transition-all duration-200 hover:bg-[#C04E0A] hover:translate-y-[-1px];
+}
+
+.header-sos-btn {
+  @apply flex items-center justify-center w-12 h-[52px]  text-[36px] rounded-full transition-all duration-200  hover:scale-[1.05];
+  
+  padding: 0;
 }
 
 .header-hamburger {

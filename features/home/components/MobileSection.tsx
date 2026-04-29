@@ -150,14 +150,14 @@ const MobileSection = () => {
                     <div className="bg-white rounded-xl p-2 border border-[#E8DAC5] shadow-sm">
                       <div className="relative h-16 rounded-lg overflow-hidden mb-2">
                         <Image
-                          src="/images/TalChaparwebp.jpg"
-                          alt="Tal Chapar"
+                          src="/images/JhoomarBaori.webp"
+                          alt="Jhoomar Baori"
                           fill
                           className="object-cover"
                         />
                         <div className="absolute inset-0 bg-black/20"></div>
                       </div>
-                      <div className="text-[9px] font-bold text-center text-[#18120E]">Tal Chapar</div>
+                      <div className="text-[9px] font-bold text-center text-[#18120E]">Jhoomar Baori</div>
                     </div>
                     <div className="bg-white rounded-xl p-2 border border-[#E8DAC5] shadow-sm">
                       <div className="relative h-16 rounded-lg overflow-hidden mb-2">

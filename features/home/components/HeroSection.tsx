@@ -161,7 +161,7 @@ export default function HeroSection() {
       </div>
 
       {/* Right thumbnail strip */}
-      <div className="hero-strip">
+      {/* <div className="hero-strip">
         {SLIDES.map((slide, idx) => (
           <div
             key={idx}
@@ -191,7 +191,7 @@ export default function HeroSection() {
             <div className="hero-thumb-bar" />
           </div>
         ))}
-      </div>
+      </div> */}
 
       {/* Bottom slide counter + dots */}
       <div className="hero-counter">
