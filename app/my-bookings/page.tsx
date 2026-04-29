@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import QRCode from 'qrcode-generator';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
@@ -115,10 +116,16 @@ function isWithinReverifyWindow(b: any): boolean {
 
 export default function MyBookingsPage() {
   const { user, openLoginModal } = useAuth();
+  const searchParams = useSearchParams();
+
+  // Payment gateway redirects land here as `?bookingId=...&paymentStatus=...`.
+  // Pre-fill the search so the user lands on exactly that booking.
+  const urlBookingId    = searchParams.get('bookingId') ?? '';
+  const urlPaymentStatus = searchParams.get('paymentStatus') ?? '';
 
   const [activeTab,         setActiveTab]         = useState<TabKey>('all');
-  const [searchTerm,        setSearchTerm]        = useState('');
-  const [searchInput,       setSearchInput]       = useState('');
+  const [searchTerm,        setSearchTerm]        = useState(urlBookingId);
+  const [searchInput,       setSearchInput]       = useState(urlBookingId);
   const [dateFilterOpen,    setDateFilterOpen]    = useState(false);
   const [dateType,          setDateType]          = useState<DateFilterType>('');
   const [startDate,         setStartDate]         = useState('');
@@ -151,12 +158,17 @@ export default function MyBookingsPage() {
 
   // ─── Query params ──────────────────────────────────────────────────────────
   const queryParams = useMemo(() => {
-    const isNumeric = /^\d+$/.test(searchTerm.trim());
+    const trimmed = searchTerm.trim();
+    const isNumeric = /^\d+$/.test(trimmed);
+    // Post-payment redirect (`?bookingId=JHA…`) — the gateway returns an
+    // alphanumeric booking id; pass it through as `bookingId` directly so we
+    // fetch that specific booking instead of a free-text search.
+    const isUrlBooking = !!urlBookingId && trimmed === urlBookingId;
     const base: any = {
       callApi:    !!user,
       setLoading: setLoadingTickets,
-      bookingId:  isNumeric ? searchTerm.trim() : undefined,
-      searchKey:  !isNumeric ? searchTerm.trim() || undefined : undefined,
+      bookingId:  isNumeric || isUrlBooking ? trimmed : undefined,
+      searchKey:  !isNumeric && !isUrlBooking ? trimmed || undefined : undefined,
       size:       100,
       dateFilter: appliedDateType || undefined,
       startDay:   appliedStartDay,
@@ -168,7 +180,7 @@ export default function MyBookingsPage() {
     if (activeTab === 'cancelled') return { ...base, isOld: false, isRefund: true  };
     if (activeTab === 'failed')    return { ...base, isOld: false, isRefund: true,  status: 'FAIL' };
     return { ...base, isOld: false };
-  }, [activeTab, searchTerm, user, appliedDateType, appliedStartDay, appliedEndDay]);
+  }, [activeTab, searchTerm, user, appliedDateType, appliedStartDay, appliedEndDay, urlBookingId]);
 
   const userId = (user as any)?.sub ?? (user as any)?.id ?? '';
   const { bookings: allBookings, refetchAll: refetchBookings } = useMergedBookings({
@@ -224,6 +236,15 @@ export default function MyBookingsPage() {
     const id = setInterval(() => setTick((n) => n + 1), 30000);
     return () => clearInterval(id);
   }, []);
+
+  // Surface payment-gateway outcome once when the user lands here from a
+  // post-payment redirect (`?paymentStatus=SUCCESS|FAIL`).
+  useEffect(() => {
+    if (!urlPaymentStatus) return;
+    const status = urlPaymentStatus.toUpperCase();
+    if (status === 'SUCCESS') showSuccessToastMessage('Booking confirmed');
+    else if (status === 'FAIL' || status === 'FAILED') showErrorToastMessage('Payment failed. Please try again.');
+  }, [urlPaymentStatus]);
 
   function handleReverify(b: any) {
     const id = String(b.bookingId || b.id);
