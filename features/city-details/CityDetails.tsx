@@ -303,7 +303,7 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
           <div className="cc-foot-info">
             Showing <b>{filteredPlaces.length} of {places.length}</b> bookable places in {cityName}
           </div>
-          <button className="cc-explore-btn">Explore All Places →</button>
+          {/* <button className="cc-explore-btn">Explore All Places →</button> */}
         </div>
       </div>
     </div>

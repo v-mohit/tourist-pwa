@@ -239,10 +239,10 @@ export default function Header() {
 
           <button
             onClick={() => setIsSosOpen(true)}
-            className="header-login-btn !bg-[#D85A30] px-8"
+            className="header-sos-btn"
             title="Emergency SOS"
           >
-            <span className="tracking-wider">SOS</span>
+            🆘
           </button>
 
           {/* Hamburger */}

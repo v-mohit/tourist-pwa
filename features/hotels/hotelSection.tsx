@@ -75,7 +75,7 @@ const HotelSection = () => {
       </div>
 
       <div className="rtdc-grid">
-        {hotels.map((hotel) => (
+        {hotels.slice(0, 3).map((hotel) => (
           <div className="rtdc-card" key={hotel.id}>
             <div className="rtdc-img">
               <div 
@@ -119,7 +119,7 @@ const HotelSection = () => {
       </div>
 
       {/* RTDC Info Banner */}
-      <div style={{ marginTop: '32px', padding: '24px 28px', background: 'linear-gradient(135deg, var(--ch), #2C1A0E)', borderRadius: 'var(--rl)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
+      {/* <div style={{ marginTop: '32px', padding: '24px 28px', background: 'linear-gradient(135deg, var(--ch), #2C1A0E)', borderRadius: 'var(--rl)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
         <div style={{ maxWidth: '600px' }}>
           <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '18px', color: '#fff', marginBottom: '6px' }}>
              25+ RTDC Properties Across Rajasthan
@@ -129,7 +129,7 @@ const HotelSection = () => {
           </div>
         </div>
         <button className="btn-p">Browse All RTDC Hotels →</button>
-      </div>
+      </div> */}
     </section>
   );
 };

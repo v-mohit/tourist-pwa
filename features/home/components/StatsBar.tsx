@@ -75,12 +75,15 @@ const StatsBar: React.FC<{ categoryCountsData: any }> = ({
       const name = attr.Name;
       const count = attr.places?.data?.length || 0;
 
+      // ✅ Force static count for Venues as requested
+      const finalCount = name?.toLowerCase().includes("venue") ? 15 : count;
+
       // ✅ get icon from Strapi
       const iconUrl = attr.icon?.data?.attributes?.url;
 
       return {
         label: name,
-        num: count,
+        num: finalCount,
         icon: iconUrl
           ? `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL}${iconUrl}`
           : "/icons/google-maps.png", // fallback icon

@@ -151,6 +151,10 @@ const FloatingHelpdesk = () => {
   };
 
   const handleChatSendMessage = () => {
+    if (!isAuthenticated) {
+      openLoginModal();
+      return;
+    }
     if (!chatInputValue.trim() || !bookingPrompt) return;
 
     const userMsg = chatInputValue.trim();
@@ -263,6 +267,10 @@ const FloatingHelpdesk = () => {
   }, [messages, chatMessages, activeTab]);
 
   const handleSendMessage = async () => {
+    if (!isAuthenticated) {
+      openLoginModal();
+      return;
+    }
     if (!inputValue.trim()) return;
 
     const userMessage = inputValue.trim();
@@ -316,7 +324,13 @@ const FloatingHelpdesk = () => {
               {['FAQ', 'Contact', 'Chat', 'ChatbotAI'].map((tab) => (
                 <button
                   key={tab}
-                  onClick={() => setActiveTab(tab as any)}
+                  onClick={() => {
+                    if ((tab === 'Chat' || tab === 'ChatbotAI') && !isAuthenticated) {
+                      openLoginModal();
+                      return;
+                    }
+                    setActiveTab(tab as any);
+                  }}
                   className={activeTab === tab ? "helpdesk-tab helpdesk-tab-active" : "helpdesk-tab"}
                 >
                   {tab}
@@ -518,7 +532,7 @@ const FloatingHelpdesk = () => {
       )}
 
       {/* Floating Buttons Group - Bottom Right */}
-      <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-4">
+      <div className="fixed bottom-3 right-6 z-[9999] flex flex-col items-end gap-4">
 
         {/* Floating Buttons Group */}
         <div className="helpdesk-fab-container">
@@ -526,10 +540,11 @@ const FloatingHelpdesk = () => {
           {/* Chat Bot Button */}
           <button
             onClick={toggleModal}
-            className="fab-main"
+            className={`fab-main ${isOpen ? 'active' : ''}`}
+            aria-label="Open Chatbot"
           >
-            <svg width="40" height="40" viewBox="0 0 70 70" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M47.7666 46.5813C46.9563 44.1884 45.9478 41.1523 42.0314 41.1523H39.9106C40.5438 40.6457 41.1183 40.0695 41.5712 39.3945H42.0314C44.4544 39.3945 46.4259 37.423 46.4259 35C46.4259 33.7278 46.4259 32.7565 46.4259 31.4844C46.4259 25.1844 41.3001 20 35.0001 20C28.5565 20 23.4873 25.3563 23.5752 31.6329C23.5741 33.5683 23.5743 32.8646 23.5743 35C23.5743 37.423 25.5458 39.3945 27.9689 39.3945H28.429C28.8819 40.0695 29.4564 40.0695 30.0896 41.1523H27.9689C24.0524 41.1523 23.0439 44.1884 22.2336 46.5805C21.6607 48.2714 22.9886 50 24.7571 50H45.2432C47.0176 50 48.3377 48.2652 47.7666 46.5813ZM27.1788 30.6055H26.211C25.929 30.6055 25.6623 30.6617 25.4073 30.7441C25.8112 25.457 30.1452 21.7578 35.0001 21.7578C40.0852 21.7578 44.2563 25.7649 44.6312 30.7559C44.3652 30.6654 44.0853 30.6055 43.7892 30.6055H42.8214C42.3777 26.6612 39.0611 23.5156 35.0001 23.5156C30.9391 23.5156 27.6225 26.6612 27.1788 30.6055ZM35.0001 47.656L31.4841 42.9102H38.516L35.0001 47.656ZM35.0001 41.1523C31.6081 41.1523 28.8478 38.392 28.8478 35V34.1211H31.4845C32.9271 34.1211 34.1984 33.413 35.0001 32.3362C35.8018 33.413 37.0731 34.1211 38.5157 34.1211H41.1524V35C41.1524 35.9472 40.9194 36.8344 40.5353 37.6367H36.7579C36.2721 37.6367 35.879 38.0298 35.879 38.5156C35.879 39.0014 36.2721 39.3887 36.7579 39.3887H39.2922C38.1825 40.4726 36.6699 41.1523 35.0001 41.1523Z" fill="#E8631A" />
+            <svg width="30" height="30" viewBox="0 0 30 30" fill="white">
+              <path d="M27.7666 26.5813C26.9563 24.1884 25.9478 21.1523 22.0314 21.1523H19.9106C20.5438 20.6457 21.1183 20.0695 21.5712 19.3945H22.0314C24.4544 19.3945 26.4259 17.423 26.4259 15C26.4259 13.7278 26.4259 12.7565 26.4259 11.4844C26.4259 5.1844 21.3001 0 15.0001 0C8.5565 0 3.4873 5.3563 3.5752 11.6329C3.5741 13.5683 3.5743 12.8646 3.5743 15C3.5743 17.423 5.5458 19.3945 7.9689 19.3945H8.429C8.8819 20.0695 9.4564 20.0695 10.0896 21.1523H7.9689C4.0524 21.1523 3.0439 24.1884 2.2336 26.5805C1.6607 28.2714 2.9886 30 4.7571 30H25.2432C27.0176 30 28.3377 28.2652 27.7666 26.5813Z"/>
             </svg>
           </button>
 

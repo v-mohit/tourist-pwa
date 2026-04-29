@@ -18,16 +18,16 @@ const statCards = [
     sub: "International Arrivals",
   },
   {
-    ico: "🇮🇳",
+    ico: <img src="/images/india-flag.webp" width="24" height="18" alt="India" className="inline-block mb-1" />,
     num: "4.9 Cr+",
     lbl: "Domestic Tourists",
     sub: "Within India Visitors",
   },
   {
-    ico: "💰",
-    num: "₹78,000 Cr",
-    lbl: "Tourism Revenue",
-    sub: "Gross state contribution",
+    ico: "🎟️",
+    num: "1,149",
+    lbl: "Online Bookings",
+    sub: "Total through OBMS",
   },
 ];
 
@@ -83,6 +83,7 @@ const TouristStats = () => {
   const [awardRef, awardInView] = useInView(0.2);
 
   const { data: touristStats } = GetTouristStats();
+  console.log("Fetched Tourist Stats:", touristStats);
 
   // Format number to Cr/L format
   const formatNumber = (num: number): string => {
@@ -106,25 +107,25 @@ const TouristStats = () => {
       sub: "International Arrivals",
     },
     {
-      ico: "🇮🇳",
+      ico: <img src="/images/india-flag.webp" width="24" height="18" alt="India" className="inline-block mb-1" />,
       num: formatNumber(touristStats.result.totalTicketCount?.Domestic || 0),
       lbl: "Domestic Tourists",
       sub: "Within India Visitors",
     },
     {
-      ico: "💰",
-      num: "₹" + (touristStats.result.totalAmount / 10000000).toFixed(2) + " Cr",
-      lbl: "Tourism Revenue",
-      sub: "Gross state contribution",
+      ico: "🎟️",
+      num: formatNumber(touristStats.result.totalOnlineBookings),
+      lbl: "Online Bookings",
+      sub: "Total through OBMS",
     },
   ] : statCards;
 
   // Dynamic bar data from API districtWiseReports
   const dynamicBarData = touristStats?.result?.districtWiseReports && touristStats.result.districtWiseReports.length > 0
     ? (() => {
-        const reports = touristStats.result.districtWiseReports;
-        const maxVisitors = Math.max(...reports.map((r:any) => r.totalVisitors));
-        return reports.map((r:any) => ({
+        const reports = [...touristStats.result.districtWiseReports].sort((a: any, b: any) => b.totalVisitors - a.totalVisitors);
+        const maxVisitors = Math.max(...reports.map((r: any) => r.totalVisitors));
+        return reports.map((r: any) => ({
           label: r.districteName,
           w: (r.totalVisitors / maxVisitors) * 100,
           val: formatNumber(r.totalVisitors),

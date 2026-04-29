@@ -24,8 +24,11 @@ const nextConfig: NextConfig = {
             pathname: "/uploads/**",
           },
         ],
+        qualities: [70, 70, 70, 70, 70, 70, 75, 90],
       }
-    : undefined,
+    : {
+        qualities: [70, 70, 70, 70, 70, 70, 75, 90],
+      },
 
   webpack(config) {
     config.resolve.symlinks = false;

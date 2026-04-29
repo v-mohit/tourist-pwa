@@ -50,7 +50,7 @@ export default function TopMonuments({ data }: any) {
             (c: any) => c.__typename === "ComponentPlaceDetailPlaceTime",
           );
           
-          const time = timeBlock?.card?.[0]?.content?.[0]?.value || "9AM–5PM";
+          const time = timeBlock?.card?.[0]?.content?.[0]?.value;
 
           // ✅ Fee (Indian Adult fallback)
           const ticketBlock =
