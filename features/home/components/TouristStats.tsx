@@ -83,7 +83,6 @@ const TouristStats = () => {
   const [awardRef, awardInView] = useInView(0.2);
 
   const { data: touristStats } = GetTouristStats();
-  console.log("Fetched Tourist Stats:", touristStats);
 
   // Format number to Cr/L format
   const formatNumber = (num: number): string => {

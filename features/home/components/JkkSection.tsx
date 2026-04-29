@@ -1,9 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import dayjs from "dayjs";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+import CheckAvailabilityModal from "@/features/booking/components/CheckAvailabilityModal";
+import { useObmsPlaceId } from "@/features/booking/hooks/useBookingApi";
+
 dayjs.extend(isSameOrAfter);
 
 const JkkSection = ({
@@ -13,9 +16,15 @@ const JkkSection = ({
   JkkplaceDetailsData: any;
   upcomingEventsData: any;
 }) => {
+  const [availModalOpen, setAvailModalOpen] = useState(false);
+  const [resolvedObmsId, setResolvedObmsId] = useState("");
+
+  const obmsPlaceMutation = useObmsPlaceId();
+
   const place =
     JkkplaceDetailsData?.placeDetails?.data?.[0]?.attributes?.place?.data
       ?.attributes;
+  const placeId = JkkplaceDetailsData?.placeDetails?.data?.[0]?.attributes?.place?.data?.id;
 
   const categories =
     JkkplaceDetailsData?.placeDetails?.data?.[0]?.attributes?.categories || [];
@@ -33,6 +42,20 @@ const JkkSection = ({
     if (!dateToCompare) return false;
     return dayjs(dateToCompare).isSameOrAfter(today, "day");
   });
+
+  const handleAvailibilityModal = () => {
+    obmsPlaceMutation
+      .mutateAsync(placeId)
+      .then((place: any) => {
+        if (place?.id) {
+          setResolvedObmsId(place.id);
+          setAvailModalOpen(true);
+        }
+      })
+      .catch(() => {
+        console.error("get location api error");
+      });
+  };
 
   return (
     <section className="sec" id="venues">
@@ -89,7 +112,9 @@ const JkkSection = ({
               <button className="btn-p">Explore Venues</button>
             </Link>
 
-            {/* <button className="btn-g">View Calendar</button> */}
+            <button className="btn-g" onClick={handleAvailibilityModal}>
+              Check Availibility
+            </button>
           </div>
         </div>
 
@@ -122,9 +147,7 @@ const JkkSection = ({
         <div className="events-grid">
           {(events.length ? events : [1, 2, 3]).map((event: any, i: number) => {
             const attr = event?.attributes || {};
-            const image =
-              attr?.eventPhoto?.data?.attributes?.url ||
-              null;
+            const image = attr?.eventPhoto?.data?.attributes?.url || null;
 
             return (
               <div
@@ -144,13 +167,15 @@ const JkkSection = ({
                     {(() => {
                       if (!attr.eventStartDate) return "12 AUG";
                       const s = dayjs(attr.eventStartDate);
-                      const e = attr.eventEndDate ? dayjs(attr.eventEndDate) : null;
+                      const e = attr.eventEndDate
+                        ? dayjs(attr.eventEndDate)
+                        : null;
 
-                      if (!e || s.isSame(e, 'day')) {
+                      if (!e || s.isSame(e, "day")) {
                         return s.format("DD MMM").toUpperCase();
                       }
 
-                      if (s.isSame(e, 'month')) {
+                      if (s.isSame(e, "month")) {
                         return `${s.format("DD")} — ${e.format("DD")} ${s.format("MMM").toUpperCase()}`;
                       }
 
@@ -168,7 +193,13 @@ const JkkSection = ({
                   <div className="event-meta">
                     <span>⏰ {attr?.eventTime || "6:00 PM"}</span>
                     <span>
-                      <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
+                      <img
+                        src="/icons/google-maps.png"
+                        width={12}
+                        height={12}
+                        alt="Location"
+                        className="loc-ico mr-1"
+                      />
                       {attr?.sectionName || "Rangayan Hall"}
                     </span>
                   </div>
@@ -180,6 +211,14 @@ const JkkSection = ({
           })}
         </div>
       </div>
+      {availModalOpen && (
+        <CheckAvailabilityModal
+          open={availModalOpen}
+          onClose={() => setAvailModalOpen(false)}
+          obmsPlaceId={resolvedObmsId}
+          placeName={place?.name}
+        />
+      )}
     </section>
   );
 };

@@ -276,7 +276,6 @@ function PlaceDetailContent({
           {/* Tab Content */}
           {tabs.map((tab: any) => {
             if (currentTabKey !== tab.key) return null;
-            console.log("tabs----", tabs);
 
             switch (tab.key) {
               case "overview":

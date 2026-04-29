@@ -44,7 +44,7 @@ const ParkSection = (data: any) => {
         <div>
           <div className="park-label">✦ {title}</div>
           <h2 className="park-title">
-            Green Escapes <br /> & Nature Retreats
+            Green Escapes & Nature Retreats
           </h2>
         </div>
 

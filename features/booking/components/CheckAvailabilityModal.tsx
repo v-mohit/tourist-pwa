@@ -406,6 +406,7 @@ function IgprsAvailability() {
 
 export default function CheckAvailabilityModal({ open, onClose, obmsPlaceId, placeName }: Props) {
   if (!open) return null;
+console.log("check data---", obmsPlaceId, placeName);
 
   const variant = detectVariant(placeName);
 
