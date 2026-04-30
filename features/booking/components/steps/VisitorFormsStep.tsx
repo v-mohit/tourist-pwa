@@ -316,7 +316,9 @@ function InventoryVisitorForms({ state, onUpdate, onNext, onBack }: Props) {
   function handleAdd() {
     if (!current.ticketTypeId) return showErrorToastMessage('Please select Tourist Type');
     if (!current.fullName.trim()) return showErrorToastMessage('Please enter full name');
-    if (!current.mobileNo && editIndex === null && addedForms.length === 0) return showErrorToastMessage('Please enter mobile number');
+    const isFirstMember = editIndex === null && addedForms.length === 0;
+    if (isFirstMember && !current.mobileNo) return showErrorToastMessage('Please enter mobile number');
+    if (current.mobileNo && !/^\d{10}$/.test(current.mobileNo)) return showErrorToastMessage('Please enter a valid 10-digit mobile number');
     if (!current.idProof) return showErrorToastMessage('Please select identity proof');
     if (!current.idNo.trim()) return showErrorToastMessage('Please enter identity number');
     if (!current.gender) return showErrorToastMessage('Please select gender');
@@ -513,10 +515,11 @@ function InventoryVisitorForms({ state, onUpdate, onNext, onBack }: Props) {
               </label>
               <input
                 type="tel"
+                inputMode="numeric"
                 value={current.mobileNo}
-                onChange={(e) => setCurrent((p) => ({ ...p, mobileNo: e.target.value }))}
-                placeholder="Enter mobile number"
-                maxLength={16}
+                onChange={(e) => setCurrent((p) => ({ ...p, mobileNo: e.target.value.replace(/\D/g, '') }))}
+                placeholder="10-digit mobile number"
+                maxLength={10}
                 className="w-full px-3 py-2 border border-[#E8DAC5] rounded-[8px] text-sm focus:outline-none focus:border-[#E8631A]"
               />
             </div>

@@ -470,6 +470,10 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
       showErrorToastMessage("Mobile number is required");
       return false;
     }
+    if (!/^\d{10}$/.test(applicant.mobileNo.trim())) {
+      showErrorToastMessage("Please enter a valid 10-digit mobile number");
+      return false;
+    }
     if (!applicant.category) {
       showErrorToastMessage("Category is required");
       return false;
@@ -1239,12 +1243,14 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
           <label className={labelCls}>Mobile No *</label>
           <input
             type="tel"
+            inputMode="numeric"
+            maxLength={10}
             value={applicant.mobileNo}
             onChange={(e) =>
-              setApplicant((p) => ({ ...p, mobileNo: e.target.value }))
+              setApplicant((p) => ({ ...p, mobileNo: e.target.value.replace(/\D/g, '') }))
             }
             className={inputCls}
-            placeholder="Enter mobile number"
+            placeholder="10-digit mobile number"
           />
         </div>
 
