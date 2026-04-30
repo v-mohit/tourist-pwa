@@ -10,11 +10,13 @@ import {
   CancelBookingById,
   CheckRefundable,
   GetDownloadTicket,
+  GetAllBoardingPassBookings2,
   WebCheckIn,
   BookingReverified,
 } from '@/services/apiCalls/booking.services';
 import { ConfirmJkkBookingById } from '@/services/apiCalls/jkk.service';
 import { handlePaymentRedirect } from '@/features/booking/utils/payment';
+import { printBoardingPass } from '@/utils/printBoardingPass.utils';
 import { showErrorToastMessage, showSuccessToastMessage } from '@/utils/toast.utils';
 import moment from 'moment-timezone';
 import RaiseIssueModal from '@/features/booking/components/RaiseIssueModal';
@@ -363,6 +365,10 @@ function MyBookingsPageInner() {
   const [pdfIdentification, setPdfIdentification] = useState('');
   const [shouldFetchPdf,    setShouldFetchPdf]    = useState(false);
   const [pdfGenerating,     setPdfGenerating]     = useState('');
+  const [boardingFetchBookingId, setBoardingFetchBookingId] = useState('');
+  const [boardingFetchPassId,    setBoardingFetchPassId]    = useState('');
+  const [shouldFetchBoarding,    setShouldFetchBoarding]    = useState(false);
+  const [boardingGenerating,     setBoardingGenerating]     = useState('');
   const [raiseIssueOpen,    setRaiseIssueOpen]    = useState(false);
   const [issueBooking,      setIssueBooking]      = useState<any>(null);
   const [qrModalOpen,       setQrModalOpen]       = useState(false);
@@ -597,6 +603,37 @@ function MyBookingsPageInner() {
     else showErrorToastMessage('Ticket data not available');
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pdfData?.result, shouldFetchPdf]);
+
+  // ─── Boarding Pass API ─────────────────────────────────────────────────────
+  const { data: boardingData } = GetAllBoardingPassBookings2(
+    boardingFetchBookingId,
+    boardingFetchPassId,
+    shouldFetchBoarding,
+    () => {},
+  );
+  useEffect(() => {
+    if (!shouldFetchBoarding || !boardingData?.result) return;
+    setShouldFetchBoarding(false);
+    setBoardingGenerating('');
+    const pass = boardingData.result.boardingPassDetailDtos?.[0];
+    if (pass) printBoardingPass(pass);
+    else showErrorToastMessage('Boarding pass data not available');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [boardingData?.result, shouldFetchBoarding]);
+
+  function handlePrintBoardingPass(b: any) {
+    const rowKey = String(b.bookingId || b.id || '');
+    const objectId = String(b.id || '');
+    const passId = String(b.boardingPassId || '');
+    if (!objectId || !passId) {
+      showErrorToastMessage('Boarding pass not yet generated for this booking');
+      return;
+    }
+    setBoardingGenerating(rowKey);
+    setBoardingFetchBookingId(objectId);
+    setBoardingFetchPassId(passId);
+    setShouldFetchBoarding(true);
+  }
 
   // ─── QR helpers ───────────────────────────────────────────────────────────
   /**
@@ -2059,6 +2096,17 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                           </button>
                         )}
 
+                        {/* Print Boarding Pass — only when boarding pass has been generated */}
+                        {b.boardingPassId && isPaymentSuccess(b) && !b.cancelled && !b.refund && (
+                          <button
+                            className="bc-btn bc-btn-outline"
+                            disabled={boardingGenerating === bId}
+                            onClick={(e) => { e.stopPropagation(); handlePrintBoardingPass(b); }}
+                          >
+                            {boardingGenerating === bId ? '⏳ Loading...' : '🎫 Print Boarding Pass'}
+                          </button>
+                        )}
+
                         {/* Reverify Payment — for non-success bookings, within 5-min window */}
                         {!isPaymentSuccess(b) && !b.cancelled && !b.refund && isWithinReverifyWindow(b) && (
                           <button
@@ -2406,6 +2454,16 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                         {((isPaymentSuccess(b) && !b.cancelled && !b.refund) || canViewJkkApplication(b)) && (
                           <button className="btn-drawer btn-drawer-primary" disabled={isGen} onClick={() => handleDownloadTicket(b)}>
                             {isGen ? '⏳ Generating...' : (isJkkBooking(b) && !isPaymentSuccess(b) ? '🖨 Print Application' : '🖨 Print / Download Ticket')}
+                          </button>
+                        )}
+                        {/* Print Boarding Pass — only when boarding pass has been generated */}
+                        {b.boardingPassId && isPaymentSuccess(b) && !b.cancelled && !b.refund && (
+                          <button
+                            className="btn-drawer btn-drawer-outline"
+                            disabled={boardingGenerating === bId}
+                            onClick={() => handlePrintBoardingPass(b)}
+                          >
+                            {boardingGenerating === bId ? '⏳ Loading…' : '🎫 Print Boarding Pass'}
                           </button>
                         )}
                         {/* Reverify Payment — for non-success bookings, within 5-min window */}
