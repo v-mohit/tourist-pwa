@@ -510,7 +510,14 @@ export function useJkkShifts() {
       const { data } = await axiosInstance.get(
         `/jkk/getShift?bookingStartDate=${startDate}&bookingEndDate=${endDate}&categoryId=${categoryId}&subCategoryId=${subCategoryId}`,
       );
-      return data?.result ?? [];
+      // Backend has shipped this endpoint with two response shapes over time:
+      //   { result: [...] }  — wrapped (matches old project)
+      //   [...]              — bare array
+      // Accept either so a backend reshape doesn't silently empty the picker.
+      if (Array.isArray(data)) return data;
+      if (Array.isArray(data?.result)) return data.result;
+      if (Array.isArray(data?.result?.shifts)) return data.result.shifts;
+      return [];
     },
   });
 }

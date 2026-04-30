@@ -1,10 +1,23 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { BookingState, VisitorForm, AddonItem, ChoiceAddonSelection } from '../../types/booking.types';
-import { ID_PROOF_OPTIONS, GENDER_OPTIONS, NATIONALITY_OPTIONS } from '../../types/booking.types';
+import type { BookingState, VisitorForm, AddonItem, ChoiceAddonSelection, TicketType } from '../../types/booking.types';
+import { ID_PROOF_OPTIONS, GENDER_OPTIONS } from '../../types/booking.types';
 import { useAddonItems, useChoiceVehicles, useChoiceGuides } from '../../hooks/useBookingApi';
 import { showErrorToastMessage } from '@/utils/toast.utils';
+
+// Mirrors the old project: nationality is derived from the ticket type's
+// master name ("Indian …" / "Foreign …") instead of being asked separately.
+function deriveNationality(name: string | undefined): string {
+  const first = (name ?? '').trim().split(/\s+/)[0]?.toLowerCase();
+  if (first === 'foreign' || first === 'foreigner') return 'FOREIGNER';
+  return 'INDIAN';
+}
+
+function nationalityForTicket(ticketTypes: TicketType[], ticketTypeId: string): string {
+  const tt = ticketTypes.find((t) => t.id === ticketTypeId);
+  return deriveNationality(tt?.masterTicketTypeName);
+}
 
 interface Props {
   state: BookingState;
@@ -46,6 +59,7 @@ function StandardVisitorForms({ state, onUpdate, onNext, onBack }: Props) {
           ...buildEmptyForm(),
           ticketTypeId: ticketType.id,
           ticketTypeName: `${ticketType.masterTicketTypeName}${quantity > 1 ? ` #${i + 1}` : ''}`,
+          nationality: deriveNationality(ticketType.masterTicketTypeName),
         });
       }
     });
@@ -112,32 +126,18 @@ function StandardVisitorForms({ state, onUpdate, onNext, onBack }: Props) {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-[10px] font-bold text-[#2C2017] mb-1 uppercase tracking-[0.3px]">
-                    Gender <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={form.gender}
-                    onChange={(e) => updateVisitor(idx, { gender: e.target.value })}
-                    className="w-full px-3 py-2 border border-[#E8DAC5] rounded-[8px] text-sm focus:outline-none focus:border-[#E8631A] bg-white"
-                  >
-                    <option value="">Select</option>
-                    {GENDER_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-[#2C2017] mb-1 uppercase tracking-[0.3px]">
-                    Nationality <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={form.nationality}
-                    onChange={(e) => updateVisitor(idx, { nationality: e.target.value })}
-                    className="w-full px-3 py-2 border border-[#E8DAC5] rounded-[8px] text-sm focus:outline-none focus:border-[#E8631A] bg-white"
-                  >
-                    {NATIONALITY_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                  </select>
-                </div>
+              <div>
+                <label className="block text-[10px] font-bold text-[#2C2017] mb-1 uppercase tracking-[0.3px]">
+                  Gender <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={form.gender}
+                  onChange={(e) => updateVisitor(idx, { gender: e.target.value })}
+                  className="w-full px-3 py-2 border border-[#E8DAC5] rounded-[8px] text-sm focus:outline-none focus:border-[#E8631A] bg-white"
+                >
+                  <option value="">Select</option>
+                  {GENDER_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -238,7 +238,7 @@ function InventoryVisitorForms({ state, onUpdate, onNext, onBack }: Props) {
     idProof: '',
     idNo: '',
     gender: '',
-    nationality: 'INDIAN',
+    nationality: deriveNationality(ticketTypes[0]?.masterTicketTypeName),
     addonItemIds: [],
   });
 
@@ -275,7 +275,12 @@ function InventoryVisitorForms({ state, onUpdate, onNext, onBack }: Props) {
   }, [current.ticketTypeId, state.selectedDateMs]);
 
   function handleTicketTypeChange(ticketTypeId: string) {
-    setCurrent((prev) => ({ ...prev, ticketTypeId, addonItemIds: [] }));
+    setCurrent((prev) => ({
+      ...prev,
+      ticketTypeId,
+      nationality: nationalityForTicket(ticketTypes, ticketTypeId),
+      addonItemIds: [],
+    }));
   }
 
   function toggleAddon(addonId: string) {
@@ -315,7 +320,6 @@ function InventoryVisitorForms({ state, onUpdate, onNext, onBack }: Props) {
     if (!current.idProof) return showErrorToastMessage('Please select identity proof');
     if (!current.idNo.trim()) return showErrorToastMessage('Please enter identity number');
     if (!current.gender) return showErrorToastMessage('Please select gender');
-    if (!current.nationality) return showErrorToastMessage('Please select nationality');
 
     // Duplicate ID check
     const isDuplicate = addedForms.some(
@@ -356,7 +360,7 @@ function InventoryVisitorForms({ state, onUpdate, onNext, onBack }: Props) {
       idProof: '',
       idNo: '',
       gender: '',
-      nationality: 'INDIAN',
+      nationality: nationalityForTicket(ticketTypes, current.ticketTypeId),
       addonItemIds: [],
     });
   }
@@ -381,7 +385,16 @@ function InventoryVisitorForms({ state, onUpdate, onNext, onBack }: Props) {
     onUpdate({ visitorForms: updated });
     if (editIndex === index) {
       setEditIndex(null);
-      setCurrent({ ticketTypeId: ticketTypes[0]?.id ?? '', fullName: '', mobileNo: '', idProof: '', idNo: '', gender: '', nationality: 'INDIAN', addonItemIds: [] });
+      setCurrent({
+        ticketTypeId: ticketTypes[0]?.id ?? '',
+        fullName: '',
+        mobileNo: '',
+        idProof: '',
+        idNo: '',
+        gender: '',
+        nationality: deriveNationality(ticketTypes[0]?.masterTicketTypeName),
+        addonItemIds: [],
+      });
     }
   }
 
@@ -549,20 +562,6 @@ function InventoryVisitorForms({ state, onUpdate, onNext, onBack }: Props) {
               >
                 <option value="">Select Gender</option>
                 {GENDER_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-            </div>
-
-            {/* Nationality */}
-            <div>
-              <label className="block text-[10px] font-bold text-[#2C2017] mb-1 uppercase tracking-[0.3px]">
-                Nationality <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={current.nationality}
-                onChange={(e) => setCurrent((p) => ({ ...p, nationality: e.target.value }))}
-                className="w-full px-3 py-2 border border-[#E8DAC5] rounded-[8px] text-sm focus:outline-none focus:border-[#E8631A] bg-white"
-              >
-                {NATIONALITY_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </div>
 
