@@ -86,6 +86,7 @@ export default function Home({
   }, [sections]);
 
   const { cities, destination } = cityData || {};
+console.log("slider----", sectionMap["ComponentHomeHeroSection"]);
 
   return (
     <div className="w-full">
