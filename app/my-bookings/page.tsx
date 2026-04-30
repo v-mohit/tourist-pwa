@@ -44,6 +44,219 @@ function formatDate(ts?: number | string): string {
   return moment(ts).format('DD MMM YYYY');
 }
 
+function toNum(v: any): number {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function getPath(obj: any, path: string): any {
+  if (!obj || !path) return undefined;
+  if (!path.includes('.')) return obj?.[path];
+  return path.split('.').reduce((acc: any, key: string) => acc?.[key], obj);
+}
+
+function pickNum(obj: any, ...paths: string[]): number {
+  for (const path of paths) {
+    const v = getPath(obj, path);
+    if (v === undefined || v === null || v === '') continue;
+    const n = Number(v);
+    if (Number.isFinite(n)) return n;
+  }
+  return 0;
+}
+
+function normChargeName(v: any): string {
+  return String(v || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ');
+}
+
+function resolveChargeLabel(row: any): string {
+  return (
+    row?.category ??
+    row?.chargeName ??
+    row?.chargeHead ??
+    row?.head ??
+    row?.name ??
+    row?.ticketName ??
+    row?.type ??
+    ''
+  );
+}
+
+function classifyChargeRow(row: any): {
+  entryFeeVisitor: number;
+  entryFeeVehicle: number;
+  ecoDevVisitor: number;
+  ecoDevVehicle: number;
+  vehicleRent: number;
+  guideFee: number;
+  gst: number;
+  tigerReserveFund: number;
+} {
+  const direct = {
+    entryFeeVisitor: pickNum(
+      row,
+      'entryFeeVisitor',
+      'entryFeesVisitor',
+      'visitorEntryFee',
+      'visitorEntryFees',
+      'touristEntryFee',
+      'touristEntryFees',
+      'entryFee',
+      'entryFees',
+      'entryFeeAmount',
+      'entryFeesAmount',
+    ),
+    entryFeeVehicle: pickNum(
+      row,
+      'entryFeeVehicle',
+      'entryFeesVehicle',
+      'vehicleEntryFee',
+      'vehicleEntryFees',
+      'vehicleEntryFeeAmount',
+    ),
+    ecoDevVisitor: pickNum(
+      row,
+      'ecoDevVisitor',
+      'ecoDevelopmentVisitor',
+      'ecodevVisitor',
+      'ecoDev',
+      'vfpmcCharges',
+      'vfpmcVisitor',
+    ),
+    ecoDevVehicle: pickNum(
+      row,
+      'ecoDevVehicle',
+      'ecoDevelopmentVehicle',
+      'ecodevVehicle',
+      'vfpmcVehicle',
+    ),
+    tigerReserveFund: pickNum(
+      row,
+      'tigerReserveFund',
+      'tigerFund',
+      'tigerReserve',
+      'trdf',
+      'developmentFund',
+    ),
+    vehicleRent: pickNum(
+      row,
+      'vehicleRent',
+      'vehicleRentAmount',
+      'vehicleRentCharges',
+      'vehicleCharge',
+      'vehicleCharges',
+    ),
+    guideFee: pickNum(
+      row,
+      'guideFee',
+      'guideFees',
+      'guideAmount',
+      'guideCharge',
+      'guideCharges',
+    ),
+    gst: pickNum(row, 'gst', 'gstAmount', 'gstCharges', 'tax', 'taxAmount'),
+  };
+
+  const hasDirect =
+    direct.entryFeeVisitor ||
+    direct.entryFeeVehicle ||
+    direct.ecoDevVisitor ||
+    direct.ecoDevVehicle ||
+    direct.tigerReserveFund ||
+    direct.vehicleRent ||
+    direct.guideFee ||
+    direct.gst;
+  if (hasDirect) return direct;
+
+  const amount = pickNum(row, 'amount', 'chargeAmount', 'totalAmount', 'value');
+  if (!amount) return direct;
+
+  const label = normChargeName(resolveChargeLabel(row));
+  const isEntry = label.includes('entry');
+  const isVehicle = label.includes('vehicle');
+  const isVisitor = label.includes('visitor') || label.includes('tourist') || label.includes('person') || label.includes('pax');
+
+  if (isEntry && isVehicle) return { ...direct, entryFeeVehicle: amount };
+  if (isEntry && isVisitor) return { ...direct, entryFeeVisitor: amount };
+  if (label.includes('eco') || label.includes('ecodev') || label.includes('eco dev') || label.includes('vfpmc')) {
+    if (isVehicle) return { ...direct, ecoDevVehicle: amount };
+    if (isVisitor) return { ...direct, ecoDevVisitor: amount };
+  }
+  if (label.includes('rent')) return { ...direct, vehicleRent: amount };
+  if (label.includes('guide')) return { ...direct, guideFee: amount };
+  if (label.includes('gst') || label.includes('tax')) return { ...direct, gst: amount };
+  if (label.includes('tiger') || label.includes('trdf') || label.includes('development fund')) {
+    return { ...direct, tigerReserveFund: amount };
+  }
+
+  return direct;
+}
+
+function computeInventoryChargeSummary(b: any): {
+  entryFeeVisitor: number;
+  entryFeeVehicle: number;
+  ecoDevVisitor: number;
+  ecoDevVehicle: number;
+  vehicleRent: number;
+  gst: number;
+  rislCharge: number;
+  surcharge: number;
+} {
+  const out = {
+    entryFeeVisitor: 0,
+    entryFeeVehicle: 0,
+    ecoDevVisitor: 0,
+    ecoDevVehicle: 0,
+    vehicleRent: 0,
+    gst: 0,
+    rislCharge: 0,
+    surcharge: 0,
+  };
+
+  const ticketRows: any[] = Array.isArray(b?.ticketUserDto) ? b.ticketUserDto : [];
+  for (const t of ticketRows) {
+    const qty = Number(t?.qty) || 0;
+    const charges: any[] = Array.isArray(t?.fixCharges)
+      ? t.fixCharges
+      : Array.isArray(t?.ticketTypeConfigValue?.ticketTypeConfigList)
+        ? t.ticketTypeConfigValue.ticketTypeConfigList
+        : [];
+
+    for (const c of charges) {
+      const amount = pickNum(c, 'amount', 'chargeAmount', 'totalAmount', 'value');
+      if (!amount) continue;
+      const label = normChargeName(c?.name ?? c?.chargeName ?? c?.category ?? '');
+
+      if (label.includes('risl')) out.rislCharge += amount * qty;
+      else if (label.includes('entry fee') || label === 'entry fee' || label === 'entry') out.entryFeeVisitor += amount * qty;
+      else if (label.includes('eco') || label.includes('eco surcharge') || label.includes('eco-surcharge')) out.ecoDevVisitor += amount * qty;
+      else if (label.includes('gst') || label.includes('tax')) out.gst += amount * qty;
+    }
+  }
+
+  const inv = b?.inventory;
+  const invQty = Number(inv?.qty ?? b?.totalUsers) || 0;
+  const invConfigs: any[] = Array.isArray(inv?.ticketTypeConfigList) ? inv.ticketTypeConfigList : [];
+  for (const cfg of invConfigs) {
+    const amount = pickNum(cfg, 'amount', 'chargeAmount', 'totalAmount', 'value');
+    if (!amount) continue;
+    const label = normChargeName(cfg?.name ?? cfg?.chargeName ?? cfg?.category ?? '');
+
+    if (label.includes('risl')) out.rislCharge += amount * invQty;
+    else if (label.includes('vehicle entry')) out.entryFeeVehicle += amount * invQty;
+    else if (label.includes('vehicle rent')) out.vehicleRent += amount * invQty;
+    else if (label.includes('eco') && label.includes('development')) out.ecoDevVehicle += amount * invQty;
+    else if (label.includes('gst') || label.includes('tax')) out.gst += amount * invQty;
+    else if (label.includes('rpacs') || label.includes('surcharge')) out.surcharge += amount * invQty;
+  }
+
+  return out;
+}
+
 /**
  * Booking is "successful" only when paymentStatus contains "success".
  * Everything else (FAIL / PENDING / IN_PROGRESS / null) is treated as Failed.
@@ -324,7 +537,18 @@ function MyBookingsPageInner() {
         && !pay.includes('success')
         && !pay.includes('fail');
   }
-  function isInventoryType(b: any) { return Boolean(b?.zoneName || b.ticketUserDto?.[0]?.ticketUserDocs?.[0]?.documentNo); }
+  function isInventoryType(b: any) {
+    return Boolean(
+      b?.zoneName ||
+      b?.zoneAddress ||
+      b?.zoneMapLink ||
+      b?.vendorInventoryDetails ||
+      Array.isArray(b?.ticketCharges) ||
+      Array.isArray(b?.chargeDetails) ||
+      Array.isArray(b?.charges) ||
+      b?.ticketUserDto?.[0]?.ticketUserDocs?.[0]?.documentNo
+    );
+  }
   function isCheckinEligible(b: any) { return !!b?.zoneName && b.checkedIn !== 'Yes' && !b.cancelled && !b.refund; }
   function canCancel(b: any) {
     if (b.cancelled || b.refund || !b.cancelledPolicy) return false;
@@ -886,8 +1110,13 @@ function MyBookingsPageInner() {
     const mapLink     = ticket.zoneMapLink  || '';
 
     const visitors: any[]  = ticket.ticketUserDto || [];
-    const totalVisitors     = visitors.reduce((s, t) => s + (t.qty || 0), 0);
-    const firstNat          = visitors[0]?.ticketUserDocs?.[0]?.nationality || 'Indian';
+    const visitorDocs: any[] = visitors.flatMap((t: any) => (Array.isArray(t?.ticketUserDocs) ? t.ticketUserDocs : []));
+    const totalVisitors = (visitorDocs.length || visitors.reduce((s, t) => s + (Number(t.qty) || 0), 0)) || 0;
+
+    const toNum = (v: any) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    };
 
     let srCounter = 0;
     const visitorRows = visitors.flatMap((t: any) => {
@@ -897,7 +1126,7 @@ function MyBookingsPageInner() {
         const addonsText = (t.addonItems || []).filter((a: any) => a?.name).map((a: any) => a.name).join(', ') || '— None —';
         return [`<div class="visitor-row-data">
           <div class="vr-num">${srCounter}</div>
-          <div class="vr-name">${t.ticketName || '—'}</div>
+          <div class="vr-name">—</div>
           <div class="vr-id">—</div>
           <div class="vr-nat">${checkNationality(t.nationality)}</div>
           <div class="vr-addon">${addonsText}</div>
@@ -905,7 +1134,7 @@ function MyBookingsPageInner() {
       }
       return docs.map((doc: any) => {
         srCounter++;
-        const name   = doc.name || t.ticketName || '—';
+        const name   = doc.name || doc.fullName || doc.visitorName || t.ticketName || '—';
         const idType = doc.identityType || doc.docType || '';
         const idNo   = maskId(doc.identityNo || doc.documentNo || doc.identity || '');
         const nat    = checkNationality(doc.nationality || t.nationality);
@@ -920,36 +1149,96 @@ function MyBookingsPageInner() {
       });
     }).join('');
 
-    const charges: any[] = ticket.ticketCharges || ticket.chargeDetails || [];
+    const charges: any[] = ticket.ticketCharges || ticket.chargeDetails || ticket.charges || [];
     let chargesBodyHtml = '';
     if (charges.length > 0) {
       chargesBodyHtml = charges.map((c: any) => `
         <tr>
           <td>${c.category || c.ticketName || '—'}</td>
-          <td>₹ ${c.entryFeeVisitor ?? c.entryFee ?? 0}</td>
-          <td>₹ ${c.entryFeeVehicle ?? 0}</td>
-          <td>${c.ecoDevVisitor ?? 0}</td>
-          <td>₹ ${c.ecoDevVehicle ?? 0}</td>
-          <td>₹ ${c.tigerReserveFund ?? 0}</td>
-          <td>₹ ${c.vehicleRent ?? 0}</td>
-          <td>₹ ${c.guideFee ?? 0}</td>
-          <td>₹ ${c.gst ?? 0}</td>
+          <td>₹ ${classifyChargeRow(c).entryFeeVisitor.toFixed(2)}</td>
+          <td>₹ ${classifyChargeRow(c).entryFeeVehicle.toFixed(2)}</td>
+          <td>₹ ${classifyChargeRow(c).ecoDevVisitor.toFixed(2)}</td>
+          <td>₹ ${classifyChargeRow(c).ecoDevVehicle.toFixed(2)}</td>
+          <td>₹ ${classifyChargeRow(c).tigerReserveFund.toFixed(2)}</td>
+          <td>₹ ${classifyChargeRow(c).vehicleRent.toFixed(2)}</td>
+          <td>₹ ${classifyChargeRow(c).guideFee.toFixed(2)}</td>
+          <td>₹ ${classifyChargeRow(c).gst.toFixed(2)}</td>
         </tr>`).join('');
     } else {
-      chargesBodyHtml = visitors.map((t: any) => `
-        <tr>
-          <td>${t.ticketName} × ${t.qty}</td>
-          <td>₹ ${t.entryFee ?? '—'}</td>
-          <td>—</td><td>—</td><td>—</td>
-          <td>₹ ${t.tigerFund ?? '—'}</td>
-          <td>₹ ${t.vehicleRent ?? '—'}</td>
-          <td>₹ ${t.guideFee ?? '—'}</td>
-          <td>₹ ${t.gst ?? '—'}</td>
-        </tr>`).join('') || `<tr><td colspan="9" style="text-align:center;color:#aaa;">Charge details not available</td></tr>`;
+      const summaryRow = (() => {
+        const src = ticket ?? {};
+        const classified = classifyChargeRow(src);
+        const inv = computeInventoryChargeSummary(src);
+        const entryFeeVisitor = classified.entryFeeVisitor || inv.entryFeeVisitor;
+        const entryFeeVehicle = classified.entryFeeVehicle || inv.entryFeeVehicle;
+        const ecoDevVisitor   = classified.ecoDevVisitor || inv.ecoDevVisitor;
+        const ecoDevVehicle   = classified.ecoDevVehicle || inv.ecoDevVehicle;
+        const tigerReserveFund = classified.tigerReserveFund;
+        const vehicleRent     = classified.vehicleRent || inv.vehicleRent;
+        const guideFee        = classified.guideFee;
+        const gst             = classified.gst || inv.gst;
+
+        const hasAny =
+          entryFeeVisitor || entryFeeVehicle || ecoDevVisitor || ecoDevVehicle ||
+          tigerReserveFund || vehicleRent || guideFee || gst;
+        if (!hasAny) return '';
+
+        return `
+          <tr>
+            <td>Total</td>
+            <td>₹ ${entryFeeVisitor.toFixed(2)}</td>
+            <td>₹ ${entryFeeVehicle.toFixed(2)}</td>
+            <td>₹ ${ecoDevVisitor.toFixed(2)}</td>
+            <td>₹ ${ecoDevVehicle.toFixed(2)}</td>
+            <td>₹ ${tigerReserveFund.toFixed(2)}</td>
+            <td>₹ ${vehicleRent.toFixed(2)}</td>
+            <td>₹ ${guideFee.toFixed(2)}</td>
+            <td>₹ ${gst.toFixed(2)}</td>
+          </tr>`;
+      })();
+
+      chargesBodyHtml = summaryRow || visitors.map((t: any) => `
+          <tr>
+            <td>${t.ticketName} × ${t.qty}</td>
+            <td>₹ ${toNum(t.entryFee).toFixed(2)}</td>
+            <td>₹ ${toNum(t.entryFeeVehicle).toFixed(2)}</td>
+            <td>₹ ${toNum(t.ecoDevVisitor ?? t.ecoDev).toFixed(2)}</td>
+            <td>₹ ${toNum(t.ecoDevVehicle).toFixed(2)}</td>
+            <td>₹ ${toNum(t.tigerReserveFund ?? t.tigerFund).toFixed(2)}</td>
+            <td>₹ ${toNum(t.vehicleRent).toFixed(2)}</td>
+            <td>₹ ${toNum(t.guideFee).toFixed(2)}</td>
+            <td>₹ ${toNum(t.gst).toFixed(2)}</td>
+          </tr>`).join('') || `<tr><td colspan="9" style="text-align:center;color:#aaa;">Charge details not available</td></tr>`;
     }
 
-    const addonTotal = ticket.addonTotal ?? ticket.addonCharges ?? 0;
-    const rislTotal  = ticket.rislCharges ?? ticket.platformCharges ?? 0;
+    const invTotals = computeInventoryChargeSummary(ticket);
+
+    const rpacsTotal = (
+      toNum(
+        ticket.rpacsCharges ??
+        ticket.rpacsCharge ??
+        ticket.rpacs ??
+        ticket.surcharge ??
+        ticket.surCharge ??
+        ticket.surchargeCharges,
+      ) ||
+      invTotals.surcharge ||
+      charges.reduce((s: number, c: any) => s + toNum(c?.rpacsCharges ?? c?.surcharge ?? c?.surCharge), 0)
+    );
+
+    const addonTotal = (
+      pickNum(ticket, 'addonTotal', 'addonCharges', 'addOnSurcharge', 'addonSurcharge', 'addOnCharge', 'addOnCharges') ||
+      visitors.reduce((sum: number, t: any) => {
+        const items = Array.isArray(t?.addonItems) ? t.addonItems : [];
+        return sum + items.reduce((s: number, a: any) => s + toNum(a?.totalAmount ?? a?.amount), 0);
+      }, 0)
+    );
+
+    const rislTotal  = (
+      toNum(ticket.rislCharges ?? ticket.rislCharge ?? ticket.platformCharges ?? ticket.platformCharge) ||
+      invTotals.rislCharge ||
+      charges.reduce((s: number, c: any) => s + toNum(c?.rislCharges ?? c?.platformCharges), 0)
+    );
 
     const qrValue = ticket.qrDetail || JSON.stringify({ type: 'BOOKING', data: { ticketBookingId: ticket.id || ticket.bookingId } });
     const { rects: qrRects, count: qrCount } = generateQrSvgRects(qrValue, 96);
@@ -1024,6 +1313,7 @@ body{background:#1a0e06;background-image:radial-gradient(ellipse at 20% 20%,rgba
 .charges-table tbody td{padding:8px 10px;text-align:center;border-right:1px solid rgba(184,74,14,.08);border-bottom:1px solid rgba(184,74,14,.08);color:#3D1F00;font-family:'Space Mono',monospace;font-size:11px;}
 .charges-table tbody td:first-child{text-align:left;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;color:#3D1F00;}
 .charges-table tbody td:last-child{border-right:none;}
+.charges-table .rpacs-row td{color:#6B3A1F;font-size:11px;}
 .charges-table .addon-row td{color:#888;font-style:italic;font-size:10px;}
 .charges-table .risl-row td{color:#6B3A1F;font-size:11px;}
 .charges-table .total-row td{background:rgba(184,74,14,.07);border-top:1.5px solid rgba(184,74,14,.25);}
@@ -1085,7 +1375,7 @@ body{background:#1a0e06;background-image:radial-gradient(ellipse at 20% 20%,rgba
       <div class="booking-cell"><div class="bl">Mode of Booking</div><div class="bv">ONLINE</div></div>
       ${zoneName  ? `<div class="booking-cell"><div class="bl">Route / Zone</div><div class="bv">${zoneName}</div></div>`  : ''}
       ${quotaName ? `<div class="booking-cell"><div class="bl">Quota Name</div><div class="bv">${quotaName}</div></div>` : ''}
-      <div class="booking-cell"><div class="bl">Ticket Amount</div><div class="bv">₹ ${totalAmount}</div></div>
+      <div class="booking-cell"><div class="bl">Ticket Amount</div><div class="bv">₹ ${toNum(totalAmount).toFixed(2)}</div></div>
     </div>
     ${(zoneAddress || mapLink) ? `
     <table class="location-table">
@@ -1097,7 +1387,7 @@ body{background:#1a0e06;background-image:radial-gradient(ellipse at 20% 20%,rgba
       <div class="meta-cell"><span class="mc-icon">📅</span><div class="mc-lbl">Visit Date</div><div class="mc-val">${visitDate}</div><div class="mc-sub">${visitDay}</div></div>
       <div class="meta-cell"><span class="mc-icon">${shiftIcon}</span><div class="mc-lbl">Shift</div><div class="mc-val">${shiftName || 'Full Day'}</div><div class="mc-sub">${shiftSub}</div></div>
       ${vehicleType ? `<div class="meta-cell"><span class="mc-icon">🚌</span><div class="mc-lbl">Vehicle</div><div class="mc-val">${vehicleType}</div><div class="mc-sub">${vehicleNum || quotaName}</div></div>` : ''}
-      <div class="meta-cell"><span class="mc-icon">👥</span><div class="mc-lbl">Total Visitors</div><div class="mc-val">${totalVisitors || visitors.length}</div><div class="mc-sub">${checkNationality(firstNat)}</div></div>
+      <div class="meta-cell"><span class="mc-icon">👥</span><div class="mc-lbl">Total Visitors</div><div class="mc-val">${totalVisitors}</div></div>
     </div>
     <div class="sec-head">Visitor Information</div>
     <div class="visitor-block">
@@ -1117,9 +1407,10 @@ body{background:#1a0e06;background-image:radial-gradient(ellipse at 20% 20%,rgba
       </tr></thead>
       <tbody>
         ${chargesBodyHtml}
-        <tr class="addon-row"><td>AddOn Charges</td><td colspan="8">₹ ${addonTotal.toFixed ? addonTotal.toFixed(2) : addonTotal}</td></tr>
-        ${rislTotal ? `<tr class="risl-row"><td>RISL / Platform Charges</td><td colspan="8">₹ ${Number(rislTotal).toFixed(2)}</td></tr>` : ''}
-        <tr class="total-row"><td>Grand Total</td><td colspan="8" style="text-align:right;padding-right:16px;">₹ ${totalAmount}</td></tr>
+        <tr class="rpacs-row"><td>Surcharge (RPACS)</td><td colspan="8">₹ ${rpacsTotal.toFixed(2)}</td></tr>
+        <tr class="addon-row"><td>Add-on Charges</td><td colspan="8">₹ ${addonTotal.toFixed(2)}</td></tr>
+        <tr class="risl-row"><td>RISL Charges</td><td colspan="8">₹ ${rislTotal.toFixed(2)}</td></tr>
+        <tr class="total-row"><td>Grand Total</td><td colspan="8" style="text-align:right;padding-right:16px;">₹ ${toNum(totalAmount).toFixed(2)}</td></tr>
       </tbody>
     </table>
     <hr class="t-divider"/>
@@ -1629,7 +1920,7 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
               { num: stats.upcoming,    lbl: 'Upcoming',       cls: 'orange' },
               { num: stats.completed,   lbl: 'Completed',      cls: 'green'  },
               { num: stats.cancelled,   lbl: 'Cancelled',      cls: 'red'    },
-              { num: `₹${stats.spent}`, lbl: 'Total Spent',    cls: ''       },
+              { num: `₹${toNum(stats.spent).toFixed(2)}`, lbl: 'Total Spent',    cls: ''       },
             ].map((s) => (
               <div key={s.lbl} className="stats-strip-item">
                 <div className={`ssi-num ${s.cls}`}>{s.num}</div>
@@ -1745,7 +2036,7 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                       <div className="booking-price-wrap">
                         <div className="booking-price-lbl">{b.cancelled || b.refund ? 'Refunded' : 'Total Paid'}</div>
                         <div className="booking-price" style={b.cancelled || b.refund ? { color: 'var(--mu)' } : undefined}>
-                          ₹{b.totalAmount || 0}
+                          ₹{toNum(b.totalAmount).toFixed(2)}
                         </div>
                         <div className="booking-price-sub">Booked {formatDate(b.createdDate)}</div>
                       </div>
@@ -1889,6 +2180,79 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                 const fullImg   = resolveBookingImage(b);
                 const bId   = String(b.bookingId || b.id);
                 const isGen = pdfGenerating === bId;
+                const isInv = isInventoryType(b);
+                const invTickets: any[] = Array.isArray(b.ticketUserDto) ? b.ticketUserDto : [];
+                const invDocs: any[] = invTickets.flatMap((t: any) => (Array.isArray(t?.ticketUserDocs) ? t.ticketUserDocs : []));
+                const invTotalVisitors =
+                  (invDocs.length || invTickets.reduce((s: number, t: any) => s + (Number(t?.qty) || 0), 0) || b.totalUsers || 0) as number;
+                const invVisitorNames = invDocs
+                  .map((d: any) => String(d?.name || d?.fullName || d?.visitorName || '').trim())
+                  .filter(Boolean);
+
+                const toNum = (v: any) => {
+                  const n = Number(v);
+                  return Number.isFinite(n) ? n : 0;
+                };
+
+                const invChargeRows: any[] = Array.isArray(b?.ticketCharges)
+                  ? b.ticketCharges
+                  : Array.isArray(b?.chargeDetails)
+                    ? b.chargeDetails
+                    : Array.isArray(b?.charges)
+                      ? b.charges
+                      : [];
+
+                const invComputed = computeInventoryChargeSummary(b);
+
+                const invChargesTotals = invChargeRows.reduce(
+                  (acc: any, c: any) => {
+                    acc.entryFeeVisitor += classifyChargeRow(c).entryFeeVisitor;
+                    acc.entryFeeVehicle += classifyChargeRow(c).entryFeeVehicle;
+                    acc.ecoDevVisitor += classifyChargeRow(c).ecoDevVisitor;
+                    acc.ecoDevVehicle += classifyChargeRow(c).ecoDevVehicle;
+                    acc.vehicleRent += classifyChargeRow(c).vehicleRent;
+                    acc.gst += classifyChargeRow(c).gst;
+                    return acc;
+                  },
+                  { entryFeeVisitor: 0, entryFeeVehicle: 0, ecoDevVisitor: 0, ecoDevVehicle: 0, vehicleRent: 0, gst: 0 },
+                );
+
+                const entryFeeVisitor = invChargeRows.length
+                  ? invChargesTotals.entryFeeVisitor
+                  : (invComputed.entryFeeVisitor || pickNum(b, 'entryFeeVisitor', 'entryFeesVisitor', 'visitorEntryFee', 'visitorEntryFees', 'touristEntryFee', 'touristEntryFees', 'entryFee', 'entryFees', 'entryFeeAmount', 'entryFeesAmount'));
+                const entryFeeVehicle = invChargeRows.length
+                  ? invChargesTotals.entryFeeVehicle
+                  : (invComputed.entryFeeVehicle || pickNum(b, 'entryFeeVehicle', 'entryFeesVehicle', 'vehicleEntryFee', 'vehicleEntryFees', 'vehicleEntryFeeAmount'));
+                const ecoDevVisitor = invChargeRows.length
+                  ? invChargesTotals.ecoDevVisitor
+                  : (invComputed.ecoDevVisitor || pickNum(b, 'ecoDevVisitor', 'ecoDevelopmentVisitor', 'ecodevVisitor', 'ecoDev', 'vfpmcCharges', 'vfpmcVisitor'));
+                const ecoDevVehicle = invChargeRows.length
+                  ? invChargesTotals.ecoDevVehicle
+                  : (invComputed.ecoDevVehicle || pickNum(b, 'ecoDevVehicle', 'ecoDevelopmentVehicle', 'ecodevVehicle', 'vfpmcVehicle'));
+                const vehicleRent = invChargeRows.length
+                  ? invChargesTotals.vehicleRent
+                  : (invComputed.vehicleRent || pickNum(b, 'vehicleRent', 'vehicleRentAmount', 'vehicleRentCharges', 'vehicleCharge', 'vehicleCharges'));
+                const gst = invChargeRows.length
+                  ? invChargesTotals.gst
+                  : (invComputed.gst || pickNum(b, 'gst', 'gstAmount', 'gstCharges', 'tax', 'taxAmount'));
+
+                const rislCharge = (
+                  toNum(b?.rislCharges ?? b?.rislCharge ?? b?.platformCharges ?? b?.platformCharge) ||
+                  invComputed.rislCharge ||
+                  invChargeRows.reduce((s: number, c: any) => s + toNum(c?.rislCharges ?? c?.platformCharges), 0)
+                );
+                const surcharge = (
+                  toNum(b?.rpacsCharges ?? b?.rpacsCharge ?? b?.rpacs ?? b?.surcharge ?? b?.surCharge ?? b?.surchargeCharges) ||
+                  invComputed.surcharge ||
+                  invChargeRows.reduce((s: number, c: any) => s + toNum(c?.rpacsCharges ?? c?.surcharge ?? c?.surCharge), 0)
+                );
+                const addOnCharge = (
+                  pickNum(b, 'addonTotal', 'addonCharges', 'addOnSurcharge', 'addonSurcharge', 'addOnCharge', 'addOnCharges') ||
+                  invTickets.reduce((sum: number, t: any) => {
+                    const items = Array.isArray(t?.addonItems) ? t.addonItems : [];
+                    return sum + items.reduce((s: number, a: any) => s + toNum(a?.totalAmount ?? a?.amount), 0);
+                  }, 0)
+                );
                 return (
                   <div>
                     <div className="drawer-img" style={{ backgroundImage: `url('${fullImg}')` }}>
@@ -1931,13 +2295,46 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                             </div>
                           )}
                           <div style={{ marginBottom: 10 }}>
-                            <div className="ticket-field-lbl" style={{ marginBottom: 6 }}>Visitors ({b.totalUsers || 0})</div>
+                            <div className="ticket-field-lbl" style={{ marginBottom: 6 }}>Visitors ({isInv ? invTotalVisitors : (b.totalUsers || 0)})</div>
                             <div className="ticket-visitors">
-                              {(b.ticketUserDto || []).map((t: any, i: number) => (
-                                <div key={i} className="visitor-badge">🎟 {t.ticketName} × {t.qty}</div>
-                              ))}
+                              {isInv
+                                ? (
+                                  invVisitorNames.length > 0
+                                    ? invVisitorNames.map((name: string, i: number) => (
+                                      <div key={`${name}-${i}`} className="visitor-badge">👤 {name}</div>
+                                    ))
+                                    : <div className="visitor-badge">—</div>
+                                )
+                                : (b.ticketUserDto || []).map((t: any, i: number) => (
+                                  <div key={i} className="visitor-badge">🎟 {t.ticketName} × {t.qty}</div>
+                                ))}
                             </div>
                           </div>
+                          {isInv && (
+                            <div style={{ marginBottom: 10 }}>
+                              <div style={{ marginBottom: 6, fontSize: 11, fontWeight: 700, color: '#7A6A58' }}>Charges Detail Summary</div>
+                              <div className="ticket-row">
+                                <div className="ticket-field"><div className="ticket-field-lbl">Entry Fee (Visitor)</div><div className="ticket-field-val">₹{entryFeeVisitor.toFixed(2)}</div></div>
+                                <div className="ticket-field"><div className="ticket-field-lbl">Entry Fee (Vehicle)</div><div className="ticket-field-val">₹{entryFeeVehicle.toFixed(2)}</div></div>
+                              </div>
+                              <div className="ticket-row">
+                                <div className="ticket-field"><div className="ticket-field-lbl">Eco Dev (Visitor)</div><div className="ticket-field-val">₹{ecoDevVisitor.toFixed(2)}</div></div>
+                                <div className="ticket-field"><div className="ticket-field-lbl">Eco Dev (Vehicle)</div><div className="ticket-field-val">₹{ecoDevVehicle.toFixed(2)}</div></div>
+                              </div>
+                              <div className="ticket-row">
+                                <div className="ticket-field"><div className="ticket-field-lbl">Vehicle Rent</div><div className="ticket-field-val">₹{vehicleRent.toFixed(2)}</div></div>
+                                <div className="ticket-field"><div className="ticket-field-lbl">GST</div><div className="ticket-field-val">₹{gst.toFixed(2)}</div></div>
+                              </div>
+                              <div className="ticket-row">
+                                <div className="ticket-field"><div className="ticket-field-lbl">Surcharge (RPACS)</div><div className="ticket-field-val">₹{surcharge.toFixed(2)}</div></div>
+                                <div className="ticket-field"><div className="ticket-field-lbl">Add-on Charges</div><div className="ticket-field-val">₹{addOnCharge.toFixed(2)}</div></div>
+                              </div>
+                              <div className="ticket-row">
+                                <div className="ticket-field"><div className="ticket-field-lbl">RISL Charges</div><div className="ticket-field-val">₹{rislCharge.toFixed(2)}</div></div>
+                                <div className="ticket-field"><div className="ticket-field-lbl">Grand Total</div><div className="ticket-field-val">₹{toNum(b.totalAmount).toFixed(2)}</div></div>
+                              </div>
+                            </div>
+                          )}
                           {/* QR Code — only when payment succeeded */}
                           {isPaymentSuccess(b) && (b.qrDetail || b.id) && (
                             (() => {
@@ -1961,7 +2358,7 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                         </div>
                         <div className="ticket-total-bar">
                           <span className="ttb-lbl">{b.cancelled || b.refund ? 'Refunded Amount' : 'Total Amount Paid'}</span>
-                          <span className="ttb-val">₹{b.totalAmount || 0}</span>
+                          <span className="ttb-val">₹{toNum(b.totalAmount).toFixed(2)}</span>
                         </div>
                       </div>
                       {/* Transaction Details — visible whenever the booking carries a real
