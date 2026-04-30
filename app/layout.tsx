@@ -92,6 +92,8 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
 };
 
+import AppLoader from "@/components/common/AppLoader";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -106,19 +108,21 @@ export default function RootLayout({
         <AuthProvider>
           <BookingProvider>
             <Providers>
-              <Header />
-              <main className="flex-1">
-                {children}
-              </main>
-              <Footer />
-              {/* Auth modal — always mounted */}
-              <AuthModal />
-              {/* Booking modal — always mounted, opens on demand */}
-              <BookingModal />
-              {/* Closes all modals and opens login on any 401 response */}
-              <UnauthorizedHandler />
-              {/* Floating Helpdesk Widget */}
-              <FloatingHelpdesk />
+              <AppLoader>
+                <Header />
+                <main className="flex-1">
+                  {children}
+                </main>
+                <Footer />
+                {/* Auth modal — always mounted */}
+                <AuthModal />
+                {/* Booking modal — always mounted, opens on demand */}
+                <BookingModal />
+                {/* Closes all modals and opens login on any 401 response */}
+                <UnauthorizedHandler />
+                {/* Floating Helpdesk Widget */}
+                <FloatingHelpdesk />
+              </AppLoader>
             </Providers>
           </BookingProvider>
         </AuthProvider>
@@ -126,3 +130,4 @@ export default function RootLayout({
     </html>
   );
 }
+
