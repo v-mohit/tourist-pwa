@@ -227,9 +227,12 @@ export default function ReviewPayStep({ state, onBack }: Props) {
 
     const perTouristAddonTotal = visitorForms
       .filter((form) => form.ticketTypeId === ticketType.id)
-      .reduce((ticketSum, form) => ticketSum + addons
-        .filter((a) => form.addonItemIds.includes(a.id) && !selectedChoiceIds.has(a.id))
-        .reduce((s, a) => s + (a.totalAmount ?? a.amount ?? 0), 0), 0);
+      .reduce((ticketSum, form) => ticketSum + form.addonItemIds
+        .filter((id) => !selectedChoiceIds.has(id))
+        .reduce((s, id) => {
+          const addon = addons.find((a) => a.id === id);
+          return s + (addon?.totalAmount ?? addon?.amount ?? 0);
+        }, 0), 0);
 
     const bookingLevelChoiceTotal = (state.choiceAddonSelections[ticketType.id] ?? []).reduce((ticketSum, selection) => {
       if (countedChoiceAddonIds.has(selection.addonItemId)) return ticketSum;

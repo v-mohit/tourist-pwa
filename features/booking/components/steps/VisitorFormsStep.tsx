@@ -19,6 +19,18 @@ function nationalityForTicket(ticketTypes: TicketType[], ticketTypeId: string): 
   return deriveNationality(tt?.masterTicketTypeName);
 }
 
+function countAddon(ids: string[], addonId: string): number {
+  let n = 0;
+  for (const id of ids) if (id === addonId) n++;
+  return n;
+}
+
+function setAddonCount(ids: string[], addonId: string, qty: number): string[] {
+  const next = ids.filter((id) => id !== addonId);
+  for (let i = 0; i < Math.max(0, qty); i++) next.push(addonId);
+  return next;
+}
+
 interface Props {
   state: BookingState;
   onUpdate: (patch: Partial<BookingState>) => void;
@@ -83,12 +95,9 @@ function StandardVisitorForms({ state, onUpdate, onNext, onBack }: Props) {
     onUpdate({ visitorForms: next });
   }
 
-  function toggleAddon(index: number, addonId: string) {
+  function setAddonQty(index: number, addonId: string, qty: number) {
     const form = state.visitorForms[index];
-    const ids = form.addonItemIds.includes(addonId)
-      ? form.addonItemIds.filter((id) => id !== addonId)
-      : [...form.addonItemIds, addonId];
-    updateVisitor(index, { addonItemIds: ids });
+    updateVisitor(index, { addonItemIds: setAddonCount(form.addonItemIds, addonId, qty) });
   }
 
   const isFormValid = state.visitorForms.every(
@@ -175,18 +184,34 @@ function StandardVisitorForms({ state, onUpdate, onNext, onBack }: Props) {
                   </label>
                   <div className="space-y-1.5">
                     {addons.map((addon) => {
-                      const selected = form.addonItemIds.includes(addon.id);
+                      const qty = countAddon(form.addonItemIds, addon.id);
+                      const selected = qty > 0;
                       return (
-                        <label
+                        <div
                           key={addon.id}
-                          className={`flex items-center justify-between p-2.5 rounded-[8px] border cursor-pointer transition-all ${selected ? 'border-[#E8631A] bg-[#FFF5EE]' : 'border-[#E8DAC5]'}`}
+                          className={`flex items-center justify-between p-2.5 rounded-[8px] border transition-all ${selected ? 'border-[#E8631A] bg-[#FFF5EE]' : 'border-[#E8DAC5]'}`}
                         >
-                          <div className="flex items-center gap-2">
-                            <input type="checkbox" checked={selected} onChange={() => toggleAddon(idx, addon.id)} className="accent-[#E8631A]" />
+                          <div className="flex flex-col">
                             <span className="text-xs font-medium text-[#2C2017]">{addon.name}</span>
+                            <span className="text-[10px] text-[#E8631A] font-bold">+₹{addon.totalAmount ?? addon.amount} each</span>
                           </div>
-                          <span className="text-xs font-bold text-[#E8631A]">+₹{addon.totalAmount ?? addon.amount}</span>
-                        </label>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setAddonQty(idx, addon.id, qty - 1)}
+                              disabled={qty <= 0}
+                              aria-label={`Remove one ${addon.name}`}
+                              className="w-7 h-7 rounded-full border border-[#E8DAC5] text-[#2C2017] font-bold disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#FFF5EE]"
+                            >−</button>
+                            <span className="text-xs font-bold text-[#2C2017] min-w-[18px] text-center">{qty}</span>
+                            <button
+                              type="button"
+                              onClick={() => setAddonQty(idx, addon.id, qty + 1)}
+                              aria-label={`Add one ${addon.name}`}
+                              className="w-7 h-7 rounded-full border border-[#E8631A] bg-[#E8631A] text-white font-bold hover:bg-[#C04E0A]"
+                            >+</button>
+                          </div>
+                        </div>
                       );
                     })}
                   </div>
@@ -283,12 +308,10 @@ function InventoryVisitorForms({ state, onUpdate, onNext, onBack }: Props) {
     }));
   }
 
-  function toggleAddon(addonId: string) {
+  function setAddonQty(addonId: string, qty: number) {
     setCurrent((prev) => ({
       ...prev,
-      addonItemIds: prev.addonItemIds.includes(addonId)
-        ? prev.addonItemIds.filter((id) => id !== addonId)
-        : [...prev.addonItemIds, addonId],
+      addonItemIds: setAddonCount(prev.addonItemIds, addonId, qty),
     }));
   }
 
@@ -572,7 +595,8 @@ function InventoryVisitorForms({ state, onUpdate, onNext, onBack }: Props) {
             {addons.length > 0 && (
               <div className="space-y-1.5">
                 {addons.map((addon) => {
-                  const selected = current.addonItemIds.includes(addon.id);
+                  const qty = countAddon(current.addonItemIds, addon.id);
+                  const selected = qty > 0;
                   const selectedChoice = selectedChoiceSelections.find((item) => item.addonItemId === addon.id);
 
                   if (addon.choiceAddOnVehicle || addon.choiceAddOnGuide) {
@@ -628,17 +652,33 @@ function InventoryVisitorForms({ state, onUpdate, onNext, onBack }: Props) {
                   }
 
                   return (
-                    <label
+                    <div
                       key={addon.id}
-                      className={`flex items-center justify-between p-2.5 rounded-[8px] border cursor-pointer transition-all ${selected ? 'border-[#E8631A] bg-[#FFF5EE]' : 'border-[#E8DAC5]'}`}
+                      className={`flex items-center justify-between p-2.5 rounded-[8px] border transition-all ${selected ? 'border-[#E8631A] bg-[#FFF5EE]' : 'border-[#E8DAC5]'}`}
                     >
-                      <div className="flex items-center gap-2">
-                        <input type="checkbox" checked={selected} onChange={() => toggleAddon(addon.id)} className="accent-[#E8631A]" />
-                        <span className="text-xs font-medium text-[#2C2017]">
-                          {addon.name} {addon.totalAmount ? `(₹${addon.totalAmount} )` : ''}
-                        </span>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-medium text-[#2C2017]">{addon.name}</span>
+                        {addon.totalAmount ? (
+                          <span className="text-[10px] text-[#E8631A] font-bold">+₹{addon.totalAmount} each</span>
+                        ) : null}
                       </div>
-                    </label>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setAddonQty(addon.id, qty - 1)}
+                          disabled={qty <= 0}
+                          aria-label={`Remove one ${addon.name}`}
+                          className="w-7 h-7 rounded-full border border-[#E8DAC5] text-[#2C2017] font-bold disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#FFF5EE]"
+                        >−</button>
+                        <span className="text-xs font-bold text-[#2C2017] min-w-[18px] text-center">{qty}</span>
+                        <button
+                          type="button"
+                          onClick={() => setAddonQty(addon.id, qty + 1)}
+                          aria-label={`Add one ${addon.name}`}
+                          className="w-7 h-7 rounded-full border border-[#E8631A] bg-[#E8631A] text-white font-bold hover:bg-[#C04E0A]"
+                        >+</button>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
