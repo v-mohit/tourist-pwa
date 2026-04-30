@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import clsx from "clsx";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { GetUserDetails } from "@/services/apiCalls/login.service";
+import Image from "next/image";
 import SosPopup from "@/components/modals/SosPopup";
 import { GetAllHelpDeskNotificationUpdate } from "@/services/apiCalls/helpdeskservices";
 
@@ -120,17 +121,14 @@ export default function Header() {
       <nav className="header-nav">
         {/* Brand */}
         <Link href="/" className="header-brand">
-          <div className="header-brand-icon">
-            🏯
-          </div>
-          <div>
-            <strong className="header-brand-title">
-              Rajasthan Tourism
-            </strong>
-            <small className="header-brand-subtitle">
-              Online Booking Management System
-            </small>
-          </div>
+          <Image
+            src="/images/full-logo.png"
+            alt="Rajasthan Tourism"
+            width={240}
+            height={65}
+            className="h-10 md:h-12 w-auto object-contain"
+            priority
+          />
         </Link>
 
         {/* Desktop Navigation Links */}
