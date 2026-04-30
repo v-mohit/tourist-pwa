@@ -42,7 +42,7 @@ export default function Header() {
     { label: "Packages", href: "/#packages" },
     { label: "Monuments", href: "/#monuments" },
     { label: "Wildlife", href: "/#wildlife" },
-    { label: "RTDC Hotels", href: "/#rtdc" },
+    // { label: "RTDC Hotels", href: "/#rtdc" },
     { label: "JKK", href: "/#venues" },
     { label: "Parks", href: "/#parks" },
     { label: "App", href: "/#app" },

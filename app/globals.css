@@ -4588,7 +4588,7 @@ button {
 .sa-grid.list-view .sa-card {
   border-radius: 14px;
   display: grid;
-  grid-template-columns: 220px 1fr
+  grid-template-columns: 35% 1fr
 }
 
 .sa-grid.list-view .sa-img {
@@ -4886,25 +4886,22 @@ button {
 /* GRID */
 .park-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, 600px); /* fixed width */
-  gap: 22px;
-  justify-content: center; /* center when not full */
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 
 /* CARD */
 .park-card {
   position: relative;
-  height: 260px;
-  border-radius: 20px;
+  height: 310px;
+  border-radius: var(--rl);
   overflow: hidden;
-  background-size: cover;
-  background-position: center;
   cursor: pointer;
-  transition: 0.3s;
+  background: var(--sand);
 }
 
-.park-card:hover {
-  transform: translateY(-6px);
+.park-card:hover .dimg {
+  transform: scale(1.05);
 }
 
 /* OVERLAY */
@@ -4947,31 +4944,44 @@ button {
 .park-content {
   position: absolute;
   bottom: 0;
-  padding: 16px;
+  left: 0;
+  right: 0;
+  padding: 22px;
   z-index: 2;
 }
 
 .park-content h3 {
-  font-size: 18px;
-  margin-bottom: 6px;
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  color: #fff;
+  margin: 6px 0 8px;
 }
 
 .park-content p {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.75);
-  margin-bottom: 8px;
+  color: rgba(255, 255, 255, .55);
+  line-height: 1.6;
+  margin-bottom: 14px;
 }
 
 /* META */
 .park-meta {
   display: flex;
+  gap: 8px;
   flex-wrap: wrap;
-  gap: 10px;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.85);
+  margin-top: 10px;
 }
 
-@media (max-width: 768px) {
+.park-det {
+  font-size: 10px;
+  color: rgba(255, 255, 255, .75);
+  background: rgba(255, 255, 255, .1);
+  border: 1px solid rgba(255, 255, 255, .15);
+  border-radius: 7px;
+  padding: 4px 9px;
+}
+
+@media (max-width: 968px) {
   .park-grid {
     grid-template-columns: 1fr;
   }

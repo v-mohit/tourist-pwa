@@ -38,51 +38,49 @@ const ParkSection = (data: any) => {
   });
 
   return (
-    <section className="park-sec" id="parks">
-      {/* HEADER */}
-      <div className="park-head">
+    <section className="sec" id="parks" style={{ background: "#0B1A12" }}>
+      <div className="sec-hd">
         <div>
-          <div className="park-label">✦ {title}</div>
-          <h2 className="park-title">
+          <div className="sec-lbl" style={{ color: "var(--grn)" }}>
+            ✦ {title}
+          </div>
+          <h2 className="sec-ttl" style={{ color: "#fff" }}>
             Green Escapes & Nature Retreats
           </h2>
         </div>
 
         <Link
           href={`/tourist-attraction?categoryId=${data?.data?.category?.data?.id}`}
-          className="park-link"
+          className="see-all"
+          style={{ color: "var(--grn)", borderColor: "var(--grn)" }}
         >
           See all →
         </Link>
       </div>
 
-      {/* CARDS */}
       <div className="park-grid">
         {parks.map((park: any, i: number) => (
-          <Link key={i} href={`/place-detail/${park.slug}`}>
+          <Link key={i} href={`/place-detail/${park.slug}`} className="park-card group">
             <div
-              className="park-card"
+              className="dimg"
               style={{ backgroundImage: `url(${park.image})` }}
-            >
-              {/* TOP TAGS */}
-              <div className="park-top">
-                <span className="park-tag">{park.tag}</span>
-                <span className="park-badge">{park.badge}</span>
-              </div>
+            ></div>
 
-              {/* OVERLAY */}
-              <div className="park-overlay" />
+            <div className="park-overlay" />
 
-              {/* CONTENT */}
-              <div className="park-content">
-                <h3>{park.title}</h3>
-                <p>{park.desc}</p>
+            <div className="park-top">
+              <span className="park-tag">{park.tag}</span>
+              <span className="park-badge">{park.badge}</span>
+            </div>
 
-                <div className="park-meta">
-                  {park.meta.map((m: string, idx: number) => (
-                    <span key={idx}>• {m}</span>
-                  ))}
-                </div>
+            <div className="park-content">
+              <h3>{park.title}</h3>
+              <p>{park.desc}</p>
+
+              <div className="park-meta">
+                {park.meta.map((m: string, idx: number) => (
+                  <span key={idx} className="park-det">• {m}</span>
+                ))}
               </div>
             </div>
           </Link>

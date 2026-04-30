@@ -200,7 +200,7 @@ const JkkSection = ({
                         alt="Location"
                         className="loc-ico mr-1"
                       />
-                      {attr?.sectionName || "Rangayan Hall"}
+                      jaipur
                     </span>
                   </div>
 
