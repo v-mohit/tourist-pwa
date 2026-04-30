@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import QRCode from 'qrcode-generator';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
@@ -11,12 +11,14 @@ import {
   CheckRefundable,
   GetDownloadTicket,
   GetAllBoardingPassBookings2,
+  GetInvoiceForDifferenceAmount,
   WebCheckIn,
   BookingReverified,
 } from '@/services/apiCalls/booking.services';
 import { ConfirmJkkBookingById } from '@/services/apiCalls/jkk.service';
 import { handlePaymentRedirect } from '@/features/booking/utils/payment';
 import { printBoardingPass } from '@/utils/printBoardingPass.utils';
+import { printDifferenceInvoice } from '@/utils/printDifferenceInvoice.utils';
 import { showErrorToastMessage, showSuccessToastMessage } from '@/utils/toast.utils';
 import moment from 'moment-timezone';
 import RaiseIssueModal from '@/features/booking/components/RaiseIssueModal';
@@ -332,6 +334,7 @@ function isWithinReverifyWindow(b: any): boolean {
 function MyBookingsPageInner() {
   const { user, openLoginModal } = useAuth();
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   // Payment gateway redirects land here as `?bookingId=...&paymentStatus=...`.
   // Pre-fill the search so the user lands on exactly that booking.
@@ -369,6 +372,8 @@ function MyBookingsPageInner() {
   const [boardingFetchPassId,    setBoardingFetchPassId]    = useState('');
   const [shouldFetchBoarding,    setShouldFetchBoarding]    = useState(false);
   const [boardingGenerating,     setBoardingGenerating]     = useState('');
+  const [diffInvoiceBookingId,   setDiffInvoiceBookingId]   = useState('');
+  const [diffInvoiceLoadingFor,  setDiffInvoiceLoadingFor]  = useState('');
   const [raiseIssueOpen,    setRaiseIssueOpen]    = useState(false);
   const [issueBooking,      setIssueBooking]      = useState<any>(null);
   const [qrModalOpen,       setQrModalOpen]       = useState(false);
@@ -512,6 +517,48 @@ function MyBookingsPageInner() {
     const id = String(b.id || b.bookingId);
     if (!id) { showErrorToastMessage('Booking ID is missing'); return; }
     confirmJkk.mutate({ bookingId: id });
+  }
+
+  // ─── Pay Difference Amount (post-booking top-up) ──────────────────────────
+  // Mirrors old project: store booking row, navigate to dedicated page that
+  // does CAPTCHA verification before posting to EMITRA.
+  function handlePayDifferenceAmount(b: any) {
+    const requestId = String(b?.requestId || '');
+    if (!requestId) { showErrorToastMessage('Request ID is missing for this booking'); return; }
+    try { sessionStorage.setItem('payDiffBookingData', JSON.stringify(b)); } catch {}
+    const params = new URLSearchParams({
+      diffAmount: String(b.diffAmount ?? ''),
+      requestId,
+      id: String(b.bookingId ?? b.id ?? ''),
+    });
+    router.push(`/paydifference-amount?${params.toString()}`);
+  }
+
+  // ─── Difference Amount Invoice (after payment success) ────────────────────
+  const { refetch: refetchDiffInvoice } = GetInvoiceForDifferenceAmount(
+    diffInvoiceBookingId,
+    (result: any) => {
+      setDiffInvoiceLoadingFor('');
+      // Reset so a subsequent click on the same booking re-triggers the effect.
+      setDiffInvoiceBookingId('');
+      const items: any[] = Array.isArray(result) ? result : (result ? [result] : []);
+      if (items.length === 0) { showErrorToastMessage('Invoice data not available'); return; }
+      items.forEach((item) => printDifferenceInvoice(item));
+    },
+  );
+
+  // Trigger refetch only after the bookingId has propagated to the query hook.
+  useEffect(() => {
+    if (!diffInvoiceBookingId) return;
+    void refetchDiffInvoice();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [diffInvoiceBookingId]);
+
+  function handleDownloadDiffInvoice(b: any) {
+    const id = String(b.bookingId || b.id || '');
+    if (!id) { showErrorToastMessage('Booking ID is missing'); return; }
+    setDiffInvoiceLoadingFor(id);
+    setDiffInvoiceBookingId(id);
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────────────
@@ -2107,6 +2154,27 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                           </button>
                         )}
 
+                        {/* Pay Difference Amount — when diffAmount is owed */}
+                        {Number(b.diffAmount) > 0 && b.diffAmountStatus !== 'SUCCESS' && !b.cancelled && !b.refund && (
+                          <button
+                            className="bc-btn bc-btn-primary"
+                            onClick={(e) => { e.stopPropagation(); handlePayDifferenceAmount(b); }}
+                          >
+                            {`💳 Pay Difference ₹${Number(b.diffAmount).toFixed(2)}`}
+                          </button>
+                        )}
+
+                        {/* Download Difference Amount Invoice — once diff payment succeeded */}
+                        {b.diffAmountStatus === 'SUCCESS' && (
+                          <button
+                            className="bc-btn bc-btn-outline"
+                            disabled={diffInvoiceLoadingFor === bId}
+                            onClick={(e) => { e.stopPropagation(); handleDownloadDiffInvoice(b); }}
+                          >
+                            {diffInvoiceLoadingFor === bId ? '⏳ Loading…' : '📄 Difference Invoice'}
+                          </button>
+                        )}
+
                         {/* Reverify Payment — for non-success bookings, within 5-min window */}
                         {!isPaymentSuccess(b) && !b.cancelled && !b.refund && isWithinReverifyWindow(b) && (
                           <button
@@ -2464,6 +2532,25 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                             onClick={() => handlePrintBoardingPass(b)}
                           >
                             {boardingGenerating === bId ? '⏳ Loading…' : '🎫 Print Boarding Pass'}
+                          </button>
+                        )}
+                        {/* Pay Difference Amount — when diffAmount is owed */}
+                        {Number(b.diffAmount) > 0 && b.diffAmountStatus !== 'SUCCESS' && !b.cancelled && !b.refund && (
+                          <button
+                            className="btn-drawer btn-drawer-primary"
+                            onClick={() => handlePayDifferenceAmount(b)}
+                          >
+                            {`💳 Pay Difference ₹${Number(b.diffAmount).toFixed(2)}`}
+                          </button>
+                        )}
+                        {/* Download Difference Amount Invoice — once diff payment succeeded */}
+                        {b.diffAmountStatus === 'SUCCESS' && (
+                          <button
+                            className="btn-drawer btn-drawer-outline"
+                            disabled={diffInvoiceLoadingFor === bId}
+                            onClick={() => handleDownloadDiffInvoice(b)}
+                          >
+                            {diffInvoiceLoadingFor === bId ? '⏳ Loading…' : '📄 Difference Invoice'}
                           </button>
                         )}
                         {/* Reverify Payment — for non-success bookings, within 5-min window */}
