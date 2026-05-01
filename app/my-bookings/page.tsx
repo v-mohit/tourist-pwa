@@ -103,99 +103,64 @@ function classifyChargeRow(row: any): {
   const direct = {
     entryFeeVisitor: pickNum(
       row,
-      'entryFeeVisitor',
-      'entryFeesVisitor',
-      'visitorEntryFee',
-      'visitorEntryFees',
-      'touristEntryFee',
-      'touristEntryFees',
-      'entryFee',
-      'entryFees',
-      'entryFeeAmount',
-      'entryFeesAmount',
+      'entryFeeVisitor', 'entryFeesVisitor', 'visitorEntryFee', 'visitorEntryFees',
+      'touristEntryFee', 'touristEntryFees', 'entryFee', 'entryFees',
+      'entryFeeAmount', 'entryFeesAmount',
     ),
     entryFeeVehicle: pickNum(
       row,
-      'entryFeeVehicle',
-      'entryFeesVehicle',
-      'vehicleEntryFee',
-      'vehicleEntryFees',
+      'entryFeeVehicle', 'entryFeesVehicle', 'vehicleEntryFee', 'vehicleEntryFees',
       'vehicleEntryFeeAmount',
     ),
     ecoDevVisitor: pickNum(
       row,
-      'ecoDevVisitor',
-      'ecoDevelopmentVisitor',
-      'ecodevVisitor',
-      'ecoDev',
-      'vfpmcCharges',
-      'vfpmcVisitor',
+      'ecoDevVisitor', 'ecoDevelopmentVisitor', 'ecodevVisitor', 'ecoDev',
+      'vfpmcCharges', 'vfpmcVisitor',
     ),
     ecoDevVehicle: pickNum(
       row,
-      'ecoDevVehicle',
-      'ecoDevelopmentVehicle',
-      'ecodevVehicle',
-      'vfpmcVehicle',
+      'ecoDevVehicle', 'ecoDevelopmentVehicle', 'ecodevVehicle', 'vfpmcVehicle',
     ),
     tigerReserveFund: pickNum(
       row,
-      'tigerReserveFund',
-      'tigerFund',
-      'tigerReserve',
-      'trdf',
-      'developmentFund',
+      'tigerReserveFund', 'tigerFund', 'tigerReserve', 'trdf', 'developmentFund',
     ),
     vehicleRent: pickNum(
       row,
-      'vehicleRent',
-      'vehicleRentAmount',
-      'vehicleRentCharges',
-      'vehicleCharge',
-      'vehicleCharges',
+      'vehicleRent', 'vehicleRentAmount', 'vehicleRentCharges', 'vehicleCharge', 'vehicleCharges',
     ),
     guideFee: pickNum(
       row,
-      'guideFee',
-      'guideFees',
-      'guideAmount',
-      'guideCharge',
-      'guideCharges',
+      'guideFee', 'guideFees', 'guideAmount', 'guideCharge', 'guideCharges',
     ),
     gst: pickNum(row, 'gst', 'gstAmount', 'gstCharges', 'tax', 'taxAmount'),
   };
 
   const hasDirect =
-    direct.entryFeeVisitor ||
-    direct.entryFeeVehicle ||
-    direct.ecoDevVisitor ||
-    direct.ecoDevVehicle ||
-    direct.tigerReserveFund ||
-    direct.vehicleRent ||
-    direct.guideFee ||
-    direct.gst;
+    direct.entryFeeVisitor || direct.entryFeeVehicle || direct.ecoDevVisitor ||
+    direct.ecoDevVehicle || direct.tigerReserveFund || direct.vehicleRent ||
+    direct.guideFee || direct.gst;
   if (hasDirect) return direct;
 
   const amount = pickNum(row, 'amount', 'chargeAmount', 'totalAmount', 'value');
   if (!amount) return direct;
 
-  const label = normChargeName(resolveChargeLabel(row));
-  const isEntry = label.includes('entry');
+  const label    = normChargeName(resolveChargeLabel(row));
+  const isEntry   = label.includes('entry');
   const isVehicle = label.includes('vehicle');
   const isVisitor = label.includes('visitor') || label.includes('tourist') || label.includes('person') || label.includes('pax');
 
-  if (isEntry && isVehicle) return { ...direct, entryFeeVehicle: amount };
-  if (isEntry && isVisitor) return { ...direct, entryFeeVisitor: amount };
+  if (isEntry && isVehicle)  return { ...direct, entryFeeVehicle: amount };
+  if (isEntry && isVisitor)  return { ...direct, entryFeeVisitor: amount };
   if (label.includes('eco') || label.includes('ecodev') || label.includes('eco dev') || label.includes('vfpmc')) {
     if (isVehicle) return { ...direct, ecoDevVehicle: amount };
     if (isVisitor) return { ...direct, ecoDevVisitor: amount };
   }
-  if (label.includes('rent')) return { ...direct, vehicleRent: amount };
-  if (label.includes('guide')) return { ...direct, guideFee: amount };
+  if (label.includes('rent'))   return { ...direct, vehicleRent: amount };
+  if (label.includes('guide'))  return { ...direct, guideFee: amount };
   if (label.includes('gst') || label.includes('tax')) return { ...direct, gst: amount };
-  if (label.includes('tiger') || label.includes('trdf') || label.includes('development fund')) {
+  if (label.includes('tiger') || label.includes('trdf') || label.includes('development fund'))
     return { ...direct, tigerReserveFund: amount };
-  }
 
   return direct;
 }
@@ -211,14 +176,10 @@ function computeInventoryChargeSummary(b: any): {
   surcharge: number;
 } {
   const out = {
-    entryFeeVisitor: 0,
-    entryFeeVehicle: 0,
-    ecoDevVisitor: 0,
-    ecoDevVehicle: 0,
-    vehicleRent: 0,
-    gst: 0,
-    rislCharge: 0,
-    surcharge: 0,
+    entryFeeVisitor: 0, entryFeeVehicle: 0,
+    ecoDevVisitor: 0,   ecoDevVehicle: 0,
+    vehicleRent: 0,     gst: 0,
+    rislCharge: 0,      surcharge: 0,
   };
 
   const ticketRows: any[] = Array.isArray(b?.ticketUserDto) ? b.ticketUserDto : [];
@@ -235,37 +196,32 @@ function computeInventoryChargeSummary(b: any): {
       if (!amount) continue;
       const label = normChargeName(c?.name ?? c?.chargeName ?? c?.category ?? '');
 
-      if (label.includes('risl')) out.rislCharge += amount * qty;
+      if (label.includes('risl'))                                                          out.rislCharge   += amount * qty;
       else if (label.includes('entry fee') || label === 'entry fee' || label === 'entry') out.entryFeeVisitor += amount * qty;
       else if (label.includes('eco') || label.includes('eco surcharge') || label.includes('eco-surcharge')) out.ecoDevVisitor += amount * qty;
-      else if (label.includes('gst') || label.includes('tax')) out.gst += amount * qty;
+      else if (label.includes('gst') || label.includes('tax'))                            out.gst          += amount * qty;
     }
   }
 
-  const inv = b?.inventory;
-  const invQty = Number(inv?.qty ?? b?.totalUsers) || 0;
+  const inv     = b?.inventory;
+  const invQty  = Number(inv?.qty ?? b?.totalUsers) || 0;
   const invConfigs: any[] = Array.isArray(inv?.ticketTypeConfigList) ? inv.ticketTypeConfigList : [];
   for (const cfg of invConfigs) {
     const amount = pickNum(cfg, 'amount', 'chargeAmount', 'totalAmount', 'value');
     if (!amount) continue;
     const label = normChargeName(cfg?.name ?? cfg?.chargeName ?? cfg?.category ?? '');
 
-    if (label.includes('risl')) out.rislCharge += amount * invQty;
-    else if (label.includes('vehicle entry')) out.entryFeeVehicle += amount * invQty;
-    else if (label.includes('vehicle rent')) out.vehicleRent += amount * invQty;
+    if (label.includes('risl'))                                    out.rislCharge      += amount * invQty;
+    else if (label.includes('vehicle entry'))                      out.entryFeeVehicle += amount * invQty;
+    else if (label.includes('vehicle rent'))                       out.vehicleRent     += amount * invQty;
     else if (label.includes('eco') && label.includes('development')) out.ecoDevVehicle += amount * invQty;
-    else if (label.includes('gst') || label.includes('tax')) out.gst += amount * invQty;
-    else if (label.includes('rpacs') || label.includes('surcharge')) out.surcharge += amount * invQty;
+    else if (label.includes('gst') || label.includes('tax'))       out.gst             += amount * invQty;
+    else if (label.includes('rpacs') || label.includes('surcharge')) out.surcharge     += amount * invQty;
   }
 
   return out;
 }
 
-/**
- * Booking is "successful" only when paymentStatus contains "success".
- * Everything else (FAIL / PENDING / IN_PROGRESS / null) is treated as Failed.
- * Cancelled bookings keep their own status.
- */
 function isPaymentSuccess(b: any): boolean {
   return String(b?.paymentStatus || '').toLowerCase().includes('success');
 }
@@ -280,12 +236,6 @@ function isJkkBookingRow(b: any): boolean {
   return String(b?.placeName || '').toLowerCase().includes('jawahar');
 }
 
-/**
- * JKK bookings show the admin-approval status (APPROVED / PENDING / REJECT)
- * instead of the payment status — the approval is what the user is waiting on.
- * Payment only happens after approval, so surfacing `paymentStatus=FAIL` on an
- * unapproved application is misleading.
- */
 function getJkkStatus(b: any): { label: string; key: string; cls: string } {
   if (b.cancelled || b.refund)
     return { label: '✕ Cancelled', key: 'cancelled', cls: 'status-cancelled' };
@@ -316,18 +266,14 @@ function getBookingStatus(b: any): { label: string; key: string; cls: string } {
   return { label: '✅ Confirmed', key: 'confirmed', cls: 'status-confirmed' };
 }
 
-/**
- * Returns true if the booking is within its 5-minute reverify window
- * (measured from updatedDate for JKK, otherwise createdDate).
- */
 function isWithinReverifyWindow(b: any): boolean {
   if (isPaymentSuccess(b)) return false;
   if (b?.cancelled || b?.refund) return false;
   const isJkk = String(b?.placeName || '').toLowerCase().includes('jawahar');
-  const t = isJkk ? b?.updatedDate : b?.createdDate;
+  const t     = isJkk ? b?.updatedDate : b?.createdDate;
   if (!t) return false;
   const start = new Date(t).getTime();
-  const now = Date.now();
+  const now   = Date.now();
   return now >= start && now <= start + 5 * 60 * 1000;
 }
 
@@ -336,51 +282,49 @@ function MyBookingsPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Payment gateway redirects land here as `?bookingId=...&paymentStatus=...`.
-  // Pre-fill the search so the user lands on exactly that booking.
-  const urlBookingId    = searchParams.get('bookingId') ?? '';
+  const urlBookingId     = searchParams.get('bookingId') ?? '';
   const urlPaymentStatus = searchParams.get('paymentStatus') ?? '';
 
-  const [activeTab,         setActiveTab]         = useState<TabKey>('all');
-  const [searchTerm,        setSearchTerm]        = useState('');
-  const [searchInput,       setSearchInput]       = useState('');
-  const [pageSize,          setPageSize]          = useState<10 | 50 | 100>(10);
-  const [page,              setPage]              = useState(1);
-  const [dateFilterOpen,    setDateFilterOpen]    = useState(false);
-  const [dateType,          setDateType]          = useState<DateFilterType>('');
-  const [startDate,         setStartDate]         = useState('');
-  const [endDate,           setEndDate]           = useState('');
-  const [appliedStartDay,   setAppliedStartDay]   = useState<number | undefined>();
-  const [appliedEndDay,     setAppliedEndDay]     = useState<number | undefined>();
-  const [appliedDateType,   setAppliedDateType]   = useState<DateFilterType>('');
-  const [drawerOpen,        setDrawerOpen]        = useState(false);
-  const [selectedBooking,   setSelectedBooking]   = useState<any>(null);
-  const [loadingTickets,    setLoadingTickets]    = useState(false);
-  const [cancelModalOpen,   setCancelModalOpen]   = useState(false);
-  const [cancelReason,      setCancelReason]      = useState('');
-  const [otherReason,       setOtherReason]       = useState('');
-  const [refundableAmount,  setRefundableAmount]  = useState(0);
-  const [bankForm,          setBankForm]          = useState({
+  const [activeTab,              setActiveTab]              = useState<TabKey>('all');
+  const [searchTerm,             setSearchTerm]             = useState('');
+  const [searchInput,            setSearchInput]            = useState('');
+  const [pageSize,               setPageSize]               = useState<10 | 50 | 100>(10);
+  const [page,                   setPage]                   = useState(1);
+  const [dateFilterOpen,         setDateFilterOpen]         = useState(false);
+  const [dateType,               setDateType]               = useState<DateFilterType>('');
+  const [startDate,              setStartDate]              = useState('');
+  const [endDate,                setEndDate]                = useState('');
+  const [appliedStartDay,        setAppliedStartDay]        = useState<number | undefined>();
+  const [appliedEndDay,          setAppliedEndDay]          = useState<number | undefined>();
+  const [appliedDateType,        setAppliedDateType]        = useState<DateFilterType>('');
+  const [drawerOpen,             setDrawerOpen]             = useState(false);
+  const [selectedBooking,        setSelectedBooking]        = useState<any>(null);
+  const [loadingTickets,         setLoadingTickets]         = useState(false);
+  const [cancelModalOpen,        setCancelModalOpen]        = useState(false);
+  const [cancelReason,           setCancelReason]           = useState('');
+  const [otherReason,            setOtherReason]            = useState('');
+  const [refundableAmount,       setRefundableAmount]       = useState(0);
+  const [bankForm,               setBankForm]               = useState({
     bankName: '', acNumber: '', ifscValue: '', acHolderName: '', accountType: '', branchCode: '',
   });
-  const [bookingToCancel,   setBookingToCancel]   = useState<any>(null);
-  const [pdfBookingId,      setPdfBookingId]      = useState('');
-  const [pdfIdentification, setPdfIdentification] = useState('');
-  const [shouldFetchPdf,    setShouldFetchPdf]    = useState(false);
-  const [pdfGenerating,     setPdfGenerating]     = useState('');
+  const [bookingToCancel,        setBookingToCancel]        = useState<any>(null);
+  const [pdfBookingId,           setPdfBookingId]           = useState('');
+  const [pdfIdentification,      setPdfIdentification]      = useState('');
+  const [shouldFetchPdf,         setShouldFetchPdf]         = useState(false);
+  const [pdfGenerating,          setPdfGenerating]          = useState('');
   const [boardingFetchBookingId, setBoardingFetchBookingId] = useState('');
   const [boardingFetchPassId,    setBoardingFetchPassId]    = useState('');
   const [shouldFetchBoarding,    setShouldFetchBoarding]    = useState(false);
   const [boardingGenerating,     setBoardingGenerating]     = useState('');
   const [diffInvoiceBookingId,   setDiffInvoiceBookingId]   = useState('');
   const [diffInvoiceLoadingFor,  setDiffInvoiceLoadingFor]  = useState('');
-  const [raiseIssueOpen,    setRaiseIssueOpen]    = useState(false);
-  const [issueBooking,      setIssueBooking]      = useState<any>(null);
-  const [qrModalOpen,       setQrModalOpen]       = useState(false);
-  const [qrData,            setQrData]            = useState('');
-  const [shareModalOpen,    setShareModalOpen]    = useState(false);
-  const [shareBooking,      setShareBooking]      = useState<any>(null);
-  const [shareLoading,      setShareLoading]      = useState('');
+  const [raiseIssueOpen,         setRaiseIssueOpen]         = useState(false);
+  const [issueBooking,           setIssueBooking]           = useState<any>(null);
+  const [qrModalOpen,            setQrModalOpen]            = useState(false);
+  const [qrData,                 setQrData]                 = useState('');
+  const [shareModalOpen,         setShareModalOpen]         = useState(false);
+  const [shareBooking,           setShareBooking]           = useState<any>(null);
+  const [shareLoading,           setShareLoading]           = useState('');
 
   useEffect(() => {
     const handle = window.setTimeout(() => setSearchTerm(searchInput), 350);
@@ -389,9 +333,9 @@ function MyBookingsPageInner() {
 
   // ─── Query params ──────────────────────────────────────────────────────────
   const queryParams = useMemo(() => {
-    const normalized = searchTerm.trim().replace(/^#/, '').trim();
-    const compact = normalized.replace(/\s+/g, '');
-    const isNumeric = /^\d+$/.test(compact);
+    const normalized    = searchTerm.trim().replace(/^#/, '').trim();
+    const compact       = normalized.replace(/\s+/g, '');
+    const isNumeric     = /^\d+$/.test(compact);
     const isBookingIdLike = /^[a-z0-9]+$/i.test(compact) && /\d/.test(compact);
     const base: any = {
       callApi:    !!user,
@@ -423,9 +367,7 @@ function MyBookingsPageInner() {
     return allBookings;
   }, [allBookings, activeTab]);
 
-  useEffect(() => {
-    setPage(1);
-  }, [activeTab, searchTerm, appliedDateType, appliedStartDay, appliedEndDay, pageSize]);
+  useEffect(() => { setPage(1); }, [activeTab, searchTerm, appliedDateType, appliedStartDay, appliedEndDay, pageSize]);
 
   const totalPages = useMemo(() => {
     const total = Math.ceil(filteredBookings.length / pageSize);
@@ -450,7 +392,7 @@ function MyBookingsPageInner() {
     return { total, upcoming, completed, cancelled, spent };
   }, [allBookings]);
 
-  // ─── Mutations ────────────────────────────────────────────────────────────
+  // ─── Mutations ─────────────────────────────────────────────────────────────
   const checkRefundable = CheckRefundable(
     (res) => { setRefundableAmount(res?.refundableAmount ?? 0); setCancelModalOpen(true); },
     () => showErrorToastMessage('Failed to check refund eligibility'),
@@ -475,17 +417,13 @@ function MyBookingsPageInner() {
     });
   }
 
-  // ─── Reverify mutation + 5-min countdown tick ─────────────────────────────
   const reverifyMutation = BookingReverified();
-  // Force a re-render every 30s so the reverify button auto-hides at the 5-min mark.
   const [, setTick] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setTick((n) => n + 1), 30000);
     return () => clearInterval(id);
   }, []);
 
-  // Surface payment-gateway outcome once when the user lands here from a
-  // post-payment redirect (`?paymentStatus=SUCCESS|FAIL`).
   useEffect(() => {
     if (!urlPaymentStatus) return;
     const status = urlPaymentStatus.toUpperCase();
@@ -496,20 +434,12 @@ function MyBookingsPageInner() {
   function handleReverify(b: any) {
     const id = String(b.bookingId || b.id);
     reverifyMutation.mutate({ bookingId: id }, {
-      onSuccess: () => {
-        showSuccessToastMessage('Payment status refreshed');
-        refetchBookings();
-      },
+      onSuccess: () => { showSuccessToastMessage('Payment status refreshed'); refetchBookings(); },
     });
   }
 
-  // ─── JKK Make Payment (only for approved JKK bookings) ────────────────────
   const confirmJkk = ConfirmJkkBookingById(
-    (res: any) => {
-      // Backend may return EMITRA params { ENCDATA, MERCHANTCODE, SERVICEID }
-      // OR a paymentUrl — handlePaymentRedirect handles both.
-      handlePaymentRedirect(res);
-    },
+    (res: any) => { handlePaymentRedirect(res); },
     () => {},
   );
 
@@ -519,9 +449,6 @@ function MyBookingsPageInner() {
     confirmJkk.mutate({ bookingId: id });
   }
 
-  // ─── Pay Difference Amount (post-booking top-up) ──────────────────────────
-  // Mirrors old project: store booking row, navigate to dedicated page that
-  // does CAPTCHA verification before posting to EMITRA.
   function handlePayDifferenceAmount(b: any) {
     const requestId = String(b?.requestId || '');
     if (!requestId) { showErrorToastMessage('Request ID is missing for this booking'); return; }
@@ -534,12 +461,10 @@ function MyBookingsPageInner() {
     router.push(`/paydifference-amount?${params.toString()}`);
   }
 
-  // ─── Difference Amount Invoice (after payment success) ────────────────────
   const { refetch: refetchDiffInvoice } = GetInvoiceForDifferenceAmount(
     diffInvoiceBookingId,
     (result: any) => {
       setDiffInvoiceLoadingFor('');
-      // Reset so a subsequent click on the same booking re-triggers the effect.
       setDiffInvoiceBookingId('');
       const items: any[] = Array.isArray(result) ? result : (result ? [result] : []);
       if (items.length === 0) { showErrorToastMessage('Invoice data not available'); return; }
@@ -547,7 +472,6 @@ function MyBookingsPageInner() {
     },
   );
 
-  // Trigger refetch only after the bookingId has propagated to the query hook.
   useEffect(() => {
     if (!diffInvoiceBookingId) return;
     void refetchDiffInvoice();
@@ -561,15 +485,9 @@ function MyBookingsPageInner() {
     setDiffInvoiceBookingId(id);
   }
 
-  // ─── Helpers ──────────────────────────────────────────────────────────────
+  // ─── Helpers ───────────────────────────────────────────────────────────────
   function isJkkBooking(b: any)    { return (b?.placeName || '').toLowerCase().includes('jawahar'); }
-  /**
-   * JKK "application" view / download buttons should appear on any JKK row that
-   * still represents a live application. Skip when the booking is:
-   *   - cancelled/refunded
-   *   - payment has failed (user needs to re-pay, not view a ticket)
-   *   - the admin has rejected the application
-   */
+
   function canViewJkkApplication(b: any): boolean {
     if (!isJkkBooking(b)) return false;
     if (b.cancelled || b.refund) return false;
@@ -578,31 +496,28 @@ function MyBookingsPageInner() {
     if (approved === 'REJECT' || approved === 'REJECTED') return false;
     return true;
   }
-  /** Show "Make Payment" only for JKK bookings that admin has APPROVED and
-   *  haven't been paid yet (matches old project rj-tourism-fe). */
+
   function canMakeJkkPayment(b: any): boolean {
     if (!isJkkBooking(b)) return false;
     if (b.cancelled || b.refund) return false;
     const approved = String(b.approved || '').toLowerCase();
-    const pay     = String(b.paymentStatus || '').toLowerCase();
+    const pay      = String(b.paymentStatus || '').toLowerCase();
     return approved.includes('approved')
         && b.makePayment === false
         && !pay.includes('success')
         && !pay.includes('fail');
   }
+
   function isInventoryType(b: any) {
     return Boolean(
-      b?.zoneName ||
-      b?.zoneAddress ||
-      b?.zoneMapLink ||
-      b?.vendorInventoryDetails ||
-      Array.isArray(b?.ticketCharges) ||
-      Array.isArray(b?.chargeDetails) ||
-      Array.isArray(b?.charges) ||
+      b?.zoneName || b?.zoneAddress || b?.zoneMapLink || b?.vendorInventoryDetails ||
+      Array.isArray(b?.ticketCharges) || Array.isArray(b?.chargeDetails) || Array.isArray(b?.charges) ||
       b?.ticketUserDto?.[0]?.ticketUserDocs?.[0]?.documentNo
     );
   }
+
   function isCheckinEligible(b: any) { return !!b?.zoneName && b.checkedIn !== 'Yes' && !b.cancelled && !b.refund; }
+
   function canCancel(b: any) {
     if (b.cancelled || b.refund || !b.cancelledPolicy) return false;
     const q = (b.quotaName || '').toLowerCase();
@@ -610,21 +525,25 @@ function MyBookingsPageInner() {
     if (b.bookingDate && b.bookingDate - Date.now() < 3 * 24 * 60 * 60 * 1000) return false;
     return true;
   }
+
   function maskId(s: string | undefined | null): string {
     if (!s) return '—';
     const str = String(s);
     return str.length <= 4 ? str : '*'.repeat(str.length - 4) + str.slice(-4);
   }
+
   function checkNationality(n: any): string {
     const v = String(n || '').toLowerCase();
     return (v === 'foreigner' || v === 'foreign' || v === 'fn') ? 'Foreigner' : 'Indian';
   }
+
   function buildBookingImageUrl(rawUrl: any): string | null {
     const url = String(rawUrl || '').trim();
     if (!url) return null;
     if (url.startsWith('http')) return url;
     return `${process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL || ''}${url}`;
   }
+
   function resolveBookingImage(b: any): string {
     const candidates = [
       b?.placeDetailDto?.imageUrl, b?.placeDetailDto?.image, b?.placeDetailDto?.bannerImage,
@@ -636,7 +555,7 @@ function MyBookingsPageInner() {
       const resolved = buildBookingImageUrl(candidate);
       if (resolved) return resolved;
     }
-    return "";
+    return '';
   }
 
   // ─── PDF API fallback ──────────────────────────────────────────────────────
@@ -653,10 +572,7 @@ function MyBookingsPageInner() {
 
   // ─── Boarding Pass API ─────────────────────────────────────────────────────
   const { data: boardingData } = GetAllBoardingPassBookings2(
-    boardingFetchBookingId,
-    boardingFetchPassId,
-    shouldFetchBoarding,
-    () => {},
+    boardingFetchBookingId, boardingFetchPassId, shouldFetchBoarding, () => {},
   );
   useEffect(() => {
     if (!shouldFetchBoarding || !boardingData?.result) return;
@@ -669,9 +585,9 @@ function MyBookingsPageInner() {
   }, [boardingData?.result, shouldFetchBoarding]);
 
   function handlePrintBoardingPass(b: any) {
-    const rowKey = String(b.bookingId || b.id || '');
+    const rowKey   = String(b.bookingId || b.id || '');
     const objectId = String(b.id || '');
-    const passId = String(b.boardingPassId || '');
+    const passId   = String(b.boardingPassId || '');
     if (!objectId || !passId) {
       showErrorToastMessage('Boarding pass not yet generated for this booking');
       return;
@@ -682,12 +598,7 @@ function MyBookingsPageInner() {
     setShouldFetchBoarding(true);
   }
 
-  // ─── QR helpers ───────────────────────────────────────────────────────────
-  /**
-   * Returns { rects, count } where rects use 1×1 cells.
-   * Caller sets `viewBox="0 0 ${count} ${count}"` so the SVG scales to fill its
-   * container exactly — no gaps, no centering math needed.
-   */
+  // ─── QR helpers ────────────────────────────────────────────────────────────
   function generateQrSvgRects(value: string, _size = 96): { rects: string; count: number } {
     try {
       const qr = QRCode(0, 'M');
@@ -749,7 +660,7 @@ function MyBookingsPageInner() {
 
   function downloadBytesAsFile(bytes: Uint8Array, fileName: string) {
     const normalized = new Uint8Array(bytes);
-    const buffer = new ArrayBuffer(normalized.byteLength);
+    const buffer     = new ArrayBuffer(normalized.byteLength);
     new Uint8Array(buffer).set(normalized);
     const blob = new Blob([buffer], { type: 'application/pdf' });
     const url  = URL.createObjectURL(blob);
@@ -761,139 +672,313 @@ function MyBookingsPageInner() {
 
   function downloadFile(file: File) {
     const url = URL.createObjectURL(file);
-    const a = document.createElement('a');
+    const a   = document.createElement('a');
     a.href = url; a.download = file.name;
     document.body.appendChild(a); a.click(); a.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
+  // ─── Share Ticket ──────────────────────────────────────────────────────────
+
+  /**
+   * Generates a rich PDF that mirrors the ticket designs (charges, QR, etc.)
+   * and is used for both sharing and as a PDF fallback when the print popup
+   * isn't suitable (e.g. desktop share flow).
+   */
   async function createShareTicketFile(ticket: any): Promise<File> {
     const bookingId  = String(ticket.bookingId || ticket.id || '');
-    const placeName  = ticket.placeName || ticket.placeDetailDto?.name || ticket.packageDto?.packageName || 'Booking';
+    const placeName  = ticket.placeDetailDto?.name
+      || ticket.placeName
+      || ticket.packageDto?.packageName
+      || 'Booking';
     const district   = ticket.placeDetailDto?.districtName || '';
-    const status     = getBookingStatus(ticket);
     const visitDate  = formatDate(ticket.bookingDate);
     const bookedDate = formatDate(ticket.createdDate);
-    const totalAmt   = ticket.totalAmount || 0;
+    const totalAmt   = toNum(ticket.totalAmount).toFixed(2);
+    const isInv      = isInventoryType(ticket);
+    const shiftName  = ticket.shiftDto?.name || ticket.shiftName || '';
+    const zoneName   = ticket.zoneName || '';
+    const vehicleType = ticket.vehicleType || ticket.vendorInventoryDetails?.vehicleType || '';
+    const vehicleNo  = ticket.vendorInventoryDetails?.vehicleNumber || '';
+
     const visitors: any[] = ticket.ticketUserDto || [];
     const visitorText = visitors.length
-      ? visitors.map((item: any) => `${item.ticketName || 'Visitor'} x ${item.qty || 0}`).join(', ')
+      ? visitors.map((v: any) => `${v.ticketName || 'Visitor'} x ${v.qty || 0}`).join(', ')
       : `${ticket.totalUsers || 0} visitor(s)`;
-    const qrValue = ticket.qrDetail || JSON.stringify({ type: 'BOOKING', data: { ticketBookingId: ticket.id || ticket.bookingId } });
 
-    const pdfDoc     = await PDFDocument.create();
-    const page       = pdfDoc.addPage([595.28, 841.89]);
-    const fontReg    = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const fontBold   = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-    const width      = page.getWidth();
-    const height     = page.getHeight();
-    const margin     = 42;
-    const orange     = rgb(0.91, 0.39, 0.10);
-    const dark       = rgb(0.17, 0.13, 0.09);
-    const muted      = rgb(0.48, 0.42, 0.35);
-    const sand       = rgb(0.96, 0.91, 0.84);
+    const invTotals = computeInventoryChargeSummary(ticket);
 
-    page.drawRectangle({ x: 0, y: height - 112, width, height: 112, color: dark });
-    page.drawRectangle({ x: 0, y: height - 118, width, height: 6, color: orange });
-    page.drawText('Government of Rajasthan - OBMS', { x: margin, y: height - 40, size: 12, font: fontBold, color: rgb(1, 1, 1) });
-    page.drawText(placeName, { x: margin, y: height - 72, size: 24, font: fontBold, color: rgb(1, 1, 1) });
+    const qrValue = ticket.qrDetail
+      || JSON.stringify({ type: 'BOOKING', data: { ticketBookingId: ticket.id || ticket.bookingId } });
 
+    const pdfDoc   = await PDFDocument.create();
+    const fontReg  = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+    const PW = 595.28, PH = 841.89, M = 40;
+    const orange = rgb(0.72, 0.29, 0.06);
+    const dark   = rgb(0.18, 0.12, 0.06);
+    const muted  = rgb(0.50, 0.43, 0.35);
+    const sand   = rgb(0.97, 0.93, 0.86);
+    const white  = rgb(1, 1, 1);
+
+    const page = pdfDoc.addPage([PW, PH]);
+
+    // ── Header band ─────────────────────────────────────────────────────────
+    page.drawRectangle({ x: 0, y: PH - 110, width: PW, height: 110, color: dark });
+    page.drawRectangle({ x: 0, y: PH - 115, width: PW, height: 5, color: orange });
+
+    page.drawText('Government of Rajasthan — OBMS', {
+      x: M, y: PH - 38, size: 10, font: fontBold, color: white,
+    });
+    page.drawText(isInv ? 'Official Entry Ticket' : 'Official Ticket', {
+      x: M, y: PH - 56, size: 12, font: fontBold, color: white,
+    });
+    page.drawText(placeName.slice(0, 60), {
+      x: M, y: PH - 80, size: 18, font: fontBold, color: white,
+    });
+    if (district) {
+      page.drawText(`${district}, Rajasthan`, {
+        x: M, y: PH - 100, size: 10, font: fontReg, color: rgb(0.75, 0.70, 0.65),
+      });
+    }
+
+    // ── QR code ──────────────────────────────────────────────────────────────
     const qrDataUrl = generateQrDataUrl(qrValue);
     if (qrDataUrl) {
       try {
-        const qrImage = await pdfDoc.embedPng(dataUrlToBytes(qrDataUrl));
-        page.drawImage(qrImage, { x: width - 132, y: height - 94, width: 76, height: 76 });
+        const qrImg = await pdfDoc.embedPng(dataUrlToBytes(qrDataUrl));
+        page.drawImage(qrImg, { x: PW - 120, y: PH - 105, width: 80, height: 80 });
       } catch {}
     }
 
-    page.drawRectangle({ x: margin, y: height - 255, width: width - margin * 2, height: 118, color: sand });
-    let y = height - 155;
-    const drawRow = (label: string, value: string) => {
-      page.drawText(label, { x: margin + 16, y, size: 10, font: fontBold, color: muted });
-      page.drawText(value || '-', { x: margin + 150, y, size: 12, font: fontReg, color: dark });
-      y -= 22;
-    };
-    drawRow('Booking ID', `#${bookingId}`);
-    drawRow('Status', status.label.replace(/[^\x20-\x7E]/g, '').trim() || status.key);
-    drawRow('Visit Date', visitDate);
-    drawRow('Booked On', bookedDate);
-    drawRow('Location', [district, 'Rajasthan'].filter(Boolean).join(', ') || placeName);
+    // ── Booking info band ─────────────────────────────────────────────────────
+    page.drawRectangle({ x: M, y: PH - 225, width: PW - M * 2, height: 100, color: sand });
 
-    y -= 8;
-    page.drawText('Visitor Details', { x: margin, y, size: 13, font: fontBold, color: dark });
-    y -= 18;
-    for (const line of wrapLines(visitorText, 68)) {
-      page.drawText(line, { x: margin, y, size: 11, font: fontReg, color: muted });
-      y -= 16;
+    let y = PH - 148;
+    const row = (lbl: string, val: string) => {
+      page.drawText(lbl, { x: M + 12, y, size: 9,  font: fontBold, color: muted });
+      page.drawText(val || '—', { x: M + 150, y, size: 11, font: fontReg, color: dark });
+      y -= 20;
+    };
+    row('Booking ID',  `#${bookingId}`);
+    row('Visit Date',  visitDate);
+    row('Booked On',   bookedDate);
+    if (shiftName) row('Shift',    shiftName);
+    if (zoneName)  row('Zone',     zoneName);
+
+    y -= 12;
+
+    // ── Visitor section ───────────────────────────────────────────────────────
+    page.drawText('Visitor Details', { x: M, y, size: 13, font: fontBold, color: dark }); y -= 18;
+    for (const line of wrapLines(visitorText, 72)) {
+      page.drawText(line, { x: M, y, size: 11, font: fontReg, color: muted }); y -= 16;
     }
-    y -= 8;
-    page.drawText(`Amount Paid: Rs ${totalAmt}`, { x: margin, y, size: 13, font: fontBold, color: orange });
-    y -= 30;
-    page.drawText('Official tourist ticket generated from My Bookings.', { x: margin, y, size: 10, font: fontReg, color: muted });
+
+    // ── Charges (inventory only) ──────────────────────────────────────────────
+    if (isInv) {
+      y -= 12;
+      if (y > 160) {
+        page.drawText('Charges Summary', { x: M, y, size: 13, font: fontBold, color: dark }); y -= 18;
+
+        const chargeLines: Array<[string, number]> = [
+          ['Entry Fee (Visitor)',  invTotals.entryFeeVisitor],
+          ['Entry Fee (Vehicle)',  invTotals.entryFeeVehicle],
+          ['Eco Dev (Visitor)',    invTotals.ecoDevVisitor],
+          ['Eco Dev (Vehicle)',    invTotals.ecoDevVehicle],
+          ['Vehicle Rent',         invTotals.vehicleRent],
+          ['GST',                  invTotals.gst],
+          ['Surcharge (RPACS)',    invTotals.surcharge],
+          ['RISL Charges',         invTotals.rislCharge],
+        ].filter(([, v]) => toNum(v) > 0) as Array<[string, number]>;
+
+        for (const [lbl, val] of chargeLines) {
+          if (y < 120) break;
+          page.drawText(lbl, { x: M, y, size: 10, font: fontBold, color: muted });
+          page.drawText(`Rs. ${val.toFixed(2)}`, { x: PW - M - 90, y, size: 11, font: fontReg, color: dark });
+          y -= 15;
+        }
+
+        if (vehicleType && y > 110) {
+          y -= 4;
+          row('Vehicle', `${vehicleType}${vehicleNo ? ` (${vehicleNo})` : ''}`);
+        }
+      }
+    }
+
+    // ── Total bar ─────────────────────────────────────────────────────────────
+    const totalY = Math.min(y - 18, PH - 500);
+    page.drawRectangle({ x: M, y: totalY - 10, width: PW - M * 2, height: 32, color: rgb(0.98, 0.95, 0.88) });
+    page.drawText(`Total Amount Paid: Rs. ${totalAmt}`, {
+      x: M + 12, y: totalY + 6, size: 13, font: fontBold, color: orange,
+    });
+
+    // ── Footer ────────────────────────────────────────────────────────────────
+    page.drawLine({
+      start: { x: M, y: 60 }, end: { x: PW - M, y: 60 },
+      thickness: 0.5, color: rgb(0.80, 0.75, 0.68),
+    });
+    page.drawText('obms-tourist.rajasthan.gov.in  |  helpdesk.tourist@rajasthan.gov.in', {
+      x: M, y: 44, size: 9, font: fontReg, color: muted,
+    });
+    page.drawText('This is an official ticket generated from My Bookings — Rajasthan Tourism.', {
+      x: M, y: 30, size: 9, font: fontReg, color: muted,
+    });
 
     const bytes = await pdfDoc.save();
-    const normalized = new Uint8Array(bytes);
-    const buffer = new ArrayBuffer(normalized.byteLength);
-    new Uint8Array(buffer).set(normalized);
-    return new File([buffer], `ticket_${bookingId}.pdf`, { type: 'application/pdf' });
+    const buf   = new ArrayBuffer(bytes.byteLength);
+    new Uint8Array(buf).set(bytes);
+    return new File([buf], `ticket_${bookingId}.pdf`, { type: 'application/pdf' });
   }
 
-  function openShareModalForBooking(b: any) { setShareBooking(b); setShareModalOpen(true); }
+  /**
+   * Desktop fallback: WhatsApp Web, Facebook sharer, Instagram (download only).
+   * Browsers cannot force-open a specific app — only the OS share sheet can do
+   * that. Here we open the web version of each platform and also download the
+   * PDF so the user can attach it manually.
+   */
+  async function handlePlatformFallback(
+    platform: 'facebook' | 'whatsapp' | 'instagram',
+    file: File,
+    placeName: string,
+    bookingId: string,
+  ) {
+    const text    = encodeURIComponent(`My entry ticket for ${placeName} — Booking #${bookingId} (Govt of Rajasthan OBMS)`);
+    const pageUrl = encodeURIComponent(window.location.href);
 
+    if (platform === 'whatsapp') {
+      window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener');
+    } else if (platform === 'facebook') {
+      window.open(
+        `https://www.facebook.com/sharer/sharer.php?u=${pageUrl}&quote=${text}`,
+        '_blank',
+        'noopener,width=600,height=500',
+      );
+    }
+
+    // Always download the PDF — user can attach it in the app
+    downloadFile(file);
+    showSuccessToastMessage(
+      platform === 'instagram'
+        ? 'Ticket downloaded. Open Instagram and share from your gallery.'
+        : 'Ticket downloaded. You can attach it in the app.',
+    );
+  }
+
+  /**
+   * Main share handler.
+   *
+   * On mobile (Android / iOS):
+   *   - Generates the ticket PDF.
+   *   - Calls navigator.share({ files }) which opens the native OS share sheet.
+   *   - The user picks WhatsApp / Facebook / Instagram from the sheet.
+   *   - This is the ONLY standards-based way to pass a file to those apps.
+   *
+   * On desktop (Chrome / Firefox / Safari without share support):
+   *   - Opens WhatsApp Web / Facebook sharer in a new tab.
+   *   - Downloads the PDF so the user can attach it manually.
+   *   - Instagram on desktop only supports downloading.
+   */
   async function handleShareTicket(platform: 'facebook' | 'whatsapp' | 'instagram') {
     if (!shareBooking) return;
-    const placeName = shareBooking.placeName || shareBooking.placeDetailDto?.name || shareBooking.packageDto?.packageName || 'Booking';
+
+    const placeName = shareBooking.placeName
+      || shareBooking.placeDetailDto?.name
+      || shareBooking.packageDto?.packageName
+      || 'Booking';
     const bookingId = String(shareBooking.bookingId || shareBooking.id || '');
+
     setShareLoading(platform);
+
     try {
+      // Generate the rich PDF ticket file
       const file = await createShareTicketFile(shareBooking);
-      const shareData: ShareData = { title: `${placeName} Ticket`, text: `${placeName} - Booking #${bookingId}`, files: [file] };
-      if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
-        await navigator.share(shareData);
-      } else {
-        downloadFile(file);
-        showSuccessToastMessage('Ticket PDF downloaded. Share it from your device.');
+
+      const shareData: ShareData = {
+        title: `${placeName} — Entry Ticket`,
+        text:  `My ticket for ${placeName} (Booking #${bookingId}). Govt of Rajasthan — OBMS.`,
+        files: [file],
+      };
+
+      // Check if the browser supports sharing files via the Web Share API.
+      // navigator.canShare({ files }) is the correct guard — it returns false
+      // on desktop browsers that don't support file sharing.
+      const supportsFileShare =
+        typeof navigator !== 'undefined' &&
+        typeof (navigator as any).share === 'function' &&
+        typeof (navigator as any).canShare === 'function' &&
+        (navigator as any).canShare({ files: [file] });
+
+      if (supportsFileShare) {
+        // Opens the native OS share sheet (Android / iOS).
+        // The user picks the target app from the sheet.
+        await (navigator as any).share(shareData);
+        // If we reach here the share sheet was opened successfully.
+        setShareModalOpen(false);
+        return;
       }
+
+      // No native file-share support (desktop) — open web platform URLs
+      // and download the PDF for manual attachment.
+      await handlePlatformFallback(platform, file, placeName, bookingId);
+
     } catch (error: any) {
-      if (error?.name !== 'AbortError') showErrorToastMessage('Unable to share the ticket right now.');
+      if (error?.name === 'AbortError') {
+        // User dismissed the share sheet — not an error, close the modal silently.
+        setShareModalOpen(false);
+        return;
+      }
+
+      // Any other error (PDF generation failed, share API threw unexpectedly, etc.)
+      // — try to at least download the file so the user isn't left empty-handed.
+      console.error('Share ticket error:', error);
+      try {
+        const file = await createShareTicketFile(shareBooking);
+        downloadFile(file);
+        showSuccessToastMessage('Ticket downloaded. You can share it from your device.');
+      } catch {
+        showErrorToastMessage('Unable to generate ticket. Please try again.');
+      }
     } finally {
       setShareLoading('');
       setShareModalOpen(false);
     }
   }
 
-  // ─── Download router ───────────────────────────────────────────────────────
+  function openShareModalForBooking(b: any) {
+    setShareBooking(b);
+    setShareModalOpen(true);
+  }
+
+  // ─── Download router ────────────────────────────────────────────────────────
   async function dispatchTicketDownload(ticket: any) {
-    if (isJkkBooking(ticket)) printJkkApplication(ticket);
+    if (isJkkBooking(ticket))       printJkkApplication(ticket);
     else if (isInventoryType(ticket)) printInventoryTicket(ticket);
-    else printSandstoneImperialTicket(ticket);
+    else                             printSandstoneImperialTicket(ticket);
   }
 
   // ══════════════════════════════════════════════════════════════════════════
   //  JKK → Application form / Receipt print
-  //  Faithful port of the old project's `DownloadJkkUI` layout — pink/rose
-  //  gradient header, three-column organiser+QR grid, event details, more
-  //  details & attachments with thumbnails, payment + transaction columns.
   // ══════════════════════════════════════════════════════════════════════════
   function printJkkApplication(ticket: any) {
     const w = window.open('', '_blank', 'width=1100,height=1200');
     if (!w) { showErrorToastMessage('Please allow popups to download the ticket'); return; }
 
-    const id            = String(ticket.bookingId || ticket.id || '');
-    const createdDate   = ticket.createdDate
+    const id          = String(ticket.bookingId || ticket.id || '');
+    const createdDate = ticket.createdDate
       ? moment(Number(ticket.createdDate)).format('dddd, MMMM Do YYYY, h:mm:ss a')
       : '—';
     const approvedRaw   = (ticket.approved || 'PENDING').toString();
     const approved      = approvedRaw.toLowerCase() === 'reject' ? 'REJECTED' : approvedRaw.toUpperCase();
     const paymentStatus = isPaymentSuccess(ticket) ? 'SUCCESS' : 'Pending';
 
-    const applicantName = ticket.applicantName || '—';
-    const mobileNo      = ticket.mobileNo || '—';
-    const email         = ticket.email || '—';
-    const address       = ticket.address || '—';
-    const gstNo         = ticket.gstNo || '';
-    const societyRegistered    = !!ticket.societyRegistered;
-    const societyDocUrl        = ticket.societyRegisteredDocUrl || '';
+    const applicantName       = ticket.applicantName || '—';
+    const mobileNo            = ticket.mobileNo || '—';
+    const email               = ticket.email || '—';
+    const address             = ticket.address || '—';
+    const gstNo               = ticket.gstNo || '';
+    const societyRegistered   = !!ticket.societyRegistered;
+    const societyDocUrl       = ticket.societyRegisteredDocUrl || '';
 
     const typeName        = ticket.typeName || ticket.exhibitionType || '—';
     const subCategoryName = ticket.subCategoryName || ticket.jkkSubCategory?.name || '—';
@@ -915,7 +1000,6 @@ function MyBookingsPageInner() {
       ? moment(endMs).startOf('day').diff(moment(startMs).startOf('day'), 'days') + 1
       : 0;
 
-    // Days for Preparation: range = (startDate - preDays) → (startDate - 1)
     const preDays = Number(ticket.preDays || 0);
     let prepRange = '';
     if (preDays > 0 && startMs) {
@@ -926,10 +1010,9 @@ function MyBookingsPageInner() {
         : `(${prepStart.format('DD MMM')} to ${prepEnd.format('DD MMM')})`;
     }
 
-    // Mirrors DownloadJkkUI's image-vs-doc detection so we can render thumbnails
-    // inline for images and a generic PDF/icon link for everything else.
     const isImageUrl = (url: string) =>
       /\.(jpg|jpeg|png|gif|bmp|tiff|tif|webp|svg|heic|heif|ico|raw|cr2|nef|orf|arw|psd)(\?|$)/i.test(url || '');
+
     const renderAttachments = (list: any[]) => {
       if (!list || list.length === 0) return '';
       return `<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">${list.map((it: any) => {
@@ -942,10 +1025,10 @@ function MyBookingsPageInner() {
       }).join('')}</div>`;
     };
 
-    const programDetails       = ticket.detailsOfProgram?.[0];
-    const guestDetails         = ticket.guestDetails?.[0];
-    const organizationDetails  = ticket.organizationDetails?.[0];
-    const previousDetails      = ticket.previousDetails?.[0];
+    const programDetails      = ticket.detailsOfProgram?.[0];
+    const guestDetails        = ticket.guestDetails?.[0];
+    const organizationDetails = ticket.organizationDetails?.[0];
+    const previousDetails     = ticket.previousDetails?.[0];
 
     const programDetailsBlock = (programDetails?.description || (programDetails?.imageList?.length ?? 0) > 0) ? `
       <div class="more-cell">
@@ -1015,8 +1098,8 @@ function MyBookingsPageInner() {
         .col-hd{font-size:18px;font-weight:600;color:#1e3a8a;border-bottom:2px solid #c7d8f7;padding-bottom:12px;margin-bottom:18px}
         .pair{display:grid;grid-template-columns:1fr 1fr;gap:18px}
         .pair > div{margin-bottom:10px}
-        .pair-lbl, .item-lbl{font-size:12px;color:#9ca3af}
-        .pair-val, .item-val{font-weight:500;color:#323232;font-size:13px;word-break:break-word}
+        .pair-lbl,.item-lbl{font-size:12px;color:#9ca3af}
+        .pair-val,.item-val{font-weight:500;color:#323232;font-size:13px;word-break:break-word}
         .event{padding:14px 24px;background:#fdf2f8;border-left:4px solid #be185d}
         .event-hd{font-size:18px;font-weight:600;color:#831843;border-bottom:2px solid #f9c8d8;padding-bottom:12px;margin-bottom:18px}
         .event-grid{display:flex;flex-wrap:wrap;gap:14px}
@@ -1041,10 +1124,7 @@ function MyBookingsPageInner() {
         .footer .row2 > p{padding:0 18px}
         .footer .row2 > p:first-child{border-right:2px solid #cbd5e1}
         a{color:inherit}
-        @media print{
-          body{background:#fff}
-          .wrap{box-shadow:none}
-        }
+        @media print{body{background:#fff}.wrap{box-shadow:none}}
       </style></head>
       <body>
       <div class="wrap">
@@ -1052,14 +1132,12 @@ function MyBookingsPageInner() {
           <img class="logo" src="/images/main-logo-dark.webp" alt="OBMS" onerror="this.style.display='none'"/>
           <img class="jkk" src="/images/jkk.png" alt="JKK" onerror="this.style.display='none'"/>
         </header>
-
         <div class="reg">
           <small>Reg Date: ${createdDate}</small>
           <small>Booking Id: ${id}</small>
           <small style="display:flex;align-items:center;gap:8px"><span>Booking Status:</span><span>${approved}</span></small>
         </div>
         <hr/>
-
         <div class="grid">
           <div class="org-col">
             <div class="col-hd">Organiser Details</div>
@@ -1085,7 +1163,6 @@ function MyBookingsPageInner() {
           </div>
         </div>
         <hr/>
-
         <div class="event">
           <div class="event-hd">Event Details</div>
           <div class="event-grid">
@@ -1103,19 +1180,14 @@ function MyBookingsPageInner() {
           </div>
         </div>
         <hr/>
-
         ${(programDetailsBlock || guestDetailsBlock || organizationDetailsBlock || previousDetailsBlock) ? `
         <div class="more">
           <div class="col-hd">More Details &amp; Attachments</div>
           <div class="more-grid">
-            ${programDetailsBlock}
-            ${guestDetailsBlock}
-            ${organizationDetailsBlock}
-            ${previousDetailsBlock}
+            ${programDetailsBlock}${guestDetailsBlock}${organizationDetailsBlock}${previousDetailsBlock}
           </div>
         </div>
         <hr/>` : ''}
-
         ${approvedRaw.toLowerCase() !== 'reject' ? `
         <div class="pay-row">
           <div class="${hasTransaction ? 'pay-col' : 'pay-col-full'}">
@@ -1125,20 +1197,14 @@ function MyBookingsPageInner() {
             </div>
             <div class="pay-grid">
               ${ticketHeadsHtml}
-              <div class="pay-cell">
-                <div class="pay-lbl">Total Amount</div>
-                <div class="pay-val">₹ ${totalAmount}</div>
-              </div>
+              <div class="pay-cell"><div class="pay-lbl">Total Amount</div><div class="pay-val">₹ ${totalAmount}</div></div>
             </div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:14px"><small>GST is not applicable on the Security Charges.</small></div>
           </div>
           ${hasTransaction ? `
           <div class="txn-col">
             <div class="pay-hd"><span>Transaction Details</span></div>
-            <div class="pay-cell">
-              <div class="pay-lbl">Transaction Id</div>
-              <div class="pay-val">${transactionId}</div>
-            </div>
+            <div class="pay-cell"><div class="pay-lbl">Transaction Id</div><div class="pay-val">${transactionId}</div></div>
             ${transactionDate ? `
             <div class="pay-cell">
               <div class="pay-lbl">Transaction Date &amp; Time</div>
@@ -1146,7 +1212,6 @@ function MyBookingsPageInner() {
             </div>` : ''}
           </div>` : ''}
         </div>` : ''}
-
         <footer class="footer">
           <p>For any queries, please contact</p>
           <div class="row2">
@@ -1174,7 +1239,6 @@ function MyBookingsPageInner() {
     const zoneName     = ticket.zoneName || '';
     const location     = [zoneName, districtName, 'Rajasthan', 'India'].filter(Boolean).join(' · ');
 
-    const bookedAt        = ticket.createdDate ? moment(ticket.createdDate).format('DD-MM-YYYY · HH:mm:ss · [ONLINE]') : '—';
     const bookedDateShort = ticket.createdDate
       ? moment(ticket.createdDate).format('DD-MM-YYYY') + '  ·  ' + moment(ticket.createdDate).format('HH:mm:ss') + '  ·  ONLINE'
       : '—';
@@ -1197,10 +1261,7 @@ function MyBookingsPageInner() {
     const visitorDocs: any[] = visitors.flatMap((t: any) => (Array.isArray(t?.ticketUserDocs) ? t.ticketUserDocs : []));
     const totalVisitors = (visitorDocs.length || visitors.reduce((s, t) => s + (Number(t.qty) || 0), 0)) || 0;
 
-    const toNum = (v: any) => {
-      const n = Number(v);
-      return Number.isFinite(n) ? n : 0;
-    };
+    const toNumLocal = (v: any) => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
 
     let srCounter = 0;
     const visitorRows = visitors.flatMap((t: any) => {
@@ -1250,66 +1311,53 @@ function MyBookingsPageInner() {
         </tr>`).join('');
     } else {
       const summaryRow = (() => {
-        const src = ticket ?? {};
+        const src        = ticket ?? {};
         const classified = classifyChargeRow(src);
-        const inv = computeInventoryChargeSummary(src);
-        const entryFeeVisitor = classified.entryFeeVisitor || inv.entryFeeVisitor;
-        const entryFeeVehicle = classified.entryFeeVehicle || inv.entryFeeVehicle;
-        const ecoDevVisitor   = classified.ecoDevVisitor || inv.ecoDevVisitor;
-        const ecoDevVehicle   = classified.ecoDevVehicle || inv.ecoDevVehicle;
+        const inv        = computeInventoryChargeSummary(src);
+        const entryFeeVisitor  = classified.entryFeeVisitor  || inv.entryFeeVisitor;
+        const entryFeeVehicle  = classified.entryFeeVehicle  || inv.entryFeeVehicle;
+        const ecoDevVisitor    = classified.ecoDevVisitor    || inv.ecoDevVisitor;
+        const ecoDevVehicle    = classified.ecoDevVehicle    || inv.ecoDevVehicle;
         const tigerReserveFund = classified.tigerReserveFund;
-        const vehicleRent     = classified.vehicleRent || inv.vehicleRent;
-        const guideFee        = classified.guideFee;
-        const gst             = classified.gst || inv.gst;
-
-        const hasAny =
-          entryFeeVisitor || entryFeeVehicle || ecoDevVisitor || ecoDevVehicle ||
+        const vehicleRent      = classified.vehicleRent      || inv.vehicleRent;
+        const guideFee         = classified.guideFee;
+        const gst              = classified.gst              || inv.gst;
+        const hasAny = entryFeeVisitor || entryFeeVehicle || ecoDevVisitor || ecoDevVehicle ||
           tigerReserveFund || vehicleRent || guideFee || gst;
         if (!hasAny) return '';
-
-        return `
-          <tr>
-            <td>Total</td>
-            <td>₹ ${entryFeeVisitor.toFixed(2)}</td>
-            <td>₹ ${entryFeeVehicle.toFixed(2)}</td>
-            <td>₹ ${ecoDevVisitor.toFixed(2)}</td>
-            <td>₹ ${ecoDevVehicle.toFixed(2)}</td>
-            <td>₹ ${tigerReserveFund.toFixed(2)}</td>
-            <td>₹ ${vehicleRent.toFixed(2)}</td>
-            <td>₹ ${guideFee.toFixed(2)}</td>
-            <td>₹ ${gst.toFixed(2)}</td>
-          </tr>`;
+        return `<tr>
+          <td>Total</td>
+          <td>₹ ${entryFeeVisitor.toFixed(2)}</td>
+          <td>₹ ${entryFeeVehicle.toFixed(2)}</td>
+          <td>₹ ${ecoDevVisitor.toFixed(2)}</td>
+          <td>₹ ${ecoDevVehicle.toFixed(2)}</td>
+          <td>₹ ${tigerReserveFund.toFixed(2)}</td>
+          <td>₹ ${vehicleRent.toFixed(2)}</td>
+          <td>₹ ${guideFee.toFixed(2)}</td>
+          <td>₹ ${gst.toFixed(2)}</td>
+        </tr>`;
       })();
-
       chargesBodyHtml = summaryRow || visitors.map((t: any) => `
-          <tr>
-            <td>${t.ticketName} × ${t.qty}</td>
-            <td>₹ ${toNum(t.entryFee).toFixed(2)}</td>
-            <td>₹ ${toNum(t.entryFeeVehicle).toFixed(2)}</td>
-            <td>₹ ${toNum(t.ecoDevVisitor ?? t.ecoDev).toFixed(2)}</td>
-            <td>₹ ${toNum(t.ecoDevVehicle).toFixed(2)}</td>
-            <td>₹ ${toNum(t.tigerReserveFund ?? t.tigerFund).toFixed(2)}</td>
-            <td>₹ ${toNum(t.vehicleRent).toFixed(2)}</td>
-            <td>₹ ${toNum(t.guideFee).toFixed(2)}</td>
-            <td>₹ ${toNum(t.gst).toFixed(2)}</td>
-          </tr>`).join('') || `<tr><td colspan="9" style="text-align:center;color:#aaa;">Charge details not available</td></tr>`;
+        <tr>
+          <td>${t.ticketName} × ${t.qty}</td>
+          <td>₹ ${toNumLocal(t.entryFee).toFixed(2)}</td>
+          <td>₹ ${toNumLocal(t.entryFeeVehicle).toFixed(2)}</td>
+          <td>₹ ${toNumLocal(t.ecoDevVisitor ?? t.ecoDev).toFixed(2)}</td>
+          <td>₹ ${toNumLocal(t.ecoDevVehicle).toFixed(2)}</td>
+          <td>₹ ${toNumLocal(t.tigerReserveFund ?? t.tigerFund).toFixed(2)}</td>
+          <td>₹ ${toNumLocal(t.vehicleRent).toFixed(2)}</td>
+          <td>₹ ${toNumLocal(t.guideFee).toFixed(2)}</td>
+          <td>₹ ${toNumLocal(t.gst).toFixed(2)}</td>
+        </tr>`).join('')
+        || `<tr><td colspan="9" style="text-align:center;color:#aaa;">Charge details not available</td></tr>`;
     }
 
-    const invTotals = computeInventoryChargeSummary(ticket);
-
+    const invTotals  = computeInventoryChargeSummary(ticket);
     const rpacsTotal = (
-      toNum(
-        ticket.rpacsCharges ??
-        ticket.rpacsCharge ??
-        ticket.rpacs ??
-        ticket.surcharge ??
-        ticket.surCharge ??
-        ticket.surchargeCharges,
-      ) ||
+      toNum(ticket.rpacsCharges ?? ticket.rpacsCharge ?? ticket.rpacs ?? ticket.surcharge ?? ticket.surCharge ?? ticket.surchargeCharges) ||
       invTotals.surcharge ||
       charges.reduce((s: number, c: any) => s + toNum(c?.rpacsCharges ?? c?.surcharge ?? c?.surCharge), 0)
     );
-
     const addonTotal = (
       pickNum(ticket, 'addonTotal', 'addonCharges', 'addOnSurcharge', 'addonSurcharge', 'addOnCharge', 'addOnCharges') ||
       visitors.reduce((sum: number, t: any) => {
@@ -1317,8 +1365,7 @@ function MyBookingsPageInner() {
         return sum + items.reduce((s: number, a: any) => s + toNum(a?.totalAmount ?? a?.amount), 0);
       }, 0)
     );
-
-    const rislTotal  = (
+    const rislTotal = (
       toNum(ticket.rislCharges ?? ticket.rislCharge ?? ticket.platformCharges ?? ticket.platformCharge) ||
       invTotals.rislCharge ||
       charges.reduce((s: number, c: any) => s + toNum(c?.rislCharges ?? c?.platformCharges), 0)
@@ -1326,7 +1373,6 @@ function MyBookingsPageInner() {
 
     const qrValue = ticket.qrDetail || JSON.stringify({ type: 'BOOKING', data: { ticketBookingId: ticket.id || ticket.bookingId } });
     const { rects: qrRects, count: qrCount } = generateQrSvgRects(qrValue, 96);
-
     const shiftIcon = (shiftName || '').toLowerCase().includes('morning') ? '🌅'
       : (shiftName || '').toLowerCase().includes('afternoon') ? '🌇'
       : (shiftName || '').toLowerCase().includes('evening')   ? '🌆' : '🌿';
@@ -1397,15 +1443,14 @@ body{background:#1a0e06;background-image:radial-gradient(ellipse at 20% 20%,rgba
 .charges-table tbody td{padding:8px 10px;text-align:center;border-right:1px solid rgba(184,74,14,.08);border-bottom:1px solid rgba(184,74,14,.08);color:#3D1F00;font-family:'Space Mono',monospace;font-size:11px;}
 .charges-table tbody td:first-child{text-align:left;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;color:#3D1F00;}
 .charges-table tbody td:last-child{border-right:none;}
-.charges-table .rpacs-row td{color:#6B3A1F;font-size:11px;}
+.charges-table .rpacs-row td,.charges-table .addon-row td,.charges-table .risl-row td{color:#6B3A1F;font-size:11px;}
 .charges-table .addon-row td{color:#888;font-style:italic;font-size:10px;}
-.charges-table .risl-row td{color:#6B3A1F;font-size:11px;}
 .charges-table .total-row td{background:rgba(184,74,14,.07);border-top:1.5px solid rgba(184,74,14,.25);}
 .charges-table .total-row td:first-child{font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:#2D1400;}
 .charges-table .total-row td:last-child{font-family:'Space Mono',monospace;font-size:15px;font-weight:700;color:#B84A0E;}
 .t-divider{border:none;border-top:1px dashed rgba(184,74,14,.28);margin:4px -8px 22px;position:relative;}
 .t-divider::before,.t-divider::after{content:'';position:absolute;top:-10px;width:19px;height:19px;background:#1a0e06;border-radius:50%;}
-.t-divider::before{left:-28px;} .t-divider::after{right:-28px;}
+.t-divider::before{left:-28px;}.t-divider::after{right:-28px;}
 .terms-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px 20px;margin-bottom:22px;}
 .term-item{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;color:#5A2D10;line-height:1.55;}
 .term-item .tick{color:#B84A0E;font-weight:700;flex-shrink:0;margin-top:1px;}
@@ -1537,7 +1582,6 @@ body{background:#1a0e06;background-image:radial-gradient(ellipse at 20% 20%,rgba
 <script>document.fonts.ready.then(() => setTimeout(() => window.print(), 600));</script>
 </body>
 </html>`;
-
     w.document.write(html);
     w.document.close();
     setPdfGenerating('');
@@ -1545,10 +1589,6 @@ body{background:#1a0e06;background-image:radial-gradient(ellipse at 20% 20%,rgba
 
   // ══════════════════════════════════════════════════════════════════════════
   //  NON-INVENTORY → Sandstone Imperial
-  //  Changes:
-  //    1. Header: place name + location left-aligned beside QR (same as inventory)
-  //    2. Arch removed (no longer needed with new layout)
-  //    3. QR box: padding 5px all sides, no label, SVG fills full size (100×100)
   // ══════════════════════════════════════════════════════════════════════════
   function printSandstoneImperialTicket(ticket: any) {
     const w = window.open('', '_blank', 'width=820,height=960');
@@ -1571,8 +1611,8 @@ body{background:#1a0e06;background-image:radial-gradient(ellipse at 20% 20%,rgba
       const map = new Map<string, { name: string; qty: number }>();
       for (const v of visitors) {
         const name = String(v?.ticketName || 'Visitor').trim() || 'Visitor';
-        const key = name.toLowerCase();
-        let qty = Number(v?.qty ?? v?.quantity ?? v?.count);
+        const key  = name.toLowerCase();
+        let qty    = Number(v?.qty ?? v?.quantity ?? v?.count);
         if (!Number.isFinite(qty) || qty <= 0) {
           const docsCount = Array.isArray(v?.ticketUserDocs) ? v.ticketUserDocs.length : 0;
           qty = docsCount > 0 ? docsCount : 1;
@@ -1584,14 +1624,14 @@ body{background:#1a0e06;background-image:radial-gradient(ellipse at 20% 20%,rgba
       return Array.from(map.values()).filter((x) => x.qty > 0);
     })();
 
-    const totalQty = visitorGroups.reduce((s, t) => s + (t.qty || 0), 0);
+    const totalQty   = visitorGroups.reduce((s, t) => s + (t.qty || 0), 0);
     const visitorVal = totalQty > 0 ? `${totalQty} Visitor${totalQty === 1 ? '' : 's'}` : '—';
     const visitorSub = visitorGroups.length
       ? visitorGroups.map((t) => `${t.qty} ${t.name}`).join(', ')
       : '—';
 
-    const timeVal = shiftName || (shiftStart ? 'Slot' : 'Full Day');
-    const timeSub = shiftStart ? `${shiftStart} – ${shiftEnd}` : '9:00 AM – 5:00 PM';
+    const timeVal    = shiftName || (shiftStart ? 'Slot' : 'Full Day');
+    const timeSub    = shiftStart ? `${shiftStart} – ${shiftEnd}` : '9:00 AM – 5:00 PM';
     const priceBadge = totalAmt > 0 ? `₹ ${totalAmt} / Ticket` : 'Entry Pass';
 
     const addons = visitors
@@ -1603,7 +1643,6 @@ body{background:#1a0e06;background-image:radial-gradient(ellipse at 20% 20%,rgba
       .join('');
 
     const qrValue = ticket.qrDetail || JSON.stringify({ type: 'BOOKING', data: { ticketBookingId: ticket.id || ticket.bookingId } });
-    // Use 100px viewBox for a larger, full-size QR with only 5px padding
     const { rects: qrRects, count: qrCount } = generateQrSvgRects(qrValue, 100);
 
     const html = `<!DOCTYPE html>
@@ -1624,73 +1663,23 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
 .valid-dot{width:7px;height:7px;background:#4ade80;border-radius:50%;box-shadow:0 0 6px #4ade80;}
 .valid-lbl{font-family:'Space Mono',monospace;font-size:9px;color:rgba(255,255,255,.7);letter-spacing:1px;text-transform:uppercase;}
 .booked-on{font-family:'Rajdhani',sans-serif;font-size:11px;color:rgba(255,255,255,.35);letter-spacing:.5px;}
-
-/* card */
 .d1{background:#F5ECD7;border-radius:4px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 0 1px rgba(184,74,14,.2);}
-
-/* ── header ── */
-.d1-top{
-  background:linear-gradient(135deg,#7C2D12 0%,#B84A0E 45%,#D4691A 100%);
-  /* reduced bottom padding — arch removed */
-  padding:26px 32px 22px;
-  position:relative;overflow:hidden;
-}
-.d1-top::before{
-  content:'';position:absolute;inset:0;
-  background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-}
-/* ── arch REMOVED — .d1-top::after deleted ── */
-
-/*
- * Header row: left column (gov badge + place name/location) + right column (QR)
- * Mirrors the inventory ticket layout exactly.
- */
-.d1-header-row{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  position:relative;z-index:2;
-  gap:16px;
-}
-/* left column */
+.d1-top{background:linear-gradient(135deg,#7C2D12 0%,#B84A0E 45%,#D4691A 100%);padding:26px 32px 22px;position:relative;overflow:hidden;}
+.d1-top::before{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");}
+.d1-header-row{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:2;gap:16px;}
 .d1-header-left{display:flex;flex-direction:column;gap:0;flex:1;min-width:0;}
 .d1-gov{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
-.d1-emblem{
-  width:44px;height:44px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
-  border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;
-}
+.d1-emblem{width:44px;height:44px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
 .d1-gov-text .sub{font-family:'Rajdhani',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.6);}
 .d1-gov-text .main{font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;color:#fff;letter-spacing:.5px;}
-
-/* place name + location — directly below gov badge, left-aligned, no extra margin */
 .d1-title-block{position:relative;z-index:2;}
 .d1-title-block h1{font-family:'Cinzel',serif;font-size:24px;font-weight:700;color:#fff;letter-spacing:1px;line-height:1.2;margin-bottom:6px;}
 .d1-title-block .loc{font-family:'Rajdhani',sans-serif;font-size:12px;color:rgba(255,255,255,.7);letter-spacing:2px;text-transform:uppercase;}
-
-/*
- * QR block:
- *   - padding: 5px all sides
- *   - no label text
- *   - SVG size 100×100 (full size, centred)
- *   - align-self: flex-start so it stays at the top-right
- */
-.d1-qr-wrap{
-  background:#fff;border-radius:8px;
-  padding:6px;
-  box-shadow:0 4px 16px rgba(0,0,0,.3);
-  flex-shrink:0;
-  margin:0 auto;
-  width:140px;height:140px;
-  display:flex;align-items:center;justify-content:center;
-}
+.d1-qr-wrap{background:#fff;border-radius:8px;padding:6px;box-shadow:0 4px 16px rgba(0,0,0,.3);flex-shrink:0;margin:0 auto;width:140px;height:140px;display:flex;align-items:center;justify-content:center;}
 .d1-qr-wrap svg{display:block;width:100%;height:100%;}
-
-/* pass strip */
 .d1-pass-strip{background:#D4A017;padding:8px 32px;display:flex;justify-content:space-between;align-items:center;}
 .d1-pass-strip .badge{font-family:'Cinzel',serif;font-size:11px;font-weight:600;color:#3D1F00;letter-spacing:2px;}
 .d1-pass-strip .price{font-family:'Space Mono',monospace;font-size:11px;color:#3D1F00;font-weight:700;}
-
-/* body */
 .d1-body{padding:28px 32px;}
 .d1-meta-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
 .d1-meta-cell{text-align:center;padding:14px 8px;border:1px solid rgba(184,74,14,.2);border-radius:4px;background:rgba(184,74,14,.04);}
@@ -1700,7 +1689,7 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
 .d1-meta-cell .sub2{font-family:'Rajdhani',sans-serif;font-size:11px;color:#7A6A58;}
 .d1-divider{border:none;border-top:1px dashed rgba(184,74,14,.25);margin:0 -8px 20px;position:relative;}
 .d1-divider::before,.d1-divider::after{content:'';position:absolute;top:-10px;width:18px;height:18px;background:#F5ECD7;border-radius:50%;border:1px dashed rgba(184,74,14,.25);}
-.d1-divider::before{left:-24px;} .d1-divider::after{right:-24px;}
+.d1-divider::before{left:-24px;}.d1-divider::after{right:-24px;}
 .d1-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin-bottom:20px;}
 .d1-info-item{font-family:'Rajdhani',sans-serif;font-size:12px;color:#6B3A1F;display:flex;gap:6px;align-items:flex-start;line-height:1.5;}
 .d1-check{color:#B84A0E;font-weight:700;}
@@ -1720,13 +1709,7 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
 .btn-print{background:linear-gradient(135deg,#7C2D12,#B84A0E);color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;border-radius:4px;padding:13px 36px;cursor:pointer;box-shadow:0 4px 16px rgba(184,74,14,.4);transition:opacity .15s;}
 .btn-print:hover{opacity:.88;}
 .btn-close{background:transparent;color:rgba(255,255,255,.45);font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;letter-spacing:1px;border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:13px 24px;cursor:pointer;}
-@media print{
-  body{background:#fff;padding:0;display:block;}
-  .action-bar,.top-row{display:none!important;}
-  .d1{box-shadow:none;border-radius:0;}
-  .wrap{max-width:100%;}
-  .d1-top,.d1-pass-strip,.d1-ref,.d1-footer{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-}
+@media print{body{background:#fff;padding:0;display:block;}.action-bar,.top-row{display:none!important;}.d1{box-shadow:none;border-radius:0;}.wrap{max-width:100%;}.d1-top,.d1-pass-strip,.d1-ref,.d1-footer{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
 </style>
 </head>
 <body>
@@ -1735,13 +1718,9 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
     <div class="valid-pill"><span class="valid-dot"></span><span class="valid-lbl">Valid Ticket</span></div>
     <span class="booked-on">Booked on ${bookedDate}</span>
   </div>
-
   <div class="d1">
-    <!-- ── HEADER: gov badge + place name LEFT, QR RIGHT (no arch) ── -->
     <div class="d1-top">
       <div class="d1-header-row">
-
-        <!-- Left: gov badge stacked above place name + location -->
         <div class="d1-header-left">
           <div class="d1-gov">
             <div class="d1-emblem">🏛</div>
@@ -1755,22 +1734,15 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
             <div class="loc">📍 ${location}</div>
           </div>
         </div>
-
-        <!-- Right: QR — 5px padding, no label, full-size SVG -->
         <div class="d1-qr-wrap">
           <svg viewBox="0 0 ${qrCount} ${qrCount}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" shape-rendering="crispEdges">${qrRects}</svg>
         </div>
-
       </div>
-      <!-- ── arch REMOVED ── -->
     </div>
-
-    <!-- pass strip unchanged -->
     <div class="d1-pass-strip">
       <span class="badge">✦ Single Entry Pass ✦</span>
       <span class="price">${priceBadge}</span>
     </div>
-
     <div class="d1-body">
       <div class="d1-meta-row">
         <div class="d1-meta-cell"><span class="icon">📅</span><div class="lbl">Visit Date</div><div class="val">${visitDay}</div><div class="sub2">${visitYear}</div></div>
@@ -1789,13 +1761,11 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
       </div>
       <div class="d1-ref"><span class="rl">Booking Reference</span><span class="rv">${bookingId}</span></div>
     </div>
-
     <div class="d1-footer">
       <div class="contact">📞 141-220-0234 &nbsp;|&nbsp; ✉ support@rajasthantourism.gov.in<br/>🌐 obms-tourist.rajasthan.gov.in</div>
       <div class="brand"><div class="bname">OBMS</div><div class="bsub">Rajasthan Tourism</div></div>
     </div>
   </div>
-
   <div class="action-bar">
     <button class="btn-print" onclick="window.print()">🖨 &nbsp;Print / Save as PDF</button>
     <button class="btn-close" onclick="window.close()">✕ Close</button>
@@ -1804,7 +1774,6 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
 <script>document.fonts.ready.then(() => setTimeout(() => window.print(), 500));</script>
 </body>
 </html>`;
-
     w.document.write(html);
     w.document.close();
     setPdfGenerating('');
@@ -1865,12 +1834,7 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
 
   // ─── Main download entry point ─────────────────────────────────────────────
   function handleDownloadTicket(b: any) {
-    // JKK applications/tickets use the HTML-print flow (matches old project's
-    // DownloadJkkUI approach — no boarding-pass API call).
-    if (isJkkBooking(b)) {
-      printJkkApplication(b);
-      return;
-    }
+    if (isJkkBooking(b)) { printJkkApplication(b); return; }
     const bId = String(b.bookingId || b.id);
     setPdfGenerating(bId);
     if (Array.isArray(b.ticketUserDto)) {
@@ -1884,7 +1848,7 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
     setShouldFetchPdf(true);
   }
 
-  // ─── Date filter helpers ───────────────────────────────────────────────────
+  // ─── Date filter helpers ────────────────────────────────────────────────────
   function applyDateFilter() {
     if (!dateType || !startDate || !endDate) { showErrorToastMessage('Please select date type and both dates'); return; }
     const sMs = moment(startDate).startOf('day').valueOf();
@@ -1892,14 +1856,17 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
     if ((eMs - sMs) / (1000 * 60 * 60 * 24) > 5) { showErrorToastMessage('Date range cannot exceed 5 days'); return; }
     setAppliedDateType(dateType); setAppliedStartDay(sMs); setAppliedEndDay(eMs); setDateFilterOpen(false);
   }
+
   function clearDateFilter() {
     setDateType(''); setStartDate(''); setEndDate('');
     setAppliedDateType(''); setAppliedStartDay(undefined); setAppliedEndDay(undefined);
     setDateFilterOpen(false);
   }
+
   function openDrawer(b: any)        { setSelectedBooking(b); setDrawerOpen(true); }
   function openRaiseIssue(b: any)    { setIssueBooking(b);    setRaiseIssueOpen(true); }
   function handleCancelClick(b: any) { setBookingToCancel(b); checkRefundable.mutate({ bookingId: String(b.bookingId || b.id) }); }
+
   function handleCancelConfirm() {
     if (!cancelReason) { showErrorToastMessage('Please select a cancellation reason'); return; }
     if (cancelReason === 'other' && !otherReason.trim()) { showErrorToastMessage('Please specify the reason'); return; }
@@ -1920,7 +1887,7 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
     cancelBooking.mutate(payload);
   }
 
-  // ─── Render ────────────────────────────────────────────────────────────────
+  // ─── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="page">
       {!user ? (
@@ -1945,7 +1912,7 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                 <h1>My Bookings</h1>
                 <p>View and manage all your ticket reservations across Rajasthan</p>
               </div>
-              <div  style={{marginTop: '16px'}} className="header-actions">
+              <div style={{ marginTop: '16px' }} className="header-actions">
                 <div className="filter-bar">
                   <div className="search-input-wrap">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -2000,11 +1967,11 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
 
           <div className="stats-strip">
             {[
-              { num: stats.total,       lbl: 'Total Bookings', cls: ''       },
-              { num: stats.upcoming,    lbl: 'Upcoming',       cls: 'orange' },
-              { num: stats.completed,   lbl: 'Completed',      cls: 'green'  },
-              { num: stats.cancelled,   lbl: 'Cancelled',      cls: 'red'    },
-              { num: `₹${toNum(stats.spent).toFixed(2)}`, lbl: 'Total Spent',    cls: ''       },
+              { num: stats.total,     lbl: 'Total Bookings', cls: ''       },
+              { num: stats.upcoming,  lbl: 'Upcoming',       cls: 'orange' },
+              { num: stats.completed, lbl: 'Completed',      cls: 'green'  },
+              { num: stats.cancelled, lbl: 'Cancelled',      cls: 'red'    },
+              { num: `₹${toNum(stats.spent).toFixed(2)}`, lbl: 'Total Spent', cls: '' },
             ].map((s) => (
               <div key={s.lbl} className="stats-strip-item">
                 <div className={`ssi-num ${s.cls}`}>{s.num}</div>
@@ -2031,9 +1998,6 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                 </button>
               </div>
             ) : pagedBookings.map((b) => {
-              // IGPRS (guest house) and ASI (monument) bookings have bespoke
-              // layouts — delegate to dedicated card components. Everything
-              // else (regular + JKK) keeps using the inline card below.
               if (isIgprsBooking(b)) {
                 return (
                   <IgprsBookingCard
@@ -2057,13 +2021,13 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                 );
               }
 
-              const status    = getBookingStatus(b);
-              const placeName = b.placeName || b.placeDetailDto?.name || b.packageDto?.packageName || 'Booking';
-              const district  = b.placeDetailDto?.districtName || '';
-              const fullImg   = resolveBookingImage(b);
+              const status     = getBookingStatus(b);
+              const placeName  = b.placeName || b.placeDetailDto?.name || b.packageDto?.packageName || 'Booking';
+              const district   = b.placeDetailDto?.districtName || '';
+              const fullImg    = resolveBookingImage(b);
               const totalUsers = b.totalUsers || (b.ticketUserDto?.reduce((s: number, t: any) => s + (t.qty || 0), 0)) || 0;
-              const bId = String(b.bookingId || b.id);
-              const isGen = pdfGenerating === bId;
+              const bId        = String(b.bookingId || b.id);
+              const isGen      = pdfGenerating === bId;
 
               return (
                 <div key={b.bookingId || b.id} className="booking-card" onClick={() => openDrawer(b)}>
@@ -2125,14 +2089,11 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                         <div className="booking-price-sub">Booked {formatDate(b.createdDate)}</div>
                       </div>
                       <div className="booking-actions">
-                        {/* View Ticket — successful bookings, OR live JKK applications (not failed / not rejected) */}
                         {((isPaymentSuccess(b) && !b.cancelled && !b.refund) || canViewJkkApplication(b)) && (
                           <button className="bc-btn bc-btn-primary" onClick={(e) => { e.stopPropagation(); openDrawer(b); }}>
                             {isJkkBooking(b) && !isPaymentSuccess(b) ? 'View Application' : 'View Ticket'}
                           </button>
                         )}
-
-                        {/* Download — successful bookings, OR live JKK applications (not failed / not rejected) */}
                         {((isPaymentSuccess(b) && !b.cancelled && !b.refund) || canViewJkkApplication(b)) && (
                           <button
                             className="bc-btn bc-btn-outline"
@@ -2142,8 +2103,6 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                             {isGen ? '⏳ Generating...' : (isJkkBooking(b) && !isPaymentSuccess(b) ? '📥 Download Application' : '📥 Download')}
                           </button>
                         )}
-
-                        {/* Print Boarding Pass — only when boarding pass has been generated */}
                         {b.boardingPassId && isPaymentSuccess(b) && !b.cancelled && !b.refund && (
                           <button
                             className="bc-btn bc-btn-outline"
@@ -2153,8 +2112,6 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                             {boardingGenerating === bId ? '⏳ Loading...' : '🎫 Print Boarding Pass'}
                           </button>
                         )}
-
-                        {/* Pay Difference Amount — when diffAmount is owed */}
                         {Number(b.diffAmount) > 0 && b.diffAmountStatus !== 'SUCCESS' && !b.cancelled && !b.refund && (
                           <button
                             className="bc-btn bc-btn-primary"
@@ -2163,8 +2120,6 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                             {`💳 Pay Difference ₹${Number(b.diffAmount).toFixed(2)}`}
                           </button>
                         )}
-
-                        {/* Download Difference Amount Invoice — once diff payment succeeded */}
                         {b.diffAmountStatus === 'SUCCESS' && (
                           <button
                             className="bc-btn bc-btn-outline"
@@ -2174,8 +2129,6 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                             {diffInvoiceLoadingFor === bId ? '⏳ Loading…' : '📄 Difference Invoice'}
                           </button>
                         )}
-
-                        {/* Reverify Payment — for non-success bookings, within 5-min window */}
                         {!isPaymentSuccess(b) && !b.cancelled && !b.refund && isWithinReverifyWindow(b) && (
                           <button
                             className="bc-btn bc-btn-primary"
@@ -2185,8 +2138,6 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                             {reverifyMutation.isPending ? '⏳ Verifying…' : '🔄 Re-verify Payment'}
                           </button>
                         )}
-
-                        {/* JKK Make Payment — only when APPROVED + payment not yet done */}
                         {canMakeJkkPayment(b) && (
                           <button
                             className="bc-btn bc-btn-primary"
@@ -2196,27 +2147,16 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                             {confirmJkk.isPending ? '⏳ Redirecting…' : '💳 Make Payment'}
                           </button>
                         )}
-
-                        {/* Web Check-in — only when payment succeeded */}
-                        {/* {isPaymentSuccess(b) && isCheckinEligible(b) && (
-                          <button
-                            className="bc-btn bc-btn-outline"
-                            style={{ background: '#E8F5E9', borderColor: '#4CAF50', color: '#2E7D32' }}
-                            onClick={(e) => { e.stopPropagation(); handleWebCheckIn(b); }}
-                          >✓ Web Check-in</button>
-                        )} */}
                         {isPaymentSuccess(b) && b.checkedIn === 'Yes' && (
                           <span style={{ fontSize: 10, color: '#2E7D32', padding: '4px 8px', background: '#E8F5E9', borderRadius: 12 }}>
                             ✓ Checked In
                           </span>
                         )}
-
                         {isPaymentSuccess(b) && canCancel(b) && (
                           <button className="bc-btn bc-btn-ghost" onClick={(e) => { e.stopPropagation(); handleCancelClick(b); }}>
                             Cancel
                           </button>
                         )}
-
                         <button
                           className="bc-btn bc-btn-ghost"
                           style={{ color: '#7A6A58' }}
@@ -2228,6 +2168,7 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                 </div>
               );
             })}
+
             {totalPages > 1 && (
               <div className="pagination-bar">
                 <button className="filter-btn" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
@@ -2289,34 +2230,27 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                 <span className="drawer-close-title">Booking Details</span>
               </div>
               {selectedBooking && (() => {
-                const b = selectedBooking;
-                const status = getBookingStatus(b);
+                const b         = selectedBooking;
+                const status    = getBookingStatus(b);
                 const placeName = b.placeName || b.placeDetailDto?.name || b.packageDto?.packageName || 'Booking';
                 const district  = b.placeDetailDto?.districtName || '';
                 const fullImg   = resolveBookingImage(b);
-                const bId   = String(b.bookingId || b.id);
-                const isGen = pdfGenerating === bId;
-                const isInv = isInventoryType(b);
+                const bId       = String(b.bookingId || b.id);
+                const isGen     = pdfGenerating === bId;
+                const isInv     = isInventoryType(b);
                 const invTickets: any[] = Array.isArray(b.ticketUserDto) ? b.ticketUserDto : [];
-                const invDocs: any[] = invTickets.flatMap((t: any) => (Array.isArray(t?.ticketUserDocs) ? t.ticketUserDocs : []));
+                const invDocs: any[]   = invTickets.flatMap((t: any) => (Array.isArray(t?.ticketUserDocs) ? t.ticketUserDocs : []));
                 const invTotalVisitors =
                   (invDocs.length || invTickets.reduce((s: number, t: any) => s + (Number(t?.qty) || 0), 0) || b.totalUsers || 0) as number;
                 const invVisitorNames = invDocs
                   .map((d: any) => String(d?.name || d?.fullName || d?.visitorName || '').trim())
                   .filter(Boolean);
 
-                const toNum = (v: any) => {
-                  const n = Number(v);
-                  return Number.isFinite(n) ? n : 0;
-                };
+                const toNumLocal = (v: any) => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
 
-                const invChargeRows: any[] = Array.isArray(b?.ticketCharges)
-                  ? b.ticketCharges
-                  : Array.isArray(b?.chargeDetails)
-                    ? b.chargeDetails
-                    : Array.isArray(b?.charges)
-                      ? b.charges
-                      : [];
+                const invChargeRows: any[] = Array.isArray(b?.ticketCharges) ? b.ticketCharges
+                  : Array.isArray(b?.chargeDetails) ? b.chargeDetails
+                  : Array.isArray(b?.charges) ? b.charges : [];
 
                 const invComputed = computeInventoryChargeSummary(b);
 
@@ -2324,51 +2258,46 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                   (acc: any, c: any) => {
                     acc.entryFeeVisitor += classifyChargeRow(c).entryFeeVisitor;
                     acc.entryFeeVehicle += classifyChargeRow(c).entryFeeVehicle;
-                    acc.ecoDevVisitor += classifyChargeRow(c).ecoDevVisitor;
-                    acc.ecoDevVehicle += classifyChargeRow(c).ecoDevVehicle;
-                    acc.vehicleRent += classifyChargeRow(c).vehicleRent;
-                    acc.gst += classifyChargeRow(c).gst;
+                    acc.ecoDevVisitor   += classifyChargeRow(c).ecoDevVisitor;
+                    acc.ecoDevVehicle   += classifyChargeRow(c).ecoDevVehicle;
+                    acc.vehicleRent     += classifyChargeRow(c).vehicleRent;
+                    acc.gst             += classifyChargeRow(c).gst;
                     return acc;
                   },
                   { entryFeeVisitor: 0, entryFeeVehicle: 0, ecoDevVisitor: 0, ecoDevVehicle: 0, vehicleRent: 0, gst: 0 },
                 );
 
-                const entryFeeVisitor = invChargeRows.length
-                  ? invChargesTotals.entryFeeVisitor
+                const entryFeeVisitor = invChargeRows.length ? invChargesTotals.entryFeeVisitor
                   : (invComputed.entryFeeVisitor || pickNum(b, 'entryFeeVisitor', 'entryFeesVisitor', 'visitorEntryFee', 'visitorEntryFees', 'touristEntryFee', 'touristEntryFees', 'entryFee', 'entryFees', 'entryFeeAmount', 'entryFeesAmount'));
-                const entryFeeVehicle = invChargeRows.length
-                  ? invChargesTotals.entryFeeVehicle
+                const entryFeeVehicle = invChargeRows.length ? invChargesTotals.entryFeeVehicle
                   : (invComputed.entryFeeVehicle || pickNum(b, 'entryFeeVehicle', 'entryFeesVehicle', 'vehicleEntryFee', 'vehicleEntryFees', 'vehicleEntryFeeAmount'));
-                const ecoDevVisitor = invChargeRows.length
-                  ? invChargesTotals.ecoDevVisitor
+                const ecoDevVisitor   = invChargeRows.length ? invChargesTotals.ecoDevVisitor
                   : (invComputed.ecoDevVisitor || pickNum(b, 'ecoDevVisitor', 'ecoDevelopmentVisitor', 'ecodevVisitor', 'ecoDev', 'vfpmcCharges', 'vfpmcVisitor'));
-                const ecoDevVehicle = invChargeRows.length
-                  ? invChargesTotals.ecoDevVehicle
+                const ecoDevVehicle   = invChargeRows.length ? invChargesTotals.ecoDevVehicle
                   : (invComputed.ecoDevVehicle || pickNum(b, 'ecoDevVehicle', 'ecoDevelopmentVehicle', 'ecodevVehicle', 'vfpmcVehicle'));
-                const vehicleRent = invChargeRows.length
-                  ? invChargesTotals.vehicleRent
+                const vehicleRent     = invChargeRows.length ? invChargesTotals.vehicleRent
                   : (invComputed.vehicleRent || pickNum(b, 'vehicleRent', 'vehicleRentAmount', 'vehicleRentCharges', 'vehicleCharge', 'vehicleCharges'));
-                const gst = invChargeRows.length
-                  ? invChargesTotals.gst
+                const gst             = invChargeRows.length ? invChargesTotals.gst
                   : (invComputed.gst || pickNum(b, 'gst', 'gstAmount', 'gstCharges', 'tax', 'taxAmount'));
 
                 const rislCharge = (
-                  toNum(b?.rislCharges ?? b?.rislCharge ?? b?.platformCharges ?? b?.platformCharge) ||
+                  toNumLocal(b?.rislCharges ?? b?.rislCharge ?? b?.platformCharges ?? b?.platformCharge) ||
                   invComputed.rislCharge ||
-                  invChargeRows.reduce((s: number, c: any) => s + toNum(c?.rislCharges ?? c?.platformCharges), 0)
+                  invChargeRows.reduce((s: number, c: any) => s + toNumLocal(c?.rislCharges ?? c?.platformCharges), 0)
                 );
                 const surcharge = (
-                  toNum(b?.rpacsCharges ?? b?.rpacsCharge ?? b?.rpacs ?? b?.surcharge ?? b?.surCharge ?? b?.surchargeCharges) ||
+                  toNumLocal(b?.rpacsCharges ?? b?.rpacsCharge ?? b?.rpacs ?? b?.surcharge ?? b?.surCharge ?? b?.surchargeCharges) ||
                   invComputed.surcharge ||
-                  invChargeRows.reduce((s: number, c: any) => s + toNum(c?.rpacsCharges ?? c?.surcharge ?? c?.surCharge), 0)
+                  invChargeRows.reduce((s: number, c: any) => s + toNumLocal(c?.rpacsCharges ?? c?.surcharge ?? c?.surCharge), 0)
                 );
                 const addOnCharge = (
                   pickNum(b, 'addonTotal', 'addonCharges', 'addOnSurcharge', 'addonSurcharge', 'addOnCharge', 'addOnCharges') ||
                   invTickets.reduce((sum: number, t: any) => {
                     const items = Array.isArray(t?.addonItems) ? t.addonItems : [];
-                    return sum + items.reduce((s: number, a: any) => s + toNum(a?.totalAmount ?? a?.amount), 0);
+                    return sum + items.reduce((s: number, a: any) => s + toNumLocal(a?.totalAmount ?? a?.amount), 0);
                   }, 0)
                 );
+
                 return (
                   <div>
                     <div className="drawer-img" style={{ backgroundImage: `url('${fullImg}')` }}>
@@ -2414,13 +2343,11 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                             <div className="ticket-field-lbl" style={{ marginBottom: 6 }}>Visitors ({isInv ? invTotalVisitors : (b.totalUsers || 0)})</div>
                             <div className="ticket-visitors">
                               {isInv
-                                ? (
-                                  invVisitorNames.length > 0
-                                    ? invVisitorNames.map((name: string, i: number) => (
-                                      <div key={`${name}-${i}`} className="visitor-badge">👤 {name}</div>
-                                    ))
-                                    : <div className="visitor-badge">—</div>
-                                )
+                                ? (invVisitorNames.length > 0
+                                  ? invVisitorNames.map((name: string, i: number) => (
+                                    <div key={`${name}-${i}`} className="visitor-badge">👤 {name}</div>
+                                  ))
+                                  : <div className="visitor-badge">—</div>)
                                 : (b.ticketUserDto || []).map((t: any, i: number) => (
                                   <div key={i} className="visitor-badge">🎟 {t.ticketName} × {t.qty}</div>
                                 ))}
@@ -2447,15 +2374,14 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                               </div>
                               <div className="ticket-row">
                                 <div className="ticket-field"><div className="ticket-field-lbl">RISL Charges</div><div className="ticket-field-val">₹{rislCharge.toFixed(2)}</div></div>
-                                <div className="ticket-field"><div className="ticket-field-lbl">Grand Total</div><div className="ticket-field-val">₹{toNum(b.totalAmount).toFixed(2)}</div></div>
+                                <div className="ticket-field"><div className="ticket-field-lbl">Grand Total</div><div className="ticket-field-val">₹{toNumLocal(b.totalAmount).toFixed(2)}</div></div>
                               </div>
                             </div>
                           )}
-                          {/* QR Code — only when payment succeeded */}
                           {isPaymentSuccess(b) && (b.qrDetail || b.id) && (
                             (() => {
                               const qrValue = b.qrDetail || JSON.stringify({ type: 'BOOKING', data: { ticketBookingId: b.id || b.bookingId } });
-                              const qrUrl = generateQrDataUrl(qrValue);
+                              const qrUrl   = generateQrDataUrl(qrValue);
                               return (
                                 <div style={{ textAlign: 'center', padding: '14px 0', cursor: 'pointer' }} onClick={() => { setQrData(qrValue); setQrModalOpen(true); }}>
                                   <div className="ticket-field-lbl">QR Code</div>
@@ -2474,22 +2400,12 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                         </div>
                         <div className="ticket-total-bar">
                           <span className="ttb-lbl">{b.cancelled || b.refund ? 'Refunded Amount' : 'Total Amount Paid'}</span>
-                          <span className="ttb-val">₹{toNum(b.totalAmount).toFixed(2)}</span>
+                          <span className="ttb-val">₹{toNumLocal(b.totalAmount).toFixed(2)}</span>
                         </div>
                       </div>
-                      {/* Transaction Details — visible whenever the booking carries a real
-                          transactionId (post-payment-success). Mirrors old DownloadJkkUI. */}
+
                       {b.transactionId && String(b.transactionId) !== '0' && (
-                        <div
-                          style={{
-                            background: '#FDF2F8',
-                            border: '1px solid #F9C8D8',
-                            borderLeft: '4px solid #BE185D',
-                            borderRadius: 12,
-                            padding: 16,
-                            marginTop: 14,
-                          }}
-                        >
+                        <div style={{ background: '#FDF2F8', border: '1px solid #F9C8D8', borderLeft: '4px solid #BE185D', borderRadius: 12, padding: 16, marginTop: 14 }}>
                           <div style={{ fontSize: 14, fontWeight: 700, color: '#831843', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid #F9C8D8' }}>
                             Transaction Details
                           </div>
@@ -2502,29 +2418,24 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                               <>
                                 <div>
                                   <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 4 }}>Transaction Date</div>
-                                  <div style={{ fontSize: 13, fontWeight: 600, color: '#323232' }}>
-                                    {moment(Number(b.transactionDate)).format('DD MMM YYYY')}
-                                  </div>
+                                  <div style={{ fontSize: 13, fontWeight: 600, color: '#323232' }}>{moment(Number(b.transactionDate)).format('DD MMM YYYY')}</div>
                                 </div>
                                 <div>
                                   <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 4 }}>Transaction Time</div>
-                                  <div style={{ fontSize: 13, fontWeight: 600, color: '#323232' }}>
-                                    {moment(Number(b.transactionDate)).format('h:mm:ss A')}
-                                  </div>
+                                  <div style={{ fontSize: 13, fontWeight: 600, color: '#323232' }}>{moment(Number(b.transactionDate)).format('h:mm:ss A')}</div>
                                 </div>
                               </>
                             )}
                           </div>
                         </div>
                       )}
+
                       <div className="drawer-actions">
-                        {/* Print / Download — successful bookings, OR live JKK applications (not failed / not rejected) */}
                         {((isPaymentSuccess(b) && !b.cancelled && !b.refund) || canViewJkkApplication(b)) && (
                           <button className="btn-drawer btn-drawer-primary" disabled={isGen} onClick={() => handleDownloadTicket(b)}>
                             {isGen ? '⏳ Generating...' : (isJkkBooking(b) && !isPaymentSuccess(b) ? '🖨 Print Application' : '🖨 Print / Download Ticket')}
                           </button>
                         )}
-                        {/* Print Boarding Pass — only when boarding pass has been generated */}
                         {b.boardingPassId && isPaymentSuccess(b) && !b.cancelled && !b.refund && (
                           <button
                             className="btn-drawer btn-drawer-outline"
@@ -2534,16 +2445,11 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                             {boardingGenerating === bId ? '⏳ Loading…' : '🎫 Print Boarding Pass'}
                           </button>
                         )}
-                        {/* Pay Difference Amount — when diffAmount is owed */}
                         {Number(b.diffAmount) > 0 && b.diffAmountStatus !== 'SUCCESS' && !b.cancelled && !b.refund && (
-                          <button
-                            className="btn-drawer btn-drawer-primary"
-                            onClick={() => handlePayDifferenceAmount(b)}
-                          >
+                          <button className="btn-drawer btn-drawer-primary" onClick={() => handlePayDifferenceAmount(b)}>
                             {`💳 Pay Difference ₹${Number(b.diffAmount).toFixed(2)}`}
                           </button>
                         )}
-                        {/* Download Difference Amount Invoice — once diff payment succeeded */}
                         {b.diffAmountStatus === 'SUCCESS' && (
                           <button
                             className="btn-drawer btn-drawer-outline"
@@ -2553,7 +2459,6 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                             {diffInvoiceLoadingFor === bId ? '⏳ Loading…' : '📄 Difference Invoice'}
                           </button>
                         )}
-                        {/* Reverify Payment — for non-success bookings, within 5-min window */}
                         {!isPaymentSuccess(b) && !b.cancelled && !b.refund && isWithinReverifyWindow(b) && (
                           <button
                             className="btn-drawer btn-drawer-primary"
@@ -2563,12 +2468,6 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                             {reverifyMutation.isPending ? '⏳ Verifying…' : '🔄 Re-verify Payment'}
                           </button>
                         )}
-                        {/* {isPaymentSuccess(b) && isCheckinEligible(b) && (
-                          <button className="btn-drawer btn-drawer-outline" style={{ borderColor: '#2E7D32', color: '#2E7D32' }} onClick={() => handleWebCheckIn(b)}>
-                            ✓ Web Check-in
-                          </button>
-                        )} */}
-                        {/* JKK Make Payment — only when APPROVED + payment not yet done */}
                         {canMakeJkkPayment(b) && (
                           <button
                             className="btn-drawer btn-drawer-primary"
@@ -2586,10 +2485,12 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                           </div>
                         )}
                         {isPaymentSuccess(b) && (
-                          <button className="btn-drawer btn-drawer-outline" onClick={() => openShareModalForBooking(b)}>📤 Share Ticket</button>
+                          <button className="btn-drawer btn-drawer-outline" onClick={() => void openShareModalForBooking(b)}>📤 Share Ticket</button>
                         )}
                         <button className="btn-drawer btn-drawer-outline" onClick={() => openRaiseIssue(b)}>🛟 Raise Issue</button>
-                        {isPaymentSuccess(b) && canCancel(b) && <button className="btn-drawer btn-drawer-danger" onClick={() => handleCancelClick(b)}>✕ Cancel Booking</button>}
+                        {isPaymentSuccess(b) && canCancel(b) && (
+                          <button className="btn-drawer btn-drawer-danger" onClick={() => handleCancelClick(b)}>✕ Cancel Booking</button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -2639,7 +2540,8 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                     ].map(({ lbl, key }) => (
                       <div className="form-group" key={key}>
                         <label className="form-label">{lbl}</label>
-                        <input type="text" className="form-input" value={(bankForm as any)[key]}
+                        <input
+                          type="text" className="form-input" value={(bankForm as any)[key]}
                           onChange={(e) => {
                             let v = e.target.value;
                             if (key === 'acNumber')  v = v.replace(/[^0-9]/g, '');
@@ -2706,21 +2608,36 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                 </div>
                 <div className="modal-body" style={{ paddingTop: 16 }}>
                   <div style={{ fontSize: 12, color: '#7A6A58', marginBottom: 18 }}>
-                    Choose an app to share the ticket PDF for booking #{shareBooking.bookingId || shareBooking.id}
+                    On mobile, tapping a platform opens your device&apos;s share sheet where you can choose the app.
+                    On desktop, the ticket PDF is downloaded so you can attach it manually.
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
                     {[
                       {
-                        key: 'facebook', label: 'Facebook', bg: '#E8F0FE', color: '#1877F2',
-                        icon: (<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M13.5 22v-8h2.7l.4-3h-3.1V9.1c0-.9.3-1.6 1.7-1.6h1.5V4.8c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4V11H8v3h2.5v8h3z"/></svg>),
+                        key: 'whatsapp', label: 'WhatsApp', bg: '#E8F8EF', color: '#25D366',
+                        icon: (
+                          <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                            <path d="M20.5 11.8c0 4.7-3.8 8.5-8.5 8.5-1.5 0-2.9-.4-4.2-1.1L3 20.5l1.3-4.6A8.4 8.4 0 0 1 3.5 12c0-4.7 3.8-8.5 8.5-8.5s8.5 3.8 8.5 8.3zm-8.5-7a7 7 0 0 0-6.1 10.4l.3.5-.8 2.8 2.8-.8.5.3a7 7 0 1 0 3.3-13.2zm4.1 8.9c-.2-.1-1.2-.6-1.4-.7-.2-.1-.3-.1-.4.1l-.6.7c-.1.1-.2.2-.4.1-.2-.1-.8-.3-1.5-1-.6-.6-1-1.3-1.1-1.5-.1-.2 0-.3.1-.4l.3-.3.2-.3.1-.3c0-.1 0-.2 0-.3l-.7-1.6c-.2-.4-.3-.3-.4-.3h-.4c-.1 0-.3.1-.4.2-.1.1-.6.5-.6 1.3s.6 1.5.7 1.6c.1.1 1.2 1.8 3 2.5 1.8.8 1.8.5 2.2.5.4-.1 1.2-.5 1.4-1 .2-.5.2-.9.1-1 0-.1-.2-.1-.4-.2z"/>
+                          </svg>
+                        ),
                       },
                       {
-                        key: 'whatsapp', label: 'WhatsApp', bg: '#E8F8EF', color: '#25D366',
-                        icon: (<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M20.5 11.8c0 4.7-3.8 8.5-8.5 8.5-1.5 0-2.9-.4-4.2-1.1L3 20.5l1.3-4.6A8.4 8.4 0 0 1 3.5 12c0-4.7 3.8-8.5 8.5-8.5s8.5 3.8 8.5 8.3zm-8.5-7a7 7 0 0 0-6.1 10.4l.3.5-.8 2.8 2.8-.8.5.3a7 7 0 1 0 3.3-13.2zm4.1 8.9c-.2-.1-1.2-.6-1.4-.7-.2-.1-.3-.1-.4.1l-.6.7c-.1.1-.2.2-.4.1-.2-.1-.8-.3-1.5-1-.6-.6-1-1.3-1.1-1.5-.1-.2 0-.3.1-.4l.3-.3.2-.3.1-.3c0-.1 0-.2 0-.3l-.7-1.6c-.2-.4-.3-.3-.4-.3h-.4c-.1 0-.3.1-.4.2-.1.1-.6.5-.6 1.3s.6 1.5.7 1.6c.1.1 1.2 1.8 3 2.5 1.8.8 1.8.5 2.2.5.4-.1 1.2-.5 1.4-1 .2-.5.2-.9.1-1 0-.1-.2-.1-.4-.2z"/></svg>),
+                        key: 'facebook', label: 'Facebook', bg: '#E8F0FE', color: '#1877F2',
+                        icon: (
+                          <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                            <path d="M13.5 22v-8h2.7l.4-3h-3.1V9.1c0-.9.3-1.6 1.7-1.6h1.5V4.8c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4V11H8v3h2.5v8h3z"/>
+                          </svg>
+                        ),
                       },
                       {
                         key: 'instagram', label: 'Instagram', bg: '#FDF0F7', color: '#E1306C',
-                        icon: (<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>),
+                        icon: (
+                          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="3" y="3" width="18" height="18" rx="5"/>
+                            <circle cx="12" cy="12" r="4"/>
+                            <circle cx="17.5" cy="6.5" r="1"/>
+                          </svg>
+                        ),
                       },
                     ].map((item) => (
                       <button
@@ -2730,7 +2647,8 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
                         disabled={!!shareLoading}
                         style={{
                           border: '1px solid #E8DAC5', borderRadius: 16, background: '#fff',
-                          padding: '16px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
+                          padding: '16px 10px', display: 'flex', flexDirection: 'column',
+                          alignItems: 'center', gap: 10,
                           cursor: shareLoading ? 'not-allowed' : 'pointer',
                           opacity: shareLoading && shareLoading !== item.key ? 0.55 : 1,
                         }}
@@ -2756,9 +2674,6 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
   );
 }
 
-// Next.js 16 requires `useSearchParams()` consumers to sit inside a Suspense
-// boundary so the static shell can prerender while the params-dependent UI
-// resolves on the client.
 export default function MyBookingsPage() {
   return (
     <Suspense fallback={null}>
