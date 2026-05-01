@@ -38,6 +38,17 @@ query FetchHomeData {
                 }
               }
             }
+            card {
+              slideTitle
+              slideDescription
+              image {
+                data {
+                  attributes {
+                    url
+                  }
+                }
+              }
+            }
           }
 
           ... on ComponentHomeDiscoverRealBeauty {
