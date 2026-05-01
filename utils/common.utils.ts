@@ -12,24 +12,24 @@ import { useAuthStore } from "@/store/useAuthStore";
 // utils/common.utils.ts
 
 
-export const handleLogout = async () => {
-  console.clear();
-  console.log("Logging out...");
-
-  // Clear cookies
-  await deleteCookie(AUTHENTICATION_TOKEN);
-  await deleteCookie(SSO_TOKEN);
-  await deleteCookie(LOGGEDIN_USER_DATA);
-
-  // Clear localStorage
-  localStorage.clear();
-
-  // Reset Zustand store
+/**
+ * Tears down the auth session everywhere it's persisted, without navigating.
+ * Use this for soft logouts (e.g. token expiry) where we want the UI to reflect
+ * a logged-out state immediately but keep the user on the current page.
+ */
+export const clearAuthSession = () => {
+  try {
+    deleteCookie(AUTHENTICATION_TOKEN);
+    deleteCookie(SSO_TOKEN);
+    deleteCookie(LOGGEDIN_USER_DATA);
+  } catch {}
+  try { localStorage.clear(); } catch {}
   useAuthStore.getState().reset();
+};
 
-  // Redirect to login or home
-   window.location.href = "/";
-  location.reload();
+export const handleLogout = () => {
+  clearAuthSession();
+  window.location.href = "/";
 };
 
 export const redirectToExternalLink = (

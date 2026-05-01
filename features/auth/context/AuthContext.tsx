@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect } fr
 import { getCookie } from 'cookies-next';
 import { AuthUser, AuthModalType, LoginStep, LoginWith } from '@/features/auth/types';
 import { LOGGEDIN_USER_DATA } from '@/utils/constants/common.constants';
-import { handleLogout } from '@/utils/common.utils';
+import { handleLogout, clearAuthSession } from '@/utils/common.utils';
 
 type PostLoginAction = (() => void) | null;
 
@@ -20,6 +20,8 @@ interface AuthContextType {
   setLoginWith: (type: LoginWith) => void;
   setUser: (user: AuthUser) => void;
   logout: () => void;
+  /** Soft logout: clears auth state in place without navigating. */
+  clearSession: () => void;
   setPostLoginAction: (action: PostLoginAction) => void;
   postLoginAction: PostLoginAction;
   clearPostLoginAction: () => void;
@@ -83,6 +85,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUserState(u);
   }, []);
 
+  const clearSession = useCallback(() => {
+    setUserState(null);
+    clearAuthSession();
+  }, []);
+
   const logout = useCallback(() => {
     setUserState(null);
     handleLogout();
@@ -108,6 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoginWith,
     setUser,
     logout,
+    clearSession,
     setPostLoginAction,
     postLoginAction,
     clearPostLoginAction,

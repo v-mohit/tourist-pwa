@@ -13,16 +13,19 @@ import { useBooking } from '@/features/booking/context/BookingContext';
 export default function UnauthorizedHandler() {
   const isUnauthorized = useAuthStore((s) => s.isUnauthorized);
   const setIsUnauthorized = useAuthStore((s) => s.setIsUnauthorized);
-  const { openLoginModal } = useAuth();
+  const { user, openLoginModal, clearSession } = useAuth();
   const { closeBookingModal } = useBooking();
 
   useEffect(() => {
     if (!isUnauthorized) return;
 
     closeBookingModal();
+    // If a user was logged in, clear the session so the Header (and any other
+    // user-bound UI) flips to logged-out immediately — without a page refresh.
+    if (user) clearSession();
     openLoginModal();
     setIsUnauthorized(false);
-  }, [isUnauthorized, closeBookingModal, openLoginModal, setIsUnauthorized]);
+  }, [isUnauthorized, user, clearSession, closeBookingModal, openLoginModal, setIsUnauthorized]);
 
   return null;
 }
