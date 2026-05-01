@@ -19,6 +19,11 @@ import { ConfirmJkkBookingById } from '@/services/apiCalls/jkk.service';
 import { handlePaymentRedirect } from '@/features/booking/utils/payment';
 import { printBoardingPass } from '@/utils/printBoardingPass.utils';
 import { printDifferenceInvoice } from '@/utils/printDifferenceInvoice.utils';
+import {
+  buildInventoryShareFile,
+  buildSandstoneShareFile,
+  buildJkkShareFile,
+} from '@/utils/shareTicketPdf.utils';
 import { showErrorToastMessage, showSuccessToastMessage } from '@/utils/toast.utils';
 import moment from 'moment-timezone';
 import RaiseIssueModal from '@/features/booking/components/RaiseIssueModal';
@@ -681,154 +686,14 @@ function MyBookingsPageInner() {
   // ─── Share Ticket ──────────────────────────────────────────────────────────
 
   /**
-   * Generates a rich PDF that mirrors the ticket designs (charges, QR, etc.)
-   * and is used for both sharing and as a PDF fallback when the print popup
-   * isn't suitable (e.g. desktop share flow).
+   * Builds the rich PDF used for the Share Ticket flow.
+   * Dispatches to one of three distinct designs so each booking type
+   * (JKK / Inventory / Non-Inventory) has its own visual identity.
    */
   async function createShareTicketFile(ticket: any): Promise<File> {
-    const bookingId  = String(ticket.bookingId || ticket.id || '');
-    const placeName  = ticket.placeDetailDto?.name
-      || ticket.placeName
-      || ticket.packageDto?.packageName
-      || 'Booking';
-    const district   = ticket.placeDetailDto?.districtName || '';
-    const visitDate  = formatDate(ticket.bookingDate);
-    const bookedDate = formatDate(ticket.createdDate);
-    const totalAmt   = toNum(ticket.totalAmount).toFixed(2);
-    const isInv      = isInventoryType(ticket);
-    const shiftName  = ticket.shiftDto?.name || ticket.shiftName || '';
-    const zoneName   = ticket.zoneName || '';
-    const vehicleType = ticket.vehicleType || ticket.vendorInventoryDetails?.vehicleType || '';
-    const vehicleNo  = ticket.vendorInventoryDetails?.vehicleNumber || '';
-
-    const visitors: any[] = ticket.ticketUserDto || [];
-    const visitorText = visitors.length
-      ? visitors.map((v: any) => `${v.ticketName || 'Visitor'} x ${v.qty || 0}`).join(', ')
-      : `${ticket.totalUsers || 0} visitor(s)`;
-
-    const invTotals = computeInventoryChargeSummary(ticket);
-
-    const qrValue = ticket.qrDetail
-      || JSON.stringify({ type: 'BOOKING', data: { ticketBookingId: ticket.id || ticket.bookingId } });
-
-    const pdfDoc   = await PDFDocument.create();
-    const fontReg  = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-
-    const PW = 595.28, PH = 841.89, M = 40;
-    const orange = rgb(0.72, 0.29, 0.06);
-    const dark   = rgb(0.18, 0.12, 0.06);
-    const muted  = rgb(0.50, 0.43, 0.35);
-    const sand   = rgb(0.97, 0.93, 0.86);
-    const white  = rgb(1, 1, 1);
-
-    const page = pdfDoc.addPage([PW, PH]);
-
-    // ── Header band ─────────────────────────────────────────────────────────
-    page.drawRectangle({ x: 0, y: PH - 110, width: PW, height: 110, color: dark });
-    page.drawRectangle({ x: 0, y: PH - 115, width: PW, height: 5, color: orange });
-
-    page.drawText('Government of Rajasthan — OBMS', {
-      x: M, y: PH - 38, size: 10, font: fontBold, color: white,
-    });
-    page.drawText(isInv ? 'Official Entry Ticket' : 'Official Ticket', {
-      x: M, y: PH - 56, size: 12, font: fontBold, color: white,
-    });
-    page.drawText(placeName.slice(0, 60), {
-      x: M, y: PH - 80, size: 18, font: fontBold, color: white,
-    });
-    if (district) {
-      page.drawText(`${district}, Rajasthan`, {
-        x: M, y: PH - 100, size: 10, font: fontReg, color: rgb(0.75, 0.70, 0.65),
-      });
-    }
-
-    // ── QR code ──────────────────────────────────────────────────────────────
-    const qrDataUrl = generateQrDataUrl(qrValue);
-    if (qrDataUrl) {
-      try {
-        const qrImg = await pdfDoc.embedPng(dataUrlToBytes(qrDataUrl));
-        page.drawImage(qrImg, { x: PW - 120, y: PH - 105, width: 80, height: 80 });
-      } catch {}
-    }
-
-    // ── Booking info band ─────────────────────────────────────────────────────
-    page.drawRectangle({ x: M, y: PH - 225, width: PW - M * 2, height: 100, color: sand });
-
-    let y = PH - 148;
-    const row = (lbl: string, val: string) => {
-      page.drawText(lbl, { x: M + 12, y, size: 9,  font: fontBold, color: muted });
-      page.drawText(val || '—', { x: M + 150, y, size: 11, font: fontReg, color: dark });
-      y -= 20;
-    };
-    row('Booking ID',  `#${bookingId}`);
-    row('Visit Date',  visitDate);
-    row('Booked On',   bookedDate);
-    if (shiftName) row('Shift',    shiftName);
-    if (zoneName)  row('Zone',     zoneName);
-
-    y -= 12;
-
-    // ── Visitor section ───────────────────────────────────────────────────────
-    page.drawText('Visitor Details', { x: M, y, size: 13, font: fontBold, color: dark }); y -= 18;
-    for (const line of wrapLines(visitorText, 72)) {
-      page.drawText(line, { x: M, y, size: 11, font: fontReg, color: muted }); y -= 16;
-    }
-
-    // ── Charges (inventory only) ──────────────────────────────────────────────
-    if (isInv) {
-      y -= 12;
-      if (y > 160) {
-        page.drawText('Charges Summary', { x: M, y, size: 13, font: fontBold, color: dark }); y -= 18;
-
-        const chargeLines: Array<[string, number]> = [
-          ['Entry Fee (Visitor)',  invTotals.entryFeeVisitor],
-          ['Entry Fee (Vehicle)',  invTotals.entryFeeVehicle],
-          ['Eco Dev (Visitor)',    invTotals.ecoDevVisitor],
-          ['Eco Dev (Vehicle)',    invTotals.ecoDevVehicle],
-          ['Vehicle Rent',         invTotals.vehicleRent],
-          ['GST',                  invTotals.gst],
-          ['Surcharge (RPACS)',    invTotals.surcharge],
-          ['RISL Charges',         invTotals.rislCharge],
-        ].filter(([, v]) => toNum(v) > 0) as Array<[string, number]>;
-
-        for (const [lbl, val] of chargeLines) {
-          if (y < 120) break;
-          page.drawText(lbl, { x: M, y, size: 10, font: fontBold, color: muted });
-          page.drawText(`Rs. ${val.toFixed(2)}`, { x: PW - M - 90, y, size: 11, font: fontReg, color: dark });
-          y -= 15;
-        }
-
-        if (vehicleType && y > 110) {
-          y -= 4;
-          row('Vehicle', `${vehicleType}${vehicleNo ? ` (${vehicleNo})` : ''}`);
-        }
-      }
-    }
-
-    // ── Total bar ─────────────────────────────────────────────────────────────
-    const totalY = Math.min(y - 18, PH - 500);
-    page.drawRectangle({ x: M, y: totalY - 10, width: PW - M * 2, height: 32, color: rgb(0.98, 0.95, 0.88) });
-    page.drawText(`Total Amount Paid: Rs. ${totalAmt}`, {
-      x: M + 12, y: totalY + 6, size: 13, font: fontBold, color: orange,
-    });
-
-    // ── Footer ────────────────────────────────────────────────────────────────
-    page.drawLine({
-      start: { x: M, y: 60 }, end: { x: PW - M, y: 60 },
-      thickness: 0.5, color: rgb(0.80, 0.75, 0.68),
-    });
-    page.drawText('obms-tourist.rajasthan.gov.in  |  helpdesk.tourist@rajasthan.gov.in', {
-      x: M, y: 44, size: 9, font: fontReg, color: muted,
-    });
-    page.drawText('This is an official ticket generated from My Bookings — Rajasthan Tourism.', {
-      x: M, y: 30, size: 9, font: fontReg, color: muted,
-    });
-
-    const bytes = await pdfDoc.save();
-    const buf   = new ArrayBuffer(bytes.byteLength);
-    new Uint8Array(buf).set(bytes);
-    return new File([buf], `ticket_${bookingId}.pdf`, { type: 'application/pdf' });
+    if (isJkkBooking(ticket))      return buildJkkShareFile(ticket);
+    if (isInventoryType(ticket))   return buildInventoryShareFile(ticket);
+    return buildSandstoneShareFile(ticket);
   }
 
   /**
