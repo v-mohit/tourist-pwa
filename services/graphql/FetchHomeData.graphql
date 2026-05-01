@@ -27,21 +27,6 @@ query FetchHomeData {
         home {
           __typename
 
-          ... on ComponentHomeHeroSection  {
-            slideName
-            heroSlideCard {
-              title
-              description
-              image {
-                data {
-                  attributes {
-                    url
-                  }
-                }
-              }
-            }
-          }
-
           ... on ComponentHomeSlider {
             id
             Title
