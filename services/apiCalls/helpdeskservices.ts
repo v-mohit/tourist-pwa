@@ -64,7 +64,7 @@ export const GetFilterBookingId = ({ placeId, issueType, size , offset , paginat
     retry: false,
   });
 };
-export const GetUserIssueResult = ({ bookingId, issueType }: any) => {
+export const GetUserIssueResult = ({ bookingId, issueType, enabled = true }: any) => {
   return useQuery({
     queryKey: [queryKeys.getUserIssueResult, { bookingId, issueType }],
     queryFn: async () => {
@@ -77,12 +77,12 @@ export const GetUserIssueResult = ({ bookingId, issueType }: any) => {
       );
       return data;
     },
-    //enabled: !isEmpty(districtId),
+    enabled: !!enabled && !!bookingId && !!issueType,
     retry: false,
   });
 };
 
-export const GetDownloadTicketById= (id: string,callApi: boolean) => {
+export const GetDownloadTicketById = (id: string, callApi = true) => {
   return useQuery({
     queryKey: [queryKeys.getTicketDownloadById, { id }],
     queryFn: async () => {
@@ -91,7 +91,7 @@ export const GetDownloadTicketById= (id: string,callApi: boolean) => {
       );
       return data;
     },
-    //enabled: !isEmpty(districtId),
+    enabled: !!callApi && !!id,
     retry: false,
   });
 };
