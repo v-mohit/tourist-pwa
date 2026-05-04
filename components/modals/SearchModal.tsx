@@ -32,7 +32,6 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, setIsOpen }) => {
       TransitionComponent={Transition}
       fullWidth
       maxWidth="sm"
-      zIndex={10000}
       sx={{
         zIndex: 10000,
       }}
