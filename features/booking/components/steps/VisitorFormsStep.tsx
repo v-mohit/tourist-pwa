@@ -31,6 +31,17 @@ function setAddonCount(ids: string[], addonId: string, qty: number): string[] {
   return next;
 }
 
+/**
+ * Some add-ons are physically singular for the whole booking — e.g. the
+ * "Shikar Hodi" hide at Jhalana Leopard Safari is one fixed structure, so
+ * only one tourist in the entire booking can claim it. UI for these is
+ * a checkbox (qty 0 or 1) and only one visitor can hold it.
+ */
+function isSinglePickAddon(addon: AddonItem | { name?: string }): boolean {
+  const name = String((addon as any)?.name || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  return name.includes('shikar hodi') || name.includes('shikarhodi');
+}
+
 interface Props {
   state: BookingState;
   onUpdate: (patch: Partial<BookingState>) => void;
@@ -186,6 +197,40 @@ function StandardVisitorForms({ state, onUpdate, onNext, onBack }: Props) {
                     {addons.map((addon) => {
                       const qty = countAddon(form.addonItemIds, addon.id);
                       const selected = qty > 0;
+
+                      // Single-pick add-ons (e.g. Shikar Hodi) — one per booking, rendered as a checkbox.
+                      if (isSinglePickAddon(addon)) {
+                        const usedByOtherForms = state.visitorForms.reduce(
+                          (sum, otherForm, otherIdx) => otherIdx === idx ? sum : sum + countAddon(otherForm.addonItemIds, addon.id),
+                          0,
+                        );
+                        const locked = usedByOtherForms > 0 && !selected;
+                        return (
+                          <div
+                            key={addon.id}
+                            className={`flex items-center justify-between p-2.5 rounded-[8px] border transition-all ${selected ? 'border-[#E8631A] bg-[#FFF5EE]' : locked ? 'border-[#E8DAC5] bg-[#F5F5F5] opacity-70' : 'border-[#E8DAC5]'}`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={selected}
+                                disabled={locked}
+                                onChange={() => setAddonQty(idx, addon.id, selected ? 0 : 1)}
+                                className="accent-[#E8631A]"
+                                aria-label={`${addon.name} — single-pick add-on`}
+                              />
+                              <div className="flex flex-col">
+                                <span className="text-xs font-medium text-[#2C2017]">{addon.name}</span>
+                                <span className="text-[10px] text-[#E8631A] font-bold">+₹{addon.totalAmount ?? addon.amount} · one per booking</span>
+                              </div>
+                            </div>
+                            {locked && (
+                              <span className="text-[10px] text-[#7A6A58] italic">Already added by another tourist</span>
+                            )}
+                          </div>
+                        );
+                      }
+
                       return (
                         <div
                           key={addon.id}
@@ -598,6 +643,41 @@ function InventoryVisitorForms({ state, onUpdate, onNext, onBack }: Props) {
                   const qty = countAddon(current.addonItemIds, addon.id);
                   const selected = qty > 0;
                   const selectedChoice = selectedChoiceSelections.find((item) => item.addonItemId === addon.id);
+
+                  // Single-pick add-ons (e.g. Shikar Hodi) — one per booking, rendered as a checkbox.
+                  if (isSinglePickAddon(addon)) {
+                    const usedByOthers = state.visitorForms.reduce(
+                      (sum, savedForm, savedIdx) => savedIdx === editIndex ? sum : sum + countAddon(savedForm.addonItemIds, addon.id),
+                      0,
+                    );
+                    const locked = usedByOthers > 0 && !selected;
+                    return (
+                      <div
+                        key={addon.id}
+                        className={`flex items-center justify-between p-2.5 rounded-[8px] border transition-all ${selected ? 'border-[#E8631A] bg-[#FFF5EE]' : locked ? 'border-[#E8DAC5] bg-[#F5F5F5] opacity-70' : 'border-[#E8DAC5]'}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={selected}
+                            disabled={locked}
+                            onChange={() => setAddonQty(addon.id, selected ? 0 : 1)}
+                            className="accent-[#E8631A]"
+                            aria-label={`${addon.name} — single-pick add-on`}
+                          />
+                          <div className="flex flex-col">
+                            <span className="text-xs font-medium text-[#2C2017]">
+                              {addon.name} {addon.totalAmount ? `(₹${addon.totalAmount})` : ''}
+                            </span>
+                            <span className="text-[10px] text-[#7A6A58]">One per booking</span>
+                          </div>
+                        </div>
+                        {locked && (
+                          <span className="text-[10px] text-[#7A6A58] italic">Already added</span>
+                        )}
+                      </div>
+                    );
+                  }
 
                   if (addon.choiceAddOnVehicle || addon.choiceAddOnGuide) {
                     const isTakenByAnotherSelection = globallySelectedChoiceAddonIds.has(addon.id) && editIndex === null;

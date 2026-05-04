@@ -220,29 +220,56 @@ export default function ReviewPayStep({ state, onBack }: Props) {
     return sum + price * quantity;
   }, 0);
 
-  const countedChoiceAddonIds = new Set<string>();
-  const addonTotal = selectedTickets.reduce((sum, { ticketType }) => {
-    const addons = state.addonsMap[ticketType.id] ?? [];
-    const selectedChoiceIds = new Set((state.choiceAddonSelections[ticketType.id] ?? []).map((item) => item.addonItemId));
+  // ─── Add-on breakdown (qty + price per add-on, aggregated across visitors) ───
+  // Mirrors ticket-type rendering: shows "Camera × 3 — ₹150" instead of a
+  // single lump-sum "Add-ons" line so users can verify their selections.
+  type AddonBreakdownRow = { id: string; name: string; qty: number; unitPrice: number; total: number };
+  const addonBreakdown: AddonBreakdownRow[] = (() => {
+    const counts = new Map<string, number>();
+    const meta   = new Map<string, { name: string; unitPrice: number }>();
+    const counted = new Set<string>();
 
-    const perTouristAddonTotal = visitorForms
-      .filter((form) => form.ticketTypeId === ticketType.id)
-      .reduce((ticketSum, form) => ticketSum + form.addonItemIds
-        .filter((id) => !selectedChoiceIds.has(id))
-        .reduce((s, id) => {
-          const addon = addons.find((a) => a.id === id);
-          return s + (addon?.totalAmount ?? addon?.amount ?? 0);
-        }, 0), 0);
+    for (const { ticketType } of selectedTickets) {
+      const addons = state.addonsMap[ticketType.id] ?? [];
+      const choiceSelections = state.choiceAddonSelections[ticketType.id] ?? [];
+      const choiceIds = new Set(choiceSelections.map((c) => c.addonItemId));
 
-    const bookingLevelChoiceTotal = (state.choiceAddonSelections[ticketType.id] ?? []).reduce((ticketSum, selection) => {
-      if (countedChoiceAddonIds.has(selection.addonItemId)) return ticketSum;
-      countedChoiceAddonIds.add(selection.addonItemId);
-      const addon = addons.find((item) => item.id === selection.addonItemId);
-      return ticketSum + (addon?.totalAmount ?? addon?.amount ?? 0);
-    }, 0);
+      // Per-visitor add-ons: each occurrence in addonItemIds counts as one unit.
+      visitorForms
+        .filter((form) => form.ticketTypeId === ticketType.id)
+        .forEach((form) => {
+          for (const addonId of form.addonItemIds) {
+            if (choiceIds.has(addonId)) continue;
+            counts.set(addonId, (counts.get(addonId) ?? 0) + 1);
+            if (!meta.has(addonId)) {
+              const a = addons.find((x) => x.id === addonId);
+              if (a) meta.set(addonId, { name: a.name, unitPrice: a.totalAmount ?? a.amount ?? 0 });
+            }
+          }
+        });
 
-    return sum + perTouristAddonTotal + bookingLevelChoiceTotal;
-  }, 0);
+      // Booking-level choice add-ons (vehicle / guide) — qty 1 per booking.
+      choiceSelections.forEach((sel) => {
+        if (counted.has(sel.addonItemId)) return;
+        counted.add(sel.addonItemId);
+        counts.set(sel.addonItemId, (counts.get(sel.addonItemId) ?? 0) + 1);
+        if (!meta.has(sel.addonItemId)) {
+          const a = addons.find((x) => x.id === sel.addonItemId);
+          if (a) meta.set(sel.addonItemId, { name: a.name, unitPrice: a.totalAmount ?? a.amount ?? 0 });
+        }
+      });
+    }
+
+    const rows: AddonBreakdownRow[] = [];
+    counts.forEach((qty, id) => {
+      const m = meta.get(id);
+      if (!m) return;
+      rows.push({ id, name: m.name, qty, unitPrice: m.unitPrice, total: m.unitPrice * qty });
+    });
+    return rows;
+  })();
+
+  const addonTotal = addonBreakdown.reduce((s, r) => s + r.total, 0);
 
   function displayOrHideCharge(configItem: TicketTypeConfigItem) {
     const amount = configItem.amount ?? configItem.totalAmount ?? 0;
@@ -442,10 +469,23 @@ export default function ReviewPayStep({ state, onBack }: Props) {
           );
         })}
 
-        {addonTotal > 0 && (
-          <div className="flex items-center justify-between text-sm pt-1 border-t border-[#E8DAC5]">
-            <span className="text-[#7A6A58]">Add-ons</span>
-            <span className="font-semibold text-[#2C2017]">{formatRupees(addonTotal)}</span>
+        {addonBreakdown.length > 0 && (
+          <div className="pt-1 border-t border-[#E8DAC5] space-y-1.5">
+            <div className="text-[10px] font-bold text-[#7A6A58] uppercase tracking-[0.3px]">Add-ons</div>
+            {addonBreakdown.map((row) => (
+              <div key={row.id} className="flex items-center justify-between text-sm">
+                <span className="text-[#2C2017]">
+                  {row.name} × {row.qty}
+                </span>
+                <span className="font-semibold text-[#2C2017]">{formatRupees(row.total)}</span>
+              </div>
+            ))}
+            {addonBreakdown.length > 1 && (
+              <div className="flex items-center justify-between text-xs pt-1 border-t border-dashed border-[#E8DAC5]">
+                <span className="text-[#7A6A58]">Add-ons subtotal</span>
+                <span className="font-semibold text-[#2C2017]">{formatRupees(addonTotal)}</span>
+              </div>
+            )}
           </div>
         )}
 

@@ -26,7 +26,17 @@ const ALLOWED_FILE_TYPES = [
   "image/png",
   "application/pdf",
 ];
+const ALLOWED_FILE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".pdf"];
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+
+// Some browsers/OS combinations report unusual MIME types for valid documents
+// (Safari/iOS often reports "" or "application/octet-stream" for PDFs).
+// Fall back to the file extension so we don't silently reject good files.
+function isAllowedFile(file: File): boolean {
+  if (ALLOWED_FILE_TYPES.includes(file.type)) return true;
+  const name = (file.name || "").toLowerCase();
+  return ALLOWED_FILE_EXTENSIONS.some((ext) => name.endsWith(ext));
+}
 
 // `<input type="date">` returns a YYYY-MM-DD string. `new Date(s).getTime()`
 // parses that as UTC midnight, but the backend keys JKK records off the IST
@@ -300,8 +310,27 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
     jkk.selectedCategory?.name?.toLowerCase?.()?.includes("place") ?? false;
   const categoryOptions = isGalleries ? GALLERY_CATEGORIES : PLACES_CATEGORIES;
 
+  // Prep-day venues (Shilpgram, South Extension) can appear at the sub-category
+  // level OR the place-type level OR be passed in directly via the venue
+  // tile's preferredVenueName. Match against all of those, with parentheticals
+  // stripped and whitespace normalised so e.g. "Shilpgram (Open Air)" still hits.
+  const normaliseVenue = (s: any) =>
+    String(s ?? "")
+      .toLowerCase()
+      .replace(/\(.*?\)/g, " ")
+      .replace(/[^a-z0-9 ]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  const venueNamePool = [
+    jkk.selectedSubCategory?.name,
+    jkk.selectedPlaceType?.name,
+    state.config.preferredVenueName,
+    state.config.placeName,
+  ]
+    .filter(Boolean)
+    .map(normaliseVenue);
   const needsPrepDays = PREP_DAY_VENUES.some((v) =>
-    jkk.selectedSubCategory?.name?.toLowerCase?.()?.includes(v),
+    venueNamePool.some((n) => n.includes(v)),
   );
 
   const showProjector = (ticketConfigs as any[]).some((t: any) =>
@@ -530,7 +559,7 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
     currentCount: number,
     isSingle = false,
   ) {
-    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+    if (!isAllowedFile(file)) {
       showErrorToastMessage(
         "Only JPG, JPEG, PNG images or PDF files are allowed.",
       );
@@ -547,7 +576,12 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
     setUploading(true);
     try {
       const result = await fileUpload.mutateAsync(file);
-      const url = result?.url || result;
+      const url = (typeof result === "string" ? result : (result?.url || result?.imageUrl || "")) as string;
+      if (!url) {
+        showErrorToastMessage("Upload completed but no URL was returned. Please try again.");
+        setUploading(false);
+        return;
+      }
       if (isSingle) {
         setter(() => ({ url, name: file.name }));
       } else {
@@ -739,7 +773,7 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
                 type="file"
                 multiple
                 className="hidden"
-                accept=".jpg,.jpeg,.png,.pdf"
+                accept="image/png,image/jpeg,image/jpg,application/pdf,.png,.jpg,.jpeg,.pdf"
                 disabled={uploading}
                 onChange={async (e) => {
                   const picked = e.target.files;
@@ -748,7 +782,7 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
 
                   const valid: File[] = [];
                   for (const f of Array.from(picked)) {
-                    if (!ALLOWED_FILE_TYPES.includes(f.type)) {
+                    if (!isAllowedFile(f)) {
                       showErrorToastMessage(
                         "Only JPG, JPEG, PNG images or PDF files are allowed.",
                       );
@@ -773,11 +807,21 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
                     const uploaded = await Promise.all(
                       toUpload.map(async (f) => {
                         const result = await fileUpload.mutateAsync(f);
-                        const url = result?.url || result;
+                        const url = (typeof result === "string"
+                          ? result
+                          : (result?.url || result?.imageUrl || "")) as string;
                         return { url, name: f.name };
                       }),
                     );
-                    setter((prev) => [...prev, ...uploaded]);
+                    const okUploads = uploaded.filter((u) => !!u.url);
+                    if (okUploads.length < uploaded.length) {
+                      showErrorToastMessage(
+                        "Some files uploaded with no URL. Please try again.",
+                      );
+                    }
+                    if (okUploads.length > 0) {
+                      setter((prev) => [...prev, ...okUploads]);
+                    }
                   } catch {
                     /* handled by hook */
                   }
@@ -815,7 +859,7 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
             <input
               type="file"
               className="hidden"
-              accept=".jpg,.jpeg,.png,.pdf"
+              accept="image/png,image/jpeg,image/jpg,application/pdf,.png,.jpg,.jpeg,.pdf"
               disabled={disabled || uploading}
               onChange={(e) => {
                 const file = e.target.files?.[0];
@@ -1015,7 +1059,7 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
         </div>
 
         {/* Preparation days — only for Shilpgram / South Extension */}
-        {jkk.selectedSubCategory && needsPrepDays && (
+        {needsPrepDays && (
           <div>
             <label className={labelCls}>Preparation Days</label>
             <div className="flex gap-2">
