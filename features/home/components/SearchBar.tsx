@@ -10,12 +10,18 @@ import {
 import { graphqlClient } from "@/services/client";
 import { FetchHomeSearchDocument } from "@/generated/graphql";
 import { useRouter } from 'next/navigation'
+import clsx from "clsx";
 
 export interface SearchBarHandle {
   setValue: (value: string) => void;
 }
 
-const SearchBar = forwardRef<SearchBarHandle>((_, ref) => {
+interface SearchBarProps {
+  onSelect?: () => void;
+  variant?: "hero" | "modal";
+}
+
+const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(({ onSelect, variant = "hero" }, ref) => {
   const router = useRouter()
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<any>({});
@@ -45,37 +51,58 @@ const SearchBar = forwardRef<SearchBarHandle>((_, ref) => {
   }, []);
 
   // ✅ Group by category
- function groupByCategory(data: any[]) {
-  const map: Record<string, any[]> = {}
+  function groupByCategory(data: any[]) {
+    const map: Record<string, any[]> = {}
+    const cities: Record<string, any> = {}
 
-  data.forEach((place) => {
-    const attr = place.attributes
+    data.forEach((place) => {
+      const attr = place.attributes
 
-    const name = attr.name
-    const city = attr.city?.data?.attributes?.name
+      const name = attr.name
+      const cityName = attr.city?.data?.attributes?.name
+      const citySlug = attr.city?.data?.attributes?.cityDetail?.data?.attributes?.slug
+      const cityIcon = attr.city?.data?.attributes?.image?.data?.attributes?.url
 
-    const slug =
-      attr.placeDetail?.data?.attributes?.slug || null
+      const slug =
+        attr.placeDetail?.data?.attributes?.slug || null
 
-    const categories = attr.categories?.data || []
+      const categories = attr.categories?.data || []
 
-    categories.forEach((cat: any) => {
-      const catName = cat.attributes.Name
-      const icon = cat.attributes.icon?.data?.attributes?.url
+      if (cityName && citySlug) {
+        if (!cities[cityName]) {
+          cities[cityName] = {
+            name: cityName,
+            slug: citySlug,
+            icon: cityIcon,
+            isCity: true,
+          }
+        }
+      }
 
-      if (!map[catName]) map[catName] = []
+      categories.forEach((cat: any) => {
+        const catName = cat.attributes.Name
+        const icon = cat.attributes.icon?.data?.attributes?.url
 
-      map[catName].push({
-        name,
-        city,
-        icon,
-        slug, // ✅ add this
+        if (!map[catName]) map[catName] = []
+
+        map[catName].push({
+          name,
+          city: cityName,
+          icon,
+          slug,
+          isCity: false,
+        })
       })
     })
-  })
 
-  return map
-}
+    const result: Record<string, any[]> = { ...map }
+    const cityList = Object.values(cities)
+    if (cityList.length > 0) {
+      result["Cities"] = cityList
+    }
+
+    return result
+  }
 
   // ✅ Debounced API call
   useEffect(() => {
@@ -93,7 +120,7 @@ const SearchBar = forwardRef<SearchBarHandle>((_, ref) => {
         const res: any = await graphqlClient.request(FetchHomeSearchDocument, {
           searchKey: query,
           page: 1,
-          pageSize: 10,
+          pageSize: 20, // Increased size for better results
         });
 
         const places = res?.places?.data || [];
@@ -113,22 +140,29 @@ const SearchBar = forwardRef<SearchBarHandle>((_, ref) => {
     };
   }, [query]);
 
-function handleSelect(item: any) {
-  if (!item.slug) return
+  function handleSelect(item: any) {
+    if (!item.slug) return
 
-  setShowDropdown(false)
-  setQuery(item.name)
+    setShowDropdown(false)
+    setQuery(item.name)
 
-  router.push(`/place-detail/${item.slug}`) // ✅ navigate
-}
+    if (item.isCity) {
+      router.push(`/citydetail/${item.slug}`)
+    } else {
+      router.push(`/place-detail/${item.slug}`)
+    }
+    
+    if (onSelect) onSelect();
+  }
 
   return (
-    <div ref={containerRef} className="relative w-full">
-      <div className="hero-search">
+    <div ref={containerRef} className={clsx("relative w-full", variant === "modal" ? "search-modal-box" : "search-hero-box")}>
+      <div className={clsx("hero-search", variant === "modal" && "search-modal-input-container")}>
         <input
           ref={inputRef}
           type="text"
           placeholder="🔍 Search forts, wildlife, museums..."
+          className={clsx(variant === "modal" && "text-black")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => query && setShowDropdown(true)}
@@ -159,10 +193,12 @@ function handleSelect(item: any) {
                     onClick={() => handleSelect(item)}
                   >
                     <strong>{item.name}</strong>
-                    <span>
-                      <img src="/icons/google-maps.png" width={10} height={10} alt="Location" className="loc-ico mr-1" />
-                      {item.city}
-                    </span>
+                    {!item.isCity && item.city && (
+                      <span>
+                        <img src="/icons/google-maps.png" width={10} height={10} alt="Location" className="loc-ico mr-1" />
+                        {item.city}
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>

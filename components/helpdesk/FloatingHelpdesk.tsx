@@ -36,6 +36,7 @@ const FloatingHelpdesk = () => {
   const [subFlow, setSubFlow] = useState(false);
   const [selectedTxnId, setSelectedTxnId] = useState<string | null>(null);
   const [subOptions, setSubOptions] = useState<{ label: string, value: string }[]>([]);
+  const [pendingAction, setPendingAction] = useState<{ type: 'option' | 'message' | 'query', data: any } | null>(null);
 
   const userId = user?.sub || "";
 
@@ -103,6 +104,7 @@ const FloatingHelpdesk = () => {
 
   const handleOptionSelect = (option: { label: string, value: string }) => {
     if (!isAuthenticated) {
+      setPendingAction({ type: 'option', data: option });
       openLoginModal();
       return;
     }
@@ -152,6 +154,7 @@ const FloatingHelpdesk = () => {
 
   const handleChatSendMessage = () => {
     if (!isAuthenticated) {
+      setPendingAction({ type: 'message', data: chatInputValue });
       openLoginModal();
       return;
     }
@@ -172,6 +175,7 @@ const FloatingHelpdesk = () => {
 
   const handleQueryClick = (query: string) => {
     if (!isAuthenticated) {
+      setPendingAction({ type: 'query', data: query });
       openLoginModal();
       return;
     }
@@ -266,11 +270,24 @@ const FloatingHelpdesk = () => {
     }
   }, [messages, chatMessages, activeTab]);
 
-  const handleSendMessage = async () => {
-    if (!isAuthenticated) {
-      openLoginModal();
-      return;
+  // ✅ Resume pending action after login
+  useEffect(() => {
+    if (isAuthenticated && pendingAction) {
+      const { type, data } = pendingAction;
+      setPendingAction(null);
+
+      if (type === 'option') {
+        handleOptionSelect(data);
+      } else if (type === 'message') {
+        setChatInputValue(data);
+        setTimeout(() => handleChatSendMessage(), 0);
+      } else if (type === 'query') {
+        handleQueryClick(data);
+      }
     }
+  }, [isAuthenticated, pendingAction]);
+
+  const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
 
     const userMessage = inputValue.trim();
@@ -325,10 +342,6 @@ const FloatingHelpdesk = () => {
                 <button
                   key={tab}
                   onClick={() => {
-                    if ((tab === 'Chat' || tab === 'ChatbotAI') && !isAuthenticated) {
-                      openLoginModal();
-                      return;
-                    }
                     setActiveTab(tab as any);
                   }}
                   className={activeTab === tab ? "helpdesk-tab helpdesk-tab-active" : "helpdesk-tab"}
@@ -544,7 +557,7 @@ const FloatingHelpdesk = () => {
             aria-label="Open Chatbot"
           >
             <svg width="30" height="30" viewBox="0 0 30 30" fill="white">
-              <path d="M27.7666 26.5813C26.9563 24.1884 25.9478 21.1523 22.0314 21.1523H19.9106C20.5438 20.6457 21.1183 20.0695 21.5712 19.3945H22.0314C24.4544 19.3945 26.4259 17.423 26.4259 15C26.4259 13.7278 26.4259 12.7565 26.4259 11.4844C26.4259 5.1844 21.3001 0 15.0001 0C8.5565 0 3.4873 5.3563 3.5752 11.6329C3.5741 13.5683 3.5743 12.8646 3.5743 15C3.5743 17.423 5.5458 19.3945 7.9689 19.3945H8.429C8.8819 20.0695 9.4564 20.0695 10.0896 21.1523H7.9689C4.0524 21.1523 3.0439 24.1884 2.2336 26.5805C1.6607 28.2714 2.9886 30 4.7571 30H25.2432C27.0176 30 28.3377 28.2652 27.7666 26.5813Z"/>
+              <path d="M27.7666 26.5813C26.9563 24.1884 25.9478 21.1523 22.0314 21.1523H19.9106C20.5438 20.6457 21.1183 20.0695 21.5712 19.3945H22.0314C24.4544 19.3945 26.4259 17.423 26.4259 15C26.4259 13.7278 26.4259 12.7565 26.4259 11.4844C26.4259 5.1844 21.3001 0 15.0001 0C8.5565 0 3.4873 5.3563 3.5752 11.6329C3.5741 13.5683 3.5743 12.8646 3.5743 15C3.5743 17.423 5.5458 19.3945 7.9689 19.3945H8.429C8.8819 20.0695 9.4564 20.0695 10.0896 21.1523H7.9689C4.0524 21.1523 3.0439 24.1884 2.2336 26.5805C1.6607 28.2714 2.9886 30 4.7571 30H25.2432C27.0176 30 28.3377 28.2652 27.7666 26.5813Z" />
             </svg>
           </button>
 

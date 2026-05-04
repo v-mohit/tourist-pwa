@@ -8,6 +8,7 @@ import { useAuth } from "@/features/auth/context/AuthContext";
 import { GetUserDetails } from "@/services/apiCalls/login.service";
 import Image from "next/image";
 import SosPopup from "@/components/modals/SosPopup";
+import SearchModal from "@/components/modals/SearchModal";
 import { GetAllHelpDeskNotificationUpdate } from "@/services/apiCalls/helpdeskservices";
 
 export default function Header() {
@@ -17,6 +18,7 @@ export default function Header() {
   const [activeLink, setActiveLink] = useState("");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [isSosOpen, setIsSosOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const { user, openLoginModal, logout } = useAuth();
 
@@ -70,6 +72,12 @@ export default function Header() {
     return () => window.removeEventListener("app:openSos", handleOpenSos);
   }, []);
 
+  useEffect(() => {
+    const handleOpenSearch = () => setIsSearchOpen(true);
+    window.addEventListener("app:openSearch", handleOpenSearch);
+    return () => window.removeEventListener("app:openSearch", handleOpenSearch);
+  }, []);
+
   const handleNavClick = (href: string) => {
     setActiveLink(href);
     setIsDrawerOpen(false);
@@ -90,20 +98,20 @@ export default function Header() {
           router.push("/my-grievance");
         }}
         className={clsx(
-          "relative inline-flex items-center justify-center rounded-full border border-[#E8DAC5] bg-white text-[#7A6A58] transition-all hover:border-[#E8631A] hover:text-[#E8631A]",
+          "header-action-btn",
           mobile ? "h-11 w-11 self-start" : "h-10 w-10"
         )}
         aria-label="Open grievance notifications"
         title="Grievance notifications"
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-[18px] w-[18px]">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="header-nav-icon">
           <path d="M15 17h5l-1.4-1.4a2 2 0 0 1-.6-1.4V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5" />
           <path d="M10 20a2 2 0 0 0 4 0" />
         </svg>
         {notificationCount > 0 ? (
           <span
             className={clsx(
-              "absolute -right-1.5 -top-1.5 flex min-w-[20px] items-center justify-center rounded-full bg-[#DC2626] px-1 text-[10px] font-bold leading-5 text-white shadow-[0_4px_12px_rgba(220,38,38,0.25)]",
+              "header-notification-badge",
               notificationCount > 9 ? "h-5" : "h-5 w-5"
             )}
           >
@@ -114,9 +122,37 @@ export default function Header() {
     );
   };
 
+  const SearchIconButton = ({
+    mobile = false,
+  }: {
+    mobile?: boolean;
+  }) => {
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          setIsDrawerOpen(false);
+          setIsSearchOpen(true);
+        }}
+        className={clsx(
+          "header-action-btn",
+          mobile ? "h-11 w-11" : "h-10 w-10"
+        )}
+        aria-label="Search destinations"
+        title="Search"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="header-nav-icon">
+          <circle cx="11" cy="11" r="8" />
+          <path d="M21 21l-4.35-4.35" />
+        </svg>
+      </button>
+    );
+  };
+
   return (
     <>
       <SosPopup isOpen={isSosOpen} setIsOpen={setIsSosOpen} />
+      <SearchModal isOpen={isSearchOpen} setIsOpen={setIsSearchOpen} />
       {/* Navigation */}
       <nav className="header-nav">
         {/* Brand */}
@@ -148,7 +184,12 @@ export default function Header() {
               {link.label}
             </Link>
           ))}
-          {mounted && <NotificationBell />}
+          {mounted && (
+            <div className="flex items-center gap-2">
+              <SearchIconButton />
+              <NotificationBell />
+            </div>
+          )}
         </nav>
 
         {/* Right Actions */}
@@ -179,10 +220,10 @@ export default function Header() {
                   height="12"
                   viewBox="0 0 24 24"
                   fill="none"
-                  style={{
-                    transform: userMenuOpen ? "rotate(180deg)" : "rotate(0deg)",
-                    transition: "transform 0.2s ease",
-                  }}
+                  className={clsx(
+                    "header-dropdown-arrow",
+                    userMenuOpen && "header-dropdown-arrow-open"
+                  )}
                 >
                   <path
                     d="M6 9L12 15L18 9"
@@ -234,6 +275,10 @@ export default function Header() {
               Login
             </button>
           )}
+
+          <div className="lg:hidden">
+             <SearchIconButton mobile />
+          </div>
 
           <button
             onClick={() => setIsSosOpen(true)}

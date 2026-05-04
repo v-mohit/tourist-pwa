@@ -147,7 +147,7 @@ const ExploreSeeAll = ({ cityData }: any) => {
                 <div className="sa-img-inner" style={{ backgroundImage: `url('${city.img}')` }}></div>
                 <div className="sa-card-top">
                   <span className="sa-tag">{city.tag}</span>
-                  <span className="sa-rating-badge">⭐ {city.rating}</span>
+                  {/* <span className="sa-rating-badge">⭐ {city.rating}</span> */}
                 </div>
                 <div className="sa-img-foot">
                   <span className="sa-city-icon">{city.icon}</span>
