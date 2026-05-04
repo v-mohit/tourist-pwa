@@ -8548,3 +8548,42 @@ tourist stats style
   @apply w-full py-3.5 bg-[#2D2114] text-white font-medium rounded-[14px] transition-all active:scale-[0.97] mt-1 shadow-sm hover:bg-black;
   font-size: 15px;
 }
+
+/* Search Modal Styles */
+.search-modal-input-container {
+  background: rgba(44, 32, 23, 0.05) !important;
+  border-color: rgba(44, 32, 23, 0.1) !important;
+}
+
+.search-modal-input-container input {
+  color: var(--ink) !important;
+}
+
+.search-modal-input-container input::placeholder {
+  color: var(--mu) !important;
+}
+
+.search-modal-input-container .hero-sbtn {
+  box-shadow: none !important;
+}
+
+/* Header Component Styles */
+.header-action-btn {
+  @apply relative inline-flex items-center justify-center rounded-full border border-[#E8DAC5] bg-white text-[#7A6A58] transition-all hover:border-[#E8631A] hover:text-[#E8631A];
+}
+
+.header-nav-icon {
+  @apply h-[18px] w-[18px];
+}
+
+.header-notification-badge {
+  @apply absolute -right-1.5 -top-1.5 flex min-w-[20px] items-center justify-center rounded-full bg-[#DC2626] px-1 text-[10px] font-bold leading-5 text-white shadow-[0_4px_12px_rgba(220,38,38,0.25)];
+}
+
+.header-dropdown-arrow {
+  @apply transition-transform duration-200;
+}
+
+.header-dropdown-arrow-open {
+  @apply rotate-180;
+}
