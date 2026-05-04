@@ -155,19 +155,134 @@ function classifyChargeRow(row: any): {
   const isVehicle = label.includes('vehicle');
   const isVisitor = label.includes('visitor') || label.includes('tourist') || label.includes('person') || label.includes('pax');
 
-  if (isEntry && isVehicle)  return { ...direct, entryFeeVehicle: amount };
-  if (isEntry && isVisitor)  return { ...direct, entryFeeVisitor: amount };
+  if (label.includes('gst') || label.includes('tax')) return { ...direct, gst: amount };
+  if (isEntry && isVehicle) return { ...direct, entryFeeVehicle: amount };
+  if (isEntry && isVisitor) return { ...direct, entryFeeVisitor: amount };
+  if (isEntry && !isVehicle) return { ...direct, entryFeeVisitor: amount };
   if (label.includes('eco') || label.includes('ecodev') || label.includes('eco dev') || label.includes('vfpmc')) {
     if (isVehicle) return { ...direct, ecoDevVehicle: amount };
     if (isVisitor) return { ...direct, ecoDevVisitor: amount };
+    return { ...direct, ecoDevVisitor: amount };
   }
-  if (label.includes('rent'))   return { ...direct, vehicleRent: amount };
-  if (label.includes('guide'))  return { ...direct, guideFee: amount };
-  if (label.includes('gst') || label.includes('tax')) return { ...direct, gst: amount };
-  if (label.includes('tiger') || label.includes('trdf') || label.includes('development fund'))
+  if (label.includes('rent') || label.includes('gypsy') || label.includes('vehicle hire')) {
+    return { ...direct, vehicleRent: amount };
+  }
+  if (label.includes('guide')) return { ...direct, guideFee: amount };
+  if (
+    label.includes('tiger') ||
+    label.includes('trdf') ||
+    label.includes('development fund') ||
+    label.includes('tiger reserve development')
+  ) {
     return { ...direct, tigerReserveFund: amount };
+  }
 
   return direct;
+}
+
+/** Charge lines that belong in footer (RISL / add-on / RPACS), not per-visitor bifurcation — matches DownloadUI merged-charge handling. */
+function isBookingLevelChargeLine(row: any): boolean {
+  const label = normChargeName(resolveChargeLabel(row));
+  if (!label) return false;
+  if (label.includes('risl')) return true;
+  if (label.includes('platform') && (label.includes('fee') || label.includes('charge'))) return true;
+  if (label.includes('rpacs')) return true;
+  if (label.includes('addon') || label.includes('add on') || label.includes('add-on')) return true;
+  return false;
+}
+
+type InventoryChargeBuckets = ReturnType<typeof classifyChargeRow>;
+
+function emptyInventoryChargeBuckets(): InventoryChargeBuckets {
+  return {
+    entryFeeVisitor: 0, entryFeeVehicle: 0, ecoDevVisitor: 0, ecoDevVehicle: 0,
+    vehicleRent: 0, guideFee: 0, gst: 0, tigerReserveFund: 0,
+  };
+}
+
+function inventoryLinesForTicketUserDtoRow(v: any): any[] {
+  const cfgList = Array.isArray(v?.ticketTypeConfigValue?.ticketTypeConfigList)
+    ? v.ticketTypeConfigValue.ticketTypeConfigList
+    : [];
+  const fixList = Array.isArray(v?.fixCharges) ? v.fixCharges : [];
+  const tt = (cfgList.length ? cfgList : fixList);
+  const addons = (Array.isArray(v?.addonItems) ? v.addonItems : [])
+    .filter((a: any) => Number(a?.qty) > 0)
+    .flatMap((a: any) => (Array.isArray(a?.ticketTypeConfigList) ? a.ticketTypeConfigList : []));
+  return [...tt, ...addons];
+}
+
+/** Same merge as Booking.tsx → DownloadUI `mergedCharges`: per-visitor lines + shared `inventory.ticketTypeConfigList` on every row. */
+function mergeInventoryChargeLinesForRow(v: any, invShared: any[]): any[] {
+  const all = [...inventoryLinesForTicketUserDtoRow(v), ...invShared];
+  const seen = new Set<string>();
+  const out: any[] = [];
+  for (const it of all) {
+    const label = normChargeName(resolveChargeLabel(it));
+    const amount = pickNum(it, 'totalAmount', 'amount', 'chargeAmount', 'value');
+    const key = `${label}|${amount}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(it);
+  }
+  return out;
+}
+
+function aggregateInventoryChargeBuckets(lines: any[]): InventoryChargeBuckets {
+  const sums = emptyInventoryChargeBuckets();
+  for (const line of lines) {
+    if (isBookingLevelChargeLine(line)) continue;
+    const p = classifyChargeRow(line);
+    sums.entryFeeVisitor += p.entryFeeVisitor;
+    sums.entryFeeVehicle += p.entryFeeVehicle;
+    sums.ecoDevVisitor += p.ecoDevVisitor;
+    sums.ecoDevVehicle += p.ecoDevVehicle;
+    sums.tigerReserveFund += p.tigerReserveFund;
+    sums.vehicleRent += p.vehicleRent;
+    sums.guideFee += p.guideFee;
+    sums.gst += p.gst;
+  }
+  return sums;
+}
+
+function bucketsHaveAmount(b: InventoryChargeBuckets): boolean {
+  return !!(
+    b.entryFeeVisitor || b.entryFeeVehicle || b.ecoDevVisitor || b.ecoDevVehicle ||
+    b.tigerReserveFund || b.vehicleRent || b.guideFee || b.gst
+  );
+}
+
+function buildInventoryChargesBodyFromMergedDto(ticket: any): string {
+  const visitors: any[] = Array.isArray(ticket?.ticketUserDto) ? ticket.ticketUserDto : [];
+  const invShared: any[] = Array.isArray(ticket?.inventory?.ticketTypeConfigList)
+    ? ticket.inventory.ticketTypeConfigList
+    : [];
+  if (!visitors.length) return '';
+
+  let html = '';
+  let anyDetail = false;
+  for (const v of visitors) {
+    const qty = Number(v?.qty);
+    const qtySafe = Number.isFinite(qty) && qty > 0 ? qty : 1;
+    const lines = mergeInventoryChargeLinesForRow(v, invShared);
+    const b = aggregateInventoryChargeBuckets(lines);
+    if (!bucketsHaveAmount(b)) continue;
+    anyDetail = true;
+    const rowLabel = `${v.ticketName || 'Visitor'} × ${qtySafe}`;
+    html += `
+        <tr>
+          <td>${rowLabel}</td>
+          <td>₹ ${b.entryFeeVisitor.toFixed(2)}</td>
+          <td>₹ ${b.entryFeeVehicle.toFixed(2)}</td>
+          <td>₹ ${b.ecoDevVisitor.toFixed(2)}</td>
+          <td>₹ ${b.ecoDevVehicle.toFixed(2)}</td>
+          <td>₹ ${b.tigerReserveFund.toFixed(2)}</td>
+          <td>₹ ${b.vehicleRent.toFixed(2)}</td>
+          <td>₹ ${b.guideFee.toFixed(2)}</td>
+          <td>₹ ${b.gst.toFixed(2)}</td>
+        </tr>`;
+  }
+  return anyDetail ? html : '';
 }
 
 function computeInventoryChargeSummary(b: any): {
@@ -197,14 +312,16 @@ function computeInventoryChargeSummary(b: any): {
         : [];
 
     for (const c of charges) {
-      const amount = pickNum(c, 'amount', 'chargeAmount', 'totalAmount', 'value');
+      const qtySafe = qty > 0 ? qty : 1;
+      const totalAmount = pickNum(c, 'totalAmount');
+      const amount = totalAmount || (pickNum(c, 'amount', 'chargeAmount', 'value') * qtySafe);
       if (!amount) continue;
       const label = normChargeName(c?.name ?? c?.chargeName ?? c?.category ?? '');
 
-      if (label.includes('risl'))                                                          out.rislCharge   += amount * qty;
-      else if (label.includes('entry fee') || label === 'entry fee' || label === 'entry') out.entryFeeVisitor += amount * qty;
-      else if (label.includes('eco') || label.includes('eco surcharge') || label.includes('eco-surcharge')) out.ecoDevVisitor += amount * qty;
-      else if (label.includes('gst') || label.includes('tax'))                            out.gst          += amount * qty;
+      if (label.includes('risl'))                                                          out.rislCharge      += amount;
+      else if (label.includes('entry fee') || label === 'entry fee' || label === 'entry') out.entryFeeVisitor += amount;
+      else if (label.includes('eco') || label.includes('eco surcharge') || label.includes('eco-surcharge')) out.ecoDevVisitor += amount;
+      else if (label.includes('gst') || label.includes('tax'))                            out.gst             += amount;
     }
   }
 
@@ -212,16 +329,18 @@ function computeInventoryChargeSummary(b: any): {
   const invQty  = Number(inv?.qty ?? b?.totalUsers) || 0;
   const invConfigs: any[] = Array.isArray(inv?.ticketTypeConfigList) ? inv.ticketTypeConfigList : [];
   for (const cfg of invConfigs) {
-    const amount = pickNum(cfg, 'amount', 'chargeAmount', 'totalAmount', 'value');
+    const invQtySafe = invQty > 0 ? invQty : 1;
+    const totalAmount = pickNum(cfg, 'totalAmount');
+    const amount = totalAmount || (pickNum(cfg, 'amount', 'chargeAmount', 'value') * invQtySafe);
     if (!amount) continue;
     const label = normChargeName(cfg?.name ?? cfg?.chargeName ?? cfg?.category ?? '');
 
-    if (label.includes('risl'))                                    out.rislCharge      += amount * invQty;
-    else if (label.includes('vehicle entry'))                      out.entryFeeVehicle += amount * invQty;
-    else if (label.includes('vehicle rent'))                       out.vehicleRent     += amount * invQty;
-    else if (label.includes('eco') && label.includes('development')) out.ecoDevVehicle += amount * invQty;
-    else if (label.includes('gst') || label.includes('tax'))       out.gst             += amount * invQty;
-    else if (label.includes('rpacs') || label.includes('surcharge')) out.surcharge     += amount * invQty;
+    if (label.includes('risl'))                                      out.rislCharge      += amount;
+    else if (label.includes('vehicle entry'))                        out.entryFeeVehicle += amount;
+    else if (label.includes('vehicle rent'))                         out.vehicleRent     += amount;
+    else if (label.includes('eco') && label.includes('development'))  out.ecoDevVehicle   += amount;
+    else if (label.includes('gst') || label.includes('tax'))         out.gst             += amount;
+    else if (label.includes('rpacs') || label.includes('surcharge')) out.surcharge       += amount;
   }
 
   return out;
@@ -816,10 +935,18 @@ function MyBookingsPageInner() {
   }
 
   // ─── Download router ────────────────────────────────────────────────────────
+  // Both Download and Share now produce the *identical* PDF File via
+  // createShareTicketFile, which dispatches by type (JKK / Inventory / Sandstone)
+  // to the matching share-pdf builder. This guarantees there is zero visual
+  // difference between the file the user downloads and the file they share.
   async function dispatchTicketDownload(ticket: any) {
-    if (isJkkBooking(ticket))       printJkkApplication(ticket);
-    else if (isInventoryType(ticket)) printInventoryTicket(ticket);
-    else                             printSandstoneImperialTicket(ticket);
+    try {
+      const file = await createShareTicketFile(ticket);
+      downloadFile(file);
+    } catch (err) {
+      console.error('Ticket download failed:', err);
+      showErrorToastMessage('Unable to generate ticket. Please try again.');
+    }
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -1174,7 +1301,9 @@ function MyBookingsPageInner() {
           <td>₹ ${classifyChargeRow(c).guideFee.toFixed(2)}</td>
           <td>₹ ${classifyChargeRow(c).gst.toFixed(2)}</td>
         </tr>`).join('');
-    } else {
+    }
+    if (!chargesBodyHtml) chargesBodyHtml = buildInventoryChargesBodyFromMergedDto(ticket);
+    if (!chargesBodyHtml) {
       const summaryRow = (() => {
         const src        = ticket ?? {};
         const classified = classifyChargeRow(src);
@@ -1223,13 +1352,24 @@ function MyBookingsPageInner() {
       invTotals.surcharge ||
       charges.reduce((s: number, c: any) => s + toNum(c?.rpacsCharges ?? c?.surcharge ?? c?.surCharge), 0)
     );
-    const addonTotal = (
-      pickNum(ticket, 'addonTotal', 'addonCharges', 'addOnSurcharge', 'addonSurcharge', 'addOnCharge', 'addOnCharges') ||
-      visitors.reduce((sum: number, t: any) => {
+    const addonTotal = (() => {
+      const seen = new Set<string>();
+      let sum = 0;
+      for (const t of visitors) {
         const items = Array.isArray(t?.addonItems) ? t.addonItems : [];
-        return sum + items.reduce((s: number, a: any) => s + toNum(a?.totalAmount ?? a?.amount), 0);
-      }, 0)
-    );
+        for (const a of items) {
+          const name = normChargeName(a?.name || a?.ticketName || a?.addonName);
+          const qty = toNum(a?.qty) || 1;
+          const total = toNum(a?.totalAmount) || (toNum(a?.amount) * qty);
+          if (!total) continue;
+          const key = `${name}|${qty}|${total}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          sum += total;
+        }
+      }
+      return sum || pickNum(ticket, 'addonTotal', 'addonCharges', 'addOnSurcharge', 'addonSurcharge', 'addOnCharge', 'addOnCharges');
+    })();
     const rislTotal = (
       toNum(ticket.rislCharges ?? ticket.rislCharge ?? ticket.platformCharges ?? ticket.platformCharge) ||
       invTotals.rislCharge ||
@@ -1698,14 +1838,18 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
   }
 
   // ─── Main download entry point ─────────────────────────────────────────────
+  // Always routes through dispatchTicketDownload so the Download flow uses the
+  // same PDF builder as Share (no popup, file downloads directly).
   function handleDownloadTicket(b: any) {
-    if (isJkkBooking(b)) { printJkkApplication(b); return; }
     const bId = String(b.bookingId || b.id);
     setPdfGenerating(bId);
-    if (Array.isArray(b.ticketUserDto)) {
+    // JKK rows + any row that already has visitor/ticket detail can be rendered
+    // straight from the local booking object — no API roundtrip needed.
+    if (isJkkBooking(b) || Array.isArray(b.ticketUserDto)) {
       void dispatchTicketDownload(b).finally(() => setPdfGenerating(''));
       return;
     }
+    // Fallback: fetch the full ticket payload, then dispatch download.
     const identification = b.ticketUserDto?.[0]?.ticketUserDocs?.[0]?.identityNo
       || b.ticketUserDto?.[0]?.ticketUserDocs?.[0]?.identity || '';
     setPdfBookingId(bId);
