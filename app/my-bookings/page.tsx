@@ -816,10 +816,18 @@ function MyBookingsPageInner() {
   }
 
   // ─── Download router ────────────────────────────────────────────────────────
+  // Both Download and Share now produce the *identical* PDF File via
+  // createShareTicketFile, which dispatches by type (JKK / Inventory / Sandstone)
+  // to the matching share-pdf builder. This guarantees there is zero visual
+  // difference between the file the user downloads and the file they share.
   async function dispatchTicketDownload(ticket: any) {
-    if (isJkkBooking(ticket))       printJkkApplication(ticket);
-    else if (isInventoryType(ticket)) printInventoryTicket(ticket);
-    else                             printSandstoneImperialTicket(ticket);
+    try {
+      const file = await createShareTicketFile(ticket);
+      downloadFile(file);
+    } catch (err) {
+      console.error('Ticket download failed:', err);
+      showErrorToastMessage('Unable to generate ticket. Please try again.');
+    }
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -1698,14 +1706,18 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
   }
 
   // ─── Main download entry point ─────────────────────────────────────────────
+  // Always routes through dispatchTicketDownload so the Download flow uses the
+  // same PDF builder as Share (no popup, file downloads directly).
   function handleDownloadTicket(b: any) {
-    if (isJkkBooking(b)) { printJkkApplication(b); return; }
     const bId = String(b.bookingId || b.id);
     setPdfGenerating(bId);
-    if (Array.isArray(b.ticketUserDto)) {
+    // JKK rows + any row that already has visitor/ticket detail can be rendered
+    // straight from the local booking object — no API roundtrip needed.
+    if (isJkkBooking(b) || Array.isArray(b.ticketUserDto)) {
       void dispatchTicketDownload(b).finally(() => setPdfGenerating(''));
       return;
     }
+    // Fallback: fetch the full ticket payload, then dispatch download.
     const identification = b.ticketUserDto?.[0]?.ticketUserDocs?.[0]?.identityNo
       || b.ticketUserDto?.[0]?.ticketUserDocs?.[0]?.identity || '';
     setPdfBookingId(bId);
