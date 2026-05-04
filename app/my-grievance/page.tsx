@@ -8,17 +8,20 @@ import {
   GetAllBookings,
   GetAllHelpDeskListing,
   GetAllIssueType,
+  GetDownloadTicketById,
   GetFilterBookingId,
   GetFilterPlace,
   GetHelpDeskChatById,
   GetHelpDeskChatSeen,
   GetHelpDeskDetailById,
   GetSubIssueType,
+  GetUserIssueResult,
   HelpdeskAttachment,
 } from '@/services/apiCalls/helpdeskservices';
 import { queryClient } from '@/components/common/ReactQueryProvider';
 import { queryKeys } from '@/utils/constants/react-query-keys.constants';
 import { showErrorToastMessage } from '@/utils/toast.utils';
+import { buildInventoryShareFile, buildJkkShareFile, buildSandstoneShareFile } from '@/utils/shareTicketPdf.utils';
 
 type GrievanceStatus = 'ongoing' | 'resolved' | 'cancelled';
 
@@ -280,6 +283,9 @@ function MyGrievanceContent({ user }: { user: any }) {
   const [formErrors, setFormErrors] = useState<QueryFormErrors>({});
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
+  const [ticketDownloadBookingId, setTicketDownloadBookingId] = useState('');
+  const [ticketDownloadRequested, setTicketDownloadRequested] = useState(false);
+  const [ticketDownloading, setTicketDownloading] = useState(false);
   const [sectionsCollapsed, setSectionsCollapsed] = useState<Record<DetailSectionKey, boolean>>({
     user: false,
     description: false,
@@ -311,6 +317,13 @@ function MyGrievanceContent({ user }: { user: any }) {
     offset: '',
     pagination: '',
   });
+  const shouldCheckTicketStatus = form.ticketType === 'TICKET' && !!form.issueTypeId && !!form.bookingId && !!form.issueSubTypeId;
+  const userIssueQuery = GetUserIssueResult({
+    bookingId: form.bookingId,
+    issueType: form.issueTypeId,
+    enabled: shouldCheckTicketStatus,
+  });
+  const downloadTicketQuery = GetDownloadTicketById(ticketDownloadBookingId, ticketDownloadRequested);
 
   const detailQuery = GetHelpDeskDetailById(selectedId || '');
   const chatQuery = GetHelpDeskChatById(selectedId || '');
@@ -437,6 +450,68 @@ function MyGrievanceContent({ user }: { user: any }) {
       setToastVisible(false);
     }, 3500);
   }
+
+  function downloadFile(file: File) {
+    const url = URL.createObjectURL(file);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = file.name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function isJkkBooking(ticket: any): boolean {
+    if (!ticket) return false;
+    if (String(ticket?.bookingSource || '').toLowerCase() === 'jkk') return true;
+    const name = String(ticket?.placeName || ticket?.placeDetailDto?.name || '').toLowerCase();
+    return name.includes('jawahar') || name.includes('jkk');
+  }
+
+  function isInventoryTicket(ticket: any): boolean {
+    if (!ticket) return false;
+    if (ticket?.inventory || ticket?.inventoryId || ticket?.inventory?.id) return true;
+    if (ticket?.zoneName || ticket?.inventory?.zoneName) return true;
+    return false;
+  }
+
+  async function handleDownloadGeneratedTicket() {
+    if (!form.bookingId) return;
+    setTicketDownloading(true);
+    setTicketDownloadBookingId(form.bookingId);
+    setTicketDownloadRequested(true);
+  }
+
+  useEffect(() => {
+    if (!ticketDownloadRequested) return;
+    const result = downloadTicketQuery.data?.result;
+    if (!result) return;
+    setTicketDownloadRequested(false);
+    const ticket =
+      result?.ticketBookingDetailDtos?.[0] ??
+      result?.boardingPassDetailDtos?.[0] ??
+      result;
+    if (!ticket) {
+      showErrorToastMessage('Ticket data not available');
+      setTicketDownloading(false);
+      return;
+    }
+    (async () => {
+      try {
+        const file = isJkkBooking(ticket)
+          ? await buildJkkShareFile(ticket)
+          : isInventoryTicket(ticket)
+            ? await buildInventoryShareFile(ticket)
+            : await buildSandstoneShareFile(ticket);
+        downloadFile(file);
+      } catch {
+        showErrorToastMessage('Failed to generate ticket. Please try again.');
+      } finally {
+        setTicketDownloading(false);
+      }
+    })();
+  }, [downloadTicketQuery.data?.result, ticketDownloadRequested]);
 
   function updateForm<K extends keyof QueryFormState>(key: K, value: QueryFormState[K]) {
     setForm((prev) => ({
@@ -1050,7 +1125,11 @@ function MyGrievanceContent({ user }: { user: any }) {
                 <select
                   className="form-select"
                   value={form.bookingId}
-                  onChange={(event) => updateForm('bookingId', event.target.value)}
+                  onChange={(event) => {
+                    updateForm('bookingId', event.target.value);
+                    setTicketDownloadRequested(false);
+                    setTicketDownloading(false);
+                  }}
                   disabled={!bookingIsOptional && !form.issueTypeId}
                 >
                   <option value="">{bookingIsOptional ? 'Select Booking Id (Optional)' : 'Select Booking Id'}</option>
@@ -1074,6 +1153,37 @@ function MyGrievanceContent({ user }: { user: any }) {
               bookingOptions.length === 0 &&
               !bookingFilterQuery.isLoading ? (
                 <p className="error-text">No booking IDs found for the selected issue type.</p>
+              ) : null}
+              {form.ticketType === 'TICKET' && form.bookingId ? (
+                (() => {
+                  const issue = userIssueQuery.data?.result?.helpDeskUserIssueOn;
+                  const isGenerated =
+                    issue?.issueType === 'TICKET' && String(issue?.status || '').toUpperCase() === 'SUCCESS';
+                  if (!isGenerated) return null;
+                  return (
+                    <div style={{ marginTop: 10, fontSize: 13, fontWeight: 600, color: '#2C2017' }}>
+                      Your TICKET is successfully Generated.{' '}
+                      <button
+                        type="button"
+                        onClick={() => void handleDownloadGeneratedTicket()}
+                        disabled={ticketDownloading}
+                        style={{
+                          appearance: 'none',
+                          border: 'none',
+                          background: 'transparent',
+                          padding: 0,
+                          margin: 0,
+                          cursor: ticketDownloading ? 'not-allowed' : 'pointer',
+                          color: '#2563EB',
+                          textDecoration: 'underline',
+                          fontWeight: 700,
+                        }}
+                      >
+                        {ticketDownloading ? 'Preparing…' : 'Click here to download'}
+                      </button>
+                    </div>
+                  );
+                })()
               ) : null}
             </div>
 
