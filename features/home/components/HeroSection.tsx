@@ -5,49 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import SearchBar, { type SearchBarHandle } from "./SearchBar";
 
-const SLIDES = [
-  {
-    id: 1,
-    title1: "Pink City",
-    title2: "Hawa Mahal",
-    sub: "Wander through the vibrant streets of Jaipur, where every wall tells a story of royal hospitality and timeless architectural brilliance.",
-    img: "/images/hawawebp.jpg",
-    thumbImg: "/images/hawawebp.jpg",
-    label: "Hawa Mahal",
-    tag: "Jaipur · Pink City",
-  },
-  {
-    id: 2,
-    title1: "Alwar",
-    title2: "Sariska Tiger Reserve",
-    sub: "Venture into the wild heart of the Aravallis, a sanctuary of untamed beauty where the stripes of the majestic tiger rule the rugged landscape.",
-    img: "/images/tiger.webp",
-    thumbImg: "/images/tiger.webp",
-    label: "Sariska Tiger Reserve",
-    tag: "Alwar · Project Tiger",
-  },
-  {
-    id: 3,
-    title1: "Churu",
-    title2: "Tal Chhapar Sanctuary",
-    sub: "Witness the sanctuary of the elegant Blackbuck, a unique grassland ecosystem where nature thrives in its purest, most serene form.",
-    img: "/images/TalchaparWebp.jpg",
-    thumbImg: "/images/TalchaparWebp.jpg",
-    label: "Tal Chhapar Sanctuary",
-    tag: "Churu · Grassland",
-  },
-  {
-    id: 4,
-    title1: "Jaipur",
-    title2: "Amber Fort",
-    sub: "Experience the royal majesty of Amber Fort, a breathtaking masterpiece of Rajput architecture perched atop the rugged Aravalli hills.",
-    img: "/images/amberWebp.jpg",
-    thumbImg: "/images/amberWebp.jpg",
-    label: "Amber Fort",
-    tag: "Jaipur · Hill Fort",
-  },
-];
-
 const PILLS = [
   "🐯 Tiger Reserve",
   "🏜 Jaisalmer",
@@ -55,24 +12,28 @@ const PILLS = [
   "✨ Light and Sound",
 ];
 
-export default function HeroSection() {
+export default function HeroSection({ data }: any) {
   const [activeIndex, setActiveIndex] = useState(0);
   const searchRef = useRef<SearchBarHandle>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  const imgPrefix = process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL || "";
+  const slides = data?.card || [];
+
   const startTimer = () => {
     if (timerRef.current) clearInterval(timerRef.current);
+    if (slides.length <= 1) return;
     timerRef.current = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % SLIDES.length);
+      setActiveIndex((prev) => (prev + 1) % slides.length);
     }, 5000);
   };
 
   useEffect(() => {
-    startTimer();
+    if (slides.length > 0) startTimer();
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, []);
+  }, [slides.length]);
 
   const handleSlideChange = (index: number) => {
     setActiveIndex(index);
@@ -87,56 +48,62 @@ export default function HeroSection() {
     );
   };
 
+  const getSplitTitle = (fullTitle: string) => {
+    if (!fullTitle) return { t1: "", t2: "" };
+    const words = fullTitle.split(" ");
+    if (words.length === 1) return { t1: words[0], t2: "" };
+    const mid = Math.ceil(words.length / 2);
+    return {
+      t1: words.slice(0, mid).join(" "),
+      t2: words.slice(mid).join(" "),
+    };
+  };
+
+  const activeSlide = slides[activeIndex];
+  const { t1, t2 } = getSplitTitle(activeSlide?.slideTitle || "");
+
   return (
     <section className="hero" id="hero">
-      {/* Fullscreen slideshow backgrounds with Next.js Image */}
+      {/* ✅ Background Slides */}
       <div className="hero-slides">
-        {SLIDES.map((slide, idx) => (
+        {slides.map((slide: any, idx: number) => (
           <div
             key={idx}
             className={`hero-slide ${idx === activeIndex ? "active" : ""}`}
-            // style={{ position: "relative", zIndex: idx === activeIndex ? 2 : 1 }}
           >
             <Image
-              src={slide.img}
-              alt={slide.label}
+              src={`${imgPrefix}${slide?.image?.data?.attributes?.url}`}
+              alt={slide?.slideTitle || "slide"}
               fill
+              unoptimized
+              priority={idx === 0}
               style={{ objectFit: "cover" }}
-              quality={90}
-              priority={idx === activeIndex}
-              loading={idx === activeIndex ? "eager" : "lazy"}
-              sizes="100vw"
-              placeholder="empty"
             />
           </div>
         ))}
       </div>
 
-      {/* Left content pane */}
-      <div className="hero-pane">
-        {/* <div className="hero-kicker">
-          {BADGES.map((badge, idx) => (
-            <span key={idx} className={`hero-kicker-badge ${badge.cls}`}>
-              {badge.label}
-            </span>
-          ))}
-        </div> */}
-
+      {/* ✅ Content */}
+      <div className="hero-body">
         <h1 className="hero-ttl">
-          {SLIDES[activeIndex].title1}
+          {t1}
           <br />
-          <em>{SLIDES[activeIndex].title2}</em>
+          <em>{t2}</em>
         </h1>
 
         <div className="hero-divider" />
 
-        <p className="hero-sub">{SLIDES[activeIndex].sub}</p>
+        <p className="hero-sub">
+          {activeSlide?.slideDescription}
+        </p>
 
+        {/* Search */}
         <div className="hero-search-wrap">
           <div className="hero-search-lbl">
             Search destinations, monuments, safaris…
           </div>
           <SearchBar ref={searchRef} />
+
           <div className="hero-pills">
             {PILLS.map((pill) => (
               <span
@@ -150,6 +117,7 @@ export default function HeroSection() {
           </div>
         </div>
 
+        {/* Buttons */}
         <div className="hero-actions">
           <Link href="#destinations" className="hero-cta-primary">
             Explore Destinations →
@@ -160,43 +128,10 @@ export default function HeroSection() {
         </div>
       </div>
 
-      {/* Right thumbnail strip */}
-      {/* <div className="hero-strip">
-        {SLIDES.map((slide, idx) => (
-          <div
-            key={idx}
-            className={`hero-thumb ${idx === activeIndex ? "active" : ""}`}
-            onClick={() => handleSlideChange(idx)}
-          >
-            <div
-              className="hero-thumb-img"
-              style={{ position: "relative", width: "100%", height: "100%" }}
-            >
-              <Image
-                src={slide.thumbImg}
-                alt={slide.label}
-                fill
-                style={{ objectFit: "cover" }}
-                quality={90}
-                loading="eager"
-                sizes="(max-width: 768px) 60px, 100px"
-                placeholder="empty"
-              />
-            </div>
-            <div className="hero-thumb-ov" />
-            <div className="hero-thumb-label">
-              <h5>{slide.label}</h5>
-              <span>{slide.tag}</span>
-            </div>
-            <div className="hero-thumb-bar" />
-          </div>
-        ))}
-      </div> */}
-
-      {/* Bottom slide counter + dots */}
+      {/* ✅ Bottom Dots */}
       <div className="hero-counter">
         <div className="hero-dots">
-          {SLIDES.map((_, idx) => (
+          {slides.map((_: any, idx: number) => (
             <div
               key={idx}
               className={`hero-dot ${idx === activeIndex ? "active" : ""}`}
@@ -204,16 +139,13 @@ export default function HeroSection() {
             />
           ))}
         </div>
+
         <div className="hero-slide-num">
-          0{activeIndex + 1} / 0{SLIDES.length}
+          {slides.length > 0
+            ? `0${activeIndex + 1} / 0${slides.length}`
+            : "00 / 00"}
         </div>
       </div>
-
-      {/* Scroll hint */}
-      {/* <div className="scroll-hint">
-        <span>Scroll</span>
-        <div className="scroll-ring" />
-      </div> */}
     </section>
   );
 }

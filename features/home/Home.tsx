@@ -86,11 +86,10 @@ export default function Home({
   }, [sections]);
 
   const { cities, destination } = cityData || {};
-console.log("slider----", sectionMap["ComponentHomeSlider"]);
 
   return (
     <div className="w-full">
-      <HeroSection />
+      <HeroSection data={sectionMap["ComponentHomeSlider"]} />
       <StatsBar categoryCountsData={categoryCountsData} />
       <TabsBar />
       <Suspense fallback={<div>Loading...</div>}>
