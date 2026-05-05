@@ -21,7 +21,10 @@ import {
 import { queryClient } from '@/components/common/ReactQueryProvider';
 import { queryKeys } from '@/utils/constants/react-query-keys.constants';
 import { showErrorToastMessage } from '@/utils/toast.utils';
-import { buildInventoryShareFile, buildJkkShareFile, buildSandstoneShareFile } from '@/utils/shareTicketPdf.utils';
+import { buildInventoryShareFile } from '@/utils/ticket-designs/inventoryTicket';
+import { buildJkkShareFile } from '@/utils/ticket-designs/jkkTicket';
+import { buildNonInventoryShareFile } from '@/utils/ticket-designs/nonInventoryTicket';
+import { buildAsiShareFile } from '@/utils/ticket-designs/asiTicket';
 
 type GrievanceStatus = 'ongoing' | 'resolved' | 'cancelled';
 
@@ -469,6 +472,13 @@ function MyGrievanceContent({ user }: { user: any }) {
     return name.includes('jawahar') || name.includes('jkk');
   }
 
+  function isAsiBooking(ticket: any): boolean {
+    if (!ticket) return false;
+    if (ticket.asi || ticket.asiTicketDto) return true;
+    if (ticket.purchasePlaceDto?.asi || ticket.placeDetailDto?.asi) return true;
+    return false;
+  }
+
   function isInventoryTicket(ticket: any): boolean {
     if (!ticket) return false;
     if (ticket?.inventory || ticket?.inventoryId || ticket?.inventory?.id) return true;
@@ -501,9 +511,11 @@ function MyGrievanceContent({ user }: { user: any }) {
       try {
         const file = isJkkBooking(ticket)
           ? await buildJkkShareFile(ticket)
-          : isInventoryTicket(ticket)
-            ? await buildInventoryShareFile(ticket)
-            : await buildSandstoneShareFile(ticket);
+          : isAsiBooking(ticket)
+            ? await buildAsiShareFile(ticket)
+            : isInventoryTicket(ticket)
+              ? await buildInventoryShareFile(ticket)
+              : await buildNonInventoryShareFile(ticket);
         downloadFile(file);
       } catch {
         showErrorToastMessage('Failed to generate ticket. Please try again.');
