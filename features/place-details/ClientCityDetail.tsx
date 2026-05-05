@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import BookNowButton from "@/features/booking/components/BookNowButton";
 import CheckAvailabilityModal from "@/features/booking/components/CheckAvailabilityModal";
+import BoardingPassTab from "@/features/place-details/components/BoardingPassTab";
 import { useObmsPlaceId } from "@/features/booking/hooks/useBookingApi";
 import { useBooking } from "@/features/booking/context/BookingContext";
 import { useAuth } from "@/features/auth/context/AuthContext";
@@ -154,7 +155,7 @@ function PlaceDetailContent({
   const isJawahar = name?.toLowerCase().includes("jawahar");
 
   // ---------------- DYNAMIC TABS ----------------
-  const tabs = (contentData || [])
+  const cmsTabs = (contentData || [])
     .map((item: any) => {
       const config = TAB_CONFIG[item.__typename];
       if (!config) return null;
@@ -174,6 +175,20 @@ function PlaceDetailContent({
     })
     .filter(Boolean)
     .sort((a: any, b: any) => a.index - b.index);
+
+  // Synthetic "Boarding Pass" tab for inventory (Sariska / safari) places —
+  // mirrors the old project where the boarding pass form lived directly on
+  // the place-detail page.
+  const boardingPassTab =
+    placeType === "INVENTORY"
+      ? {
+          key: "boarding-pass",
+          label: "Boarding Pass",
+          index: 99,
+          content: null,
+        }
+      : null;
+  const tabs = boardingPassTab ? [...cmsTabs, boardingPassTab] : cmsTabs;
 
   const currentTabKey = activeTab ?? tabs[0]?.key;
 
@@ -433,6 +448,13 @@ function PlaceDetailContent({
                         />
                       );
                     })}
+                  </div>
+                );
+
+              case "boarding-pass":
+                return (
+                  <div key={tab.key}>
+                    <BoardingPassTab placeName={name} />
                   </div>
                 );
 
