@@ -535,12 +535,20 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
       showErrorToastMessage("Account number required");
       return false;
     }
+    if (!/^\d{6,20}$/.test(bankForm.accountNumber.trim())) {
+      showErrorToastMessage("Account number must be 6–20 digits and contain only numbers");
+      return false;
+    }
     if (!bankForm.ifscCode.trim()) {
       showErrorToastMessage("IFSC code required");
       return false;
     }
     if (!bankForm.accountHolderName.trim()) {
       showErrorToastMessage("Account holder name required");
+      return false;
+    }
+    if (!/^[A-Za-z][A-Za-z\s.'-]*$/.test(bankForm.accountHolderName.trim())) {
+      showErrorToastMessage("Account holder name must contain letters only");
       return false;
     }
     if (!bankForm.accountType) {
@@ -1647,12 +1655,17 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
           <label className={labelCls}>Account Number *</label>
           <input
             type="text"
+            inputMode="numeric"
+            maxLength={20}
             value={bankForm.accountNumber}
             onChange={(e) =>
-              setBankForm((p) => ({ ...p, accountNumber: e.target.value }))
+              setBankForm((p) => ({
+                ...p,
+                accountNumber: e.target.value.replace(/\D/g, ""),
+              }))
             }
             className={inputCls}
-            placeholder="Enter account number"
+            placeholder="Digits only"
           />
         </div>
         <div>
@@ -1673,10 +1686,14 @@ export default function JkkStep({ state, onUpdate, onBack, userId }: Props) {
             type="text"
             value={bankForm.accountHolderName}
             onChange={(e) =>
-              setBankForm((p) => ({ ...p, accountHolderName: e.target.value }))
+              setBankForm((p) => ({
+                ...p,
+                // Letters and spaces only — strip digits / symbols as they're typed.
+                accountHolderName: e.target.value.replace(/[^A-Za-z\s.'-]/g, ""),
+              }))
             }
             className={inputCls}
-            placeholder="Enter account holder name"
+            placeholder="Letters only"
           />
         </div>
         <div>
