@@ -1,6 +1,6 @@
 query FetchDestination($pageParam: Int, $sortBy: [String], $searchKey: String) {
   cities(
-    pagination: { pageSize: 50, page: $pageParam }
+    pagination: { pageSize: 500, page: $pageParam }
     sort: $sortBy
     filters: { name: { containsi: $searchKey } }
   ) {
