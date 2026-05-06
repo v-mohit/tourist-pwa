@@ -329,6 +329,8 @@ function MyGrievanceContent({ user }: { user: any }) {
   const downloadTicketQuery = GetDownloadTicketById(ticketDownloadBookingId, ticketDownloadRequested);
 
   const detailQuery = GetHelpDeskDetailById(selectedId || '');
+  const [prefillId, setPrefillId] = useState<string | null>(null);
+  const prefillQuery = GetHelpDeskDetailById(prefillId || '');
   const chatQuery = GetHelpDeskChatById(selectedId || '');
   GetHelpDeskChatSeen(selectedId || '');
 
@@ -446,6 +448,18 @@ function MyGrievanceContent({ user }: { user: any }) {
     }));
   }, [user]);
 
+  useEffect(() => {
+    if (newQueryOpen && prefillQuery.data?.result) {
+      const data = prefillQuery.data.result;
+      setForm((prev) => ({
+        ...prev,
+        userName: String(data.userName || data.name || prev.userName),
+        mobileNumber: String(data.mobileNumber || data.mobile || prev.mobileNumber),
+        emailId: String(data.emailId || data.email || prev.emailId),
+      }));
+    }
+  }, [prefillQuery.data, newQueryOpen]);
+
   function showToast(message: string) {
     setToastMessage(message);
     setToastVisible(true);
@@ -545,6 +559,9 @@ function MyGrievanceContent({ user }: { user: any }) {
 
   function handleOpenNewQuery() {
     resetModalForm();
+    if (currentList.length > 0) {
+      setPrefillId(currentList[0].id);
+    }
     setNewQueryOpen(true);
   }
 
@@ -934,7 +951,7 @@ function MyGrievanceContent({ user }: { user: any }) {
         <div className="modal" role="dialog" aria-modal="true" aria-label="New Query">
           <div className="modal-top">
             <div className="modal-top-text">
-              <h2>Welcome Guest</h2>
+              <h2>Welcome {form.userName || user?.name || user?.displayName || user?.fullName || 'Guest'}</h2>
               <p>Please provide your information to continue</p>
             </div>
             <button
@@ -958,8 +975,8 @@ function MyGrievanceContent({ user }: { user: any }) {
                 <label className="form-label">
                   Mobile Number <span className="req">*</span>
                 </label>
-                <div className="phone-input-wrap">
-                  <span className="phone-prefix">IN +91</span>
+                <div className="phone-input-wrap" style={{ backgroundColor: 'var(--cream)', cursor: 'not-allowed' }}>
+                  <span className="phone-prefix" style={{ opacity: 0.7 }}>IN +91</span>
                   <input
                     type="tel"
                     className="phone-input-inner"
@@ -967,6 +984,8 @@ function MyGrievanceContent({ user }: { user: any }) {
                     value={form.mobileNumber}
                     maxLength={10}
                     onChange={(event) => updateForm('mobileNumber', event.target.value.replace(/\D/g, ''))}
+                    readOnly
+                    style={{ backgroundColor: 'var(--cream)', cursor: 'not-allowed' }}
                   />
                 </div>
                 {formErrors.mobileNumber ? <p className="error-text">{formErrors.mobileNumber}</p> : null}
@@ -982,6 +1001,8 @@ function MyGrievanceContent({ user }: { user: any }) {
                   placeholder="Your full name"
                   value={form.userName}
                   onChange={(event) => updateForm('userName', event.target.value)}
+                  readOnly
+                  style={{ backgroundColor: 'var(--cream)', cursor: 'not-allowed' }}
                 />
                 {formErrors.userName ? <p className="error-text">{formErrors.userName}</p> : null}
               </div>
@@ -994,9 +1015,10 @@ function MyGrievanceContent({ user }: { user: any }) {
                   type="email"
                   className="form-input"
                   placeholder="Enter email address"
-                  style={{ paddingLeft: 36 }}
+                  style={{ paddingLeft: 36, backgroundColor: 'var(--cream)', cursor: 'not-allowed' }}
                   value={form.emailId}
                   onChange={(event) => updateForm('emailId', event.target.value.replace(/\s/g, ''))}
+                  readOnly
                 />
                 <span
                   style={{
