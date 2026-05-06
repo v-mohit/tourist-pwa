@@ -3,11 +3,11 @@
 import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import BookNowButton from "@/features/booking/components/BookNowButton";
 
 const PackageSeeAll = ({ packageData }: any) => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCity, setSelectedCity] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const imgUrl = process.env.NEXT_PUBLIC_GRAPHQL_IMG_URL || '';
@@ -29,20 +29,21 @@ const PackageSeeAll = ({ packageData }: any) => {
           : `${imgUrl}${rawImgUrl}`)
         : null;
 
-      const city = pkgAttr.cityDetail?.data?.attributes?.name || 'Multiple Cities';
+      const city = pkgAttr.cityDetail?.data?.attributes?.name || '';
       const price = pkgAttr.price || 150;
       const rating = pkgAttr.rating || '4.8';
       const slug = pkgAttr.package_detail?.data?.attributes?.slug;
-      const days = pkgAttr.days;
+      const days = pkgAttr.package_detail?.data?.attributes?.days || "Valid for 2 days";
+      const isBookable = pkgAttr.package_detail?.data?.attributes?.bookable;
+      const locationId = pkgAttr.package_detail?.data?.id;
 
-      // Dummy data for missing fields to match premium UI reqs
-      const dummyInfos = [
-        '🏯 10 Places',
-        days ? `🕐 ${days} ${days > 1 ? 'Days' : 'Day'}` : '🕐 Full Day',
-        '🚌 Transport Incl.',
-        '🎟 Entry Tickets'
+      // Aligned with PackagesSection.tsx
+      const infos = [
+        `📅 ${days}`,
+        "🕐 Full Day",
+        "🚌 Transport not Incl.",
+        "🎟 Entry Tickets",
       ];
-      const dummyTag = index % 3 === 0 ? 'COMPOSITE' : (index % 2 === 0 ? 'PREMIUM' : 'HERITAGE');
       const dummyDesc = `Experience the best of Rajasthan with our curated ${pkgAttr.name}. This package includes visits to major landmarks, guided tours, and comfortable local transport arrangements.`;
 
       return {
@@ -52,30 +53,26 @@ const PackageSeeAll = ({ packageData }: any) => {
         price: `₹${price}`,
         rating: `⭐ ${rating}`,
         img: imageUrl,
-        tag: dummyTag,
+        tag: 'COMPOSITE',
         desc: dummyDesc,
-        infos: dummyInfos,
-        slug: slug
+        infos: infos,
+        slug: slug,
+        isBookable,
+        locationId
       };
     }).filter(Boolean);
   }, [packageData, imgUrl]);
 
-  // Unique cities for filter
-  const cities = useMemo(() => {
-    const citySet = new Set<string>();
-    packages.forEach((pkg: any) => citySet.add(pkg.city));
-    return ['all', ...Array.from(citySet)];
-  }, [packages]);
+
 
   // Filter logic
   const filteredPackages = useMemo(() => {
     return packages.filter((pkg: any) => {
       const matchesSearch = pkg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         pkg.desc.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCity = selectedCity === 'all' || pkg.city === selectedCity;
-      return matchesSearch && matchesCity;
+      return matchesSearch;
     });
-  }, [packages, searchTerm, selectedCity]);
+  }, [packages, searchTerm]);
 
   return (
     <div className="sa-panel sa-panel--page" style={{ background: 'var(--ch)', color: '#fff' }}>
@@ -112,18 +109,7 @@ const PackageSeeAll = ({ packageData }: any) => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="sa-region-filters">
-            {cities.map((city) => (
-              <button
-                key={city}
-                className={`sa-rfil ${selectedCity === city ? 'active' : ''}`}
-                style={selectedCity !== city ? { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' } : {}}
-                onClick={() => setSelectedCity(city)}
-              >
-                {city === 'all' ? 'All Cities' : city}
-              </button>
-            ))}
-          </div>
+
         </div>
       </div>
 
@@ -154,40 +140,66 @@ const PackageSeeAll = ({ packageData }: any) => {
       <div className={`sa-grid ${viewMode === 'list' ? 'list-view' : ''}`} style={{ paddingBottom: '100px' }}>
         {filteredPackages.length > 0 ? (
           filteredPackages.map((pkg: any) => (
-            <Link
+            <div
               key={pkg.id}
-              href={pkg.slug ? `/package-detail?slug=${pkg.slug}` : '#'}
               className="pkg-card block no-underline"
+              style={{ cursor: pkg.slug ? 'pointer' : 'default' }}
             >
-              {/* Image */}
-              <div className="pkg-img">
-                <div className="dimg" style={{ backgroundImage: `url('${pkg.img}')` }} />
-                <div className="pkg-grad" />
-                <div className="pkg-rating">{pkg.rating}</div>
-                <div className="pkg-badge">
-                  <div className="amt">{pkg.price}</div>
-                  <div className="per">per person</div>
-                </div>
+              <div
+                className="block no-underline"
+                onClick={() => {
+                  if (pkg.slug) {
+                    router.push(`/package-detail?slug=${pkg.slug}`);
+                  }
+                }}
+              >
+                  {/* Image */}
+                  <div className="pkg-img">
+                    <div className="dimg" style={{ backgroundImage: `url('${pkg.img}')` }} />
+                    <div className="pkg-grad" />
+                    {/* <div className="pkg-rating">{pkg.rating}</div> */}
+                    <div className="pkg-badge">
+                      <div className="amt">{pkg.price}</div>
+                      <div className="per">per person</div>
+                    </div>
+                    {/* Hover Tag */}
+                    <div className="pkg-hover-tag">
+                      <span className="tag tg" style={{ fontSize: 9 }}>{pkg.tag}</span>
+                    </div>
+                  </div>
+
+                  {/* Body */}
+                  <div className="pkg-body text-[var(--cw)]">
+                    <h3>{pkg.name}</h3>
+                    <div className="pkg-info" style={{ marginTop: '12px' }}>
+                      {pkg.infos.map((info: string) => (
+                        <div key={info} className="pkg-ii">{info}</div>
+                      ))}
+                    </div>
+                    <div className="pkg-foot" style={{ marginTop: '16px' }}>
+                      {/* Tag removed from here, now in pkg-img on hover */}
+                    </div>
+                  </div>
               </div>
 
-              {/* Body */}
-              <div className="pkg-body">
-                <h3>{pkg.name}</h3>
-                <div className="pkg-info" style={{ marginTop: '12px' }}>
-                  <div className="pkg-ii">
-                    <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
-                    {pkg.city}
-                  </div>
-                  {pkg.infos.slice(1).map((info: string) => (
-                    <div key={info} className="pkg-ii">{info}</div>
-                  ))}
-                </div>
-                <div className="pkg-foot" style={{ marginTop: '16px' }}>
-                  <span className="tag tg" style={{ fontSize: 9 }}>{pkg.tag}</span>
-                  <span className="btn-s">Book →</span>
-                </div>
+              <div className="px-4 pb-4 -mt-2">
+                {pkg.locationId ? (
+                  <BookNowButton
+                    config={{
+                      placeId: pkg.locationId,
+                      placeName: pkg.name,
+                      category: "package",
+                      locationId: pkg.locationId,
+                    }}
+                    disabled={pkg.isBookable === false}
+                    label="Book →"
+                    className="btn-s"
+                  />
+                ) : (
+                  <span className="btn-s opacity-40">Book →</span>
+                )}
               </div>
-            </Link>
+            </div>
           ))
         ) : (
           <div className="sa-no-results">

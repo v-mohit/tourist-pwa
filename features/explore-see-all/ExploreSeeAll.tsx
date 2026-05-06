@@ -156,6 +156,10 @@ const ExploreSeeAll = ({ cityData }: any) => {
                 </div>
               </div>
               <div className="sa-body">
+                <div className="sa-list-header">
+                  <div className="sa-list-name">{city.name}</div>
+                  {/* <div className="sa-list-nickname">{city.nickname}</div> */}
+                </div>
                 <div className="sa-desc">{city.desc}</div>
                 <div className="sa-highlights">
                   {city.highlights.map((h: string, i: number) => (

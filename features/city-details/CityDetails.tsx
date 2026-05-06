@@ -112,7 +112,7 @@ const CityDetails = ({ cityDetailData }: CityDetailsProps) => {
                 <img src="/icons/google-maps.png" width={12} height={12} alt="Location" className="loc-ico mr-1" />
                 Rajasthan
               </span>
-              <span className="cc-meta-pill">⭐ 4.9 Rated</span>
+              {/* <span className="cc-meta-pill">⭐ 4.9 Rated</span> */}
               <span className="cc-meta-pill">🏛 {places.length} Bookable Places</span>
             </div>
           </div>

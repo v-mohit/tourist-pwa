@@ -883,6 +883,20 @@ button {
   padding: 7px 13px;
 }
 
+.pkg-hover-tag {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.pkg-card:hover .pkg-hover-tag {
+  opacity: 1;
+}
+
 .pkg-badge .amt {
   font-family: 'Playfair Display', serif;
   font-size: 20px;
@@ -2011,7 +2025,7 @@ button {
   font-family: 'Playfair Display', serif;
   font-size: 15px;
   font-weight: 700;
-  color: var(--ch);
+  color: var(--cream);
   margin-bottom: 4px;
   line-height: 1.2
 }
@@ -4509,7 +4523,7 @@ button {
   font-family: 'Playfair Display', serif;
   font-size: 20px;
   font-weight: 700;
-  color: #fff;
+  color: rgba(255, 255, 255, .65);
   line-height: 1.1;
   margin-bottom: 2px
 }
@@ -4637,7 +4651,32 @@ button {
 
 .sa-grid.list-view .sa-name {
   font-size: 18px;
-  color: var(--ch)
+  color: var(--cream);
+}
+
+.sa-list-header {
+  display: none;
+  margin-bottom: 8px;
+}
+
+.sa-grid.list-view .sa-list-header {
+  display: block;
+}
+
+.sa-list-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #18120e;
+  line-height: 1.2;
+}
+
+.sa-list-nickname {
+  font-size: 12px;
+  color: var(--sf);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .sa-grid.list-view .sa-nickname {
@@ -5718,7 +5757,7 @@ tourist stats style
   font-family: 'Playfair Display', serif;
   font-size: 20px;
   font-weight: 700;
-  color: var(--ch);
+  color: var(--cream);
   margin-bottom: 8px;
   line-height: 1.3;
 }

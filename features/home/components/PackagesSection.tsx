@@ -80,7 +80,7 @@ export default function PackagesSection({ data }: any) {
                     style={{ backgroundImage: `url('${img}')` }}
                   />
                   <div className="pkg-grad" />
-                  <div className="pkg-rating">{rating}</div>
+                  {/* <div className="pkg-rating">{rating}</div> */}
                   <div className="pkg-badge">
                     <div className="amt">{price}</div>
                     <div className="per">per person</div>
