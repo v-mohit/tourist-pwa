@@ -25,15 +25,15 @@ import { useMergedBookings } from '@/features/my-bookings/hooks/useMergedBooking
 import { isAsiBooking, isIgprsBooking, isJkkBooking } from '@/features/my-bookings/utils/bookingTypes';
 import IgprsBookingCard from '@/features/my-bookings/components/IgprsBookingCard';
 import AsiBookingCard from '@/features/my-bookings/components/AsiBookingCard';
-import { openInventoryTicket, buildInventoryShareFile } from '@/utils/ticket-designs/inventoryTicket';
-import { openNonInventoryTicket, buildNonInventoryShareFile } from '@/utils/ticket-designs/nonInventoryTicket';
+import { openInventoryTicket, buildInventoryShareFile, buildInventoryShareFileFromHtml } from '@/utils/ticket-designs/inventoryTicket';
+import { openNonInventoryTicket, buildNonInventoryShareFileFromHtml } from '@/utils/ticket-designs/nonInventoryTicket';
 import { openJkkTicket, buildJkkShareFile } from '@/utils/ticket-designs/jkkTicket';
 import { openAsiTicket, buildAsiShareFile } from '@/utils/ticket-designs/asiTicket';
-import { 
-  generateQrDataUrl, 
-  toNum, 
-  pickNum, 
-  computeAddonTotal, 
+import {
+  generateQrDataUrl,
+  toNum,
+  pickNum,
+  computeAddonTotal,
   computeRislTotal,
   classifyChargeRowExtended
 } from '@/utils/ticket-designs/ticketUtils';
@@ -42,16 +42,16 @@ type TabKey = 'all' | 'upcoming' | 'completed' | 'cancelled' | 'failed';
 type DateFilterType = 'Visit' | 'Current' | '';
 
 const CANCEL_REASONS = [
-  { value: 'changedPlans',       label: 'Changed Plans' },
-  { value: 'notNeeded',          label: 'Not Needed Anymore' },
+  { value: 'changedPlans', label: 'Changed Plans' },
+  { value: 'notNeeded', label: 'Not Needed Anymore' },
   { value: 'foundAnotherOption', label: 'Found Another Option' },
-  { value: 'financialReasons',   label: 'Financial Reasons' },
-  { value: 'other',              label: 'Other' },
+  { value: 'financialReasons', label: 'Financial Reasons' },
+  { value: 'other', label: 'Other' },
 ];
 
 const ACCOUNT_TYPES = [
   { value: 'current', label: 'Current' },
-  { value: 'saving',  label: 'Saving'  },
+  { value: 'saving', label: 'Saving' },
 ];
 
 function formatDate(ts?: number | string): string {
@@ -107,10 +107,10 @@ function isWithinReverifyWindow(b: any): boolean {
   if (isPaymentSuccess(b)) return false;
   if (b?.cancelled || b?.refund) return false;
   const isJkk = String(b?.placeName || '').toLowerCase().includes('jawahar');
-  const t     = isJkk ? b?.updatedDate : b?.createdDate;
+  const t = isJkk ? b?.updatedDate : b?.createdDate;
   if (!t) return false;
   const start = new Date(t).getTime();
-  const now   = Date.now();
+  const now = Date.now();
   return now >= start && now <= start + 5 * 60 * 1000;
 }
 
@@ -118,50 +118,52 @@ function MyBookingsPageInner() {
   const { user, openLoginModal } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const [shareFile, setShareFile] = useState<File | null>(null);
+  const [sharingFileLoading, setSharingFileLoading] = useState(false);
 
-  const urlBookingId     = searchParams.get('bookingId') ?? '';
+  const urlBookingId = searchParams.get('bookingId') ?? '';
   const urlPaymentStatus = searchParams.get('paymentStatus') ?? '';
 
-  const [activeTab,              setActiveTab]              = useState<TabKey>('all');
-  const [searchTerm,             setSearchTerm]             = useState('');
-  const [searchInput,            setSearchInput]            = useState('');
-  const [pageSize,               setPageSize]               = useState<10 | 50 | 100>(10);
-  const [page,                   setPage]                   = useState(1);
-  const [dateFilterOpen,         setDateFilterOpen]         = useState(false);
-  const [dateType,               setDateType]               = useState<DateFilterType>('');
-  const [startDate,              setStartDate]              = useState('');
-  const [endDate,                setEndDate]                = useState('');
-  const [appliedStartDay,        setAppliedStartDay]        = useState<number | undefined>();
-  const [appliedEndDay,          setAppliedEndDay]          = useState<number | undefined>();
-  const [appliedDateType,        setAppliedDateType]        = useState<DateFilterType>('');
-  const [drawerOpen,             setDrawerOpen]             = useState(false);
-  const [selectedBooking,        setSelectedBooking]        = useState<any>(null);
-  const [loadingTickets,         setLoadingTickets]         = useState(false);
-  const [cancelModalOpen,        setCancelModalOpen]        = useState(false);
-  const [cancelReason,           setCancelReason]           = useState('');
-  const [otherReason,            setOtherReason]            = useState('');
-  const [refundableAmount,       setRefundableAmount]       = useState(0);
-  const [bankForm,               setBankForm]               = useState({
+  const [activeTab, setActiveTab] = useState<TabKey>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [pageSize, setPageSize] = useState<10 | 50 | 100>(10);
+  const [page, setPage] = useState(1);
+  const [dateFilterOpen, setDateFilterOpen] = useState(false);
+  const [dateType, setDateType] = useState<DateFilterType>('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [appliedStartDay, setAppliedStartDay] = useState<number | undefined>();
+  const [appliedEndDay, setAppliedEndDay] = useState<number | undefined>();
+  const [appliedDateType, setAppliedDateType] = useState<DateFilterType>('');
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [loadingTickets, setLoadingTickets] = useState(false);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [otherReason, setOtherReason] = useState('');
+  const [refundableAmount, setRefundableAmount] = useState(0);
+  const [bankForm, setBankForm] = useState({
     bankName: '', acNumber: '', ifscValue: '', acHolderName: '', accountType: '', branchCode: '',
   });
-  const [bookingToCancel,        setBookingToCancel]        = useState<any>(null);
-  const [pdfBookingId,           setPdfBookingId]           = useState('');
-  const [pdfIdentification,      setPdfIdentification]      = useState('');
-  const [shouldFetchPdf,         setShouldFetchPdf]         = useState(false);
-  const [pdfGenerating,          setPdfGenerating]          = useState('');
+  const [bookingToCancel, setBookingToCancel] = useState<any>(null);
+  const [pdfBookingId, setPdfBookingId] = useState('');
+  const [pdfIdentification, setPdfIdentification] = useState('');
+  const [shouldFetchPdf, setShouldFetchPdf] = useState(false);
+  const [pdfGenerating, setPdfGenerating] = useState('');
   const [boardingFetchBookingId, setBoardingFetchBookingId] = useState('');
-  const [boardingFetchPassId,    setBoardingFetchPassId]    = useState('');
-  const [shouldFetchBoarding,    setShouldFetchBoarding]    = useState(false);
-  const [boardingGenerating,     setBoardingGenerating]     = useState('');
-  const [diffInvoiceBookingId,   setDiffInvoiceBookingId]   = useState('');
-  const [diffInvoiceLoadingFor,  setDiffInvoiceLoadingFor]  = useState('');
-  const [raiseIssueOpen,         setRaiseIssueOpen]         = useState(false);
-  const [issueBooking,           setIssueBooking]           = useState<any>(null);
-  const [qrModalOpen,            setQrModalOpen]            = useState(false);
-  const [qrData,                 setQrData]                 = useState('');
-  const [shareModalOpen,         setShareModalOpen]         = useState(false);
-  const [shareBooking,           setShareBooking]           = useState<any>(null);
-  const [shareLoading,           setShareLoading]           = useState('');
+  const [boardingFetchPassId, setBoardingFetchPassId] = useState('');
+  const [shouldFetchBoarding, setShouldFetchBoarding] = useState(false);
+  const [boardingGenerating, setBoardingGenerating] = useState('');
+  const [diffInvoiceBookingId, setDiffInvoiceBookingId] = useState('');
+  const [diffInvoiceLoadingFor, setDiffInvoiceLoadingFor] = useState('');
+  const [raiseIssueOpen, setRaiseIssueOpen] = useState(false);
+  const [issueBooking, setIssueBooking] = useState<any>(null);
+  const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [qrData, setQrData] = useState('');
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [shareBooking, setShareBooking] = useState<any>(null);
+  const [shareLoading, setShareLoading] = useState('');
 
   useEffect(() => {
     const handle = window.setTimeout(() => setSearchTerm(searchInput), 350);
@@ -170,25 +172,25 @@ function MyBookingsPageInner() {
 
   // ─── Query params ──────────────────────────────────────────────────────────
   const queryParams = useMemo(() => {
-    const normalized    = searchTerm.trim().replace(/^#/, '').trim();
-    const compact       = normalized.replace(/\s+/g, '');
-    const isNumeric     = /^\d+$/.test(compact);
+    const normalized = searchTerm.trim().replace(/^#/, '').trim();
+    const compact = normalized.replace(/\s+/g, '');
+    const isNumeric = /^\d+$/.test(compact);
     const isBookingIdLike = /^[a-z0-9]+$/i.test(compact) && /\d/.test(compact);
     const base: any = {
-      callApi:    !!user,
+      callApi: !!user,
       setLoading: setLoadingTickets,
-      bookingId:  (isNumeric || isBookingIdLike) ? compact : undefined,
-      searchKey:  (!isNumeric && !isBookingIdLike) ? normalized || undefined : undefined,
-      size:       100,
+      bookingId: (isNumeric || isBookingIdLike) ? compact : undefined,
+      searchKey: (!isNumeric && !isBookingIdLike) ? normalized || undefined : undefined,
+      size: 100,
       dateFilter: appliedDateType || undefined,
-      startDay:   appliedStartDay,
-      endDay:     appliedEndDay,
+      startDay: appliedStartDay,
+      endDay: appliedEndDay,
     };
-    if (activeTab === 'all')       return { ...base, isOld: false, isRefund: true,  status: 'ALL' };
-    if (activeTab === 'upcoming')  return { ...base, isOld: false, isRefund: false };
-    if (activeTab === 'completed') return { ...base, isOld: true,  isRefund: false };
-    if (activeTab === 'cancelled') return { ...base, isOld: false, isRefund: true  };
-    if (activeTab === 'failed')    return { ...base, isOld: false, isRefund: true,  status: 'FAIL' };
+    if (activeTab === 'all') return { ...base, isOld: false, isRefund: true, status: 'ALL' };
+    if (activeTab === 'upcoming') return { ...base, isOld: false, isRefund: false };
+    if (activeTab === 'completed') return { ...base, isOld: true, isRefund: false };
+    if (activeTab === 'cancelled') return { ...base, isOld: false, isRefund: true };
+    if (activeTab === 'failed') return { ...base, isOld: false, isRefund: true, status: 'FAIL' };
     return { ...base, isOld: false };
   }, [activeTab, searchTerm, user, appliedDateType, appliedStartDay, appliedEndDay, urlBookingId]);
 
@@ -221,11 +223,11 @@ function MyBookingsPageInner() {
   }, [filteredBookings, page, pageSize]);
 
   const stats = useMemo(() => {
-    const total     = allBookings.length;
-    const upcoming  = allBookings.filter((b) => ['confirmed', 'pending'].includes(getBookingStatus(b).key)).length;
+    const total = allBookings.length;
+    const upcoming = allBookings.filter((b) => ['confirmed', 'pending'].includes(getBookingStatus(b).key)).length;
     const completed = allBookings.filter((b) => getBookingStatus(b).key === 'completed').length;
     const cancelled = allBookings.filter((b) => b.cancelled || b.refund).length;
-    const spent     = allBookings.filter((b) => !b.cancelled && !b.refund).reduce((s, b) => s + (b.totalAmount || 0), 0);
+    const spent = allBookings.filter((b) => !b.cancelled && !b.refund).reduce((s, b) => s + (b.totalAmount || 0), 0);
     return { total, upcoming, completed, cancelled, spent };
   }, [allBookings]);
 
@@ -243,14 +245,14 @@ function MyBookingsPageInner() {
       setBankForm({ bankName: '', acNumber: '', ifscValue: '', acHolderName: '', accountType: '', branchCode: '' });
       refetchBookings();
     },
-    () => {},
+    () => { },
   );
 
   const webCheckIn = WebCheckIn();
   function handleWebCheckIn(b: any) {
     webCheckIn.mutate({ ticketBookingId: String(b.id || b.bookingId) }, {
       onSuccess: (data: any) => { showSuccessToastMessage(data?.message || 'Web check-in successful'); refetchBookings(); },
-      onError:   (err: any)  => showErrorToastMessage(err?.response?.data?.message || 'Check-in failed'),
+      onError: (err: any) => showErrorToastMessage(err?.response?.data?.message || 'Check-in failed'),
     });
   }
 
@@ -277,7 +279,7 @@ function MyBookingsPageInner() {
 
   const confirmJkk = ConfirmJkkBookingById(
     (res: any) => { handlePaymentRedirect(res); },
-    () => {},
+    () => { },
   );
 
   function handleJkkMakePayment(b: any) {
@@ -289,7 +291,7 @@ function MyBookingsPageInner() {
   function handlePayDifferenceAmount(b: any) {
     const requestId = String(b?.requestId || '');
     if (!requestId) { showErrorToastMessage('Request ID is missing for this booking'); return; }
-    try { sessionStorage.setItem('payDiffBookingData', JSON.stringify(b)); } catch {}
+    try { sessionStorage.setItem('payDiffBookingData', JSON.stringify(b)); } catch { }
     const params = new URLSearchParams({
       diffAmount: String(b.diffAmount ?? ''),
       requestId,
@@ -312,7 +314,7 @@ function MyBookingsPageInner() {
   useEffect(() => {
     if (!diffInvoiceBookingId) return;
     void refetchDiffInvoice();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [diffInvoiceBookingId]);
 
   function handleDownloadDiffInvoice(b: any) {
@@ -336,11 +338,11 @@ function MyBookingsPageInner() {
     if (!isJkkBooking(b)) return false;
     if (b.cancelled || b.refund) return false;
     const approved = String(b.approved || '').toLowerCase();
-    const pay      = String(b.paymentStatus || '').toLowerCase();
+    const pay = String(b.paymentStatus || '').toLowerCase();
     return approved.includes('approved')
-        && b.makePayment === false
-        && !pay.includes('success')
-        && !pay.includes('fail');
+      && b.makePayment === false
+      && !pay.includes('success')
+      && !pay.includes('fail');
   }
 
   function isInventoryType(b: any) {
@@ -402,12 +404,12 @@ function MyBookingsPageInner() {
     const ticket = passes[0] ?? pdfData.result;
     if (ticket) void dispatchTicketDownload(ticket).finally(() => setPdfGenerating(''));
     else showErrorToastMessage('Ticket data not available');
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pdfData?.result, shouldFetchPdf]);
 
   // ─── Boarding Pass API ─────────────────────────────────────────────────────
   const { data: boardingData } = GetAllBoardingPassBookings2(
-    boardingFetchBookingId, boardingFetchPassId, shouldFetchBoarding, () => {},
+    boardingFetchBookingId, boardingFetchPassId, shouldFetchBoarding, () => { },
   );
   useEffect(() => {
     if (!shouldFetchBoarding || !boardingData?.result) return;
@@ -416,13 +418,13 @@ function MyBookingsPageInner() {
     const pass = boardingData.result.boardingPassDetailDtos?.[0];
     if (pass) printBoardingPass(pass);
     else showErrorToastMessage('Boarding pass data not available');
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boardingData?.result, shouldFetchBoarding]);
 
   function handlePrintBoardingPass(b: any) {
-    const rowKey   = String(b.bookingId || b.id || '');
+    const rowKey = String(b.bookingId || b.id || '');
     const objectId = String(b.id || '');
-    const passId   = String(b.boardingPassId || '');
+    const passId = String(b.boardingPassId || '');
     if (!objectId || !passId) {
       showErrorToastMessage('Boarding pass not yet generated for this booking');
       return;
@@ -435,7 +437,7 @@ function MyBookingsPageInner() {
 
   function downloadFile(file: File) {
     const url = URL.createObjectURL(file);
-    const a   = document.createElement('a');
+    const a = document.createElement('a');
     a.href = url; a.download = file.name;
     document.body.appendChild(a); a.click(); a.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -448,11 +450,25 @@ function MyBookingsPageInner() {
    * Dispatches to one of three distinct designs so each booking type
    * (JKK / Inventory / Non-Inventory) has its own visual identity.
    */
+  // async function createShareTicketFile(ticket: any): Promise<File> {
+  //   if (isJkkBooking(ticket))      return buildJkkShareFile(ticket);
+  //   if (isAsiBooking(ticket))      return buildAsiShareFile(ticket);
+  //   if (isInventoryType(ticket))   return buildInventoryShareFile(ticket);
+  //   return buildNonInventoryShareFile(ticket);
+  // }
+
+  //   async function createShareTicketFile(ticket: any): Promise<File> {
+  //   if (isJkkBooking(ticket))      return buildJkkShareFile(ticket);
+  //   if (isAsiBooking(ticket))      return buildAsiShareFile(ticket);
+  //   if (isInventoryType(ticket))   return buildInventoryShareFileFromHtml(ticket); // ← new
+  //   return buildNonInventoryShareFile(ticket);
+  // }
+
   async function createShareTicketFile(ticket: any): Promise<File> {
-    if (isJkkBooking(ticket))      return buildJkkShareFile(ticket);
-    if (isAsiBooking(ticket))      return buildAsiShareFile(ticket);
-    if (isInventoryType(ticket))   return buildInventoryShareFile(ticket);
-    return buildNonInventoryShareFile(ticket);
+    if (isJkkBooking(ticket)) return buildJkkShareFile(ticket);
+    if (isAsiBooking(ticket)) return buildAsiShareFile(ticket);
+    if (isInventoryType(ticket)) return buildInventoryShareFileFromHtml(ticket);
+    return buildNonInventoryShareFileFromHtml(ticket); // ← swap this line
   }
 
   /**
@@ -467,7 +483,7 @@ function MyBookingsPageInner() {
     placeName: string,
     bookingId: string,
   ) {
-    const text    = encodeURIComponent(`My entry ticket for ${placeName} — Booking #${bookingId} (Govt of Rajasthan OBMS)`);
+    const text = encodeURIComponent(`My entry ticket for ${placeName} — Booking #${bookingId} (Govt of Rajasthan OBMS)`);
     const pageUrl = encodeURIComponent(window.location.href);
 
     if (platform === 'whatsapp') {
@@ -505,81 +521,76 @@ function MyBookingsPageInner() {
    */
   async function handleShareTicket(platform: 'facebook' | 'whatsapp' | 'instagram') {
     if (!shareBooking) return;
-
-    const placeName = shareBooking.placeName
-      || shareBooking.placeDetailDto?.name
-      || shareBooking.packageDto?.packageName
-      || 'Booking';
-    const bookingId = String(shareBooking.bookingId || shareBooking.id || '');
-
-    setShareLoading(platform);
-
-    try {
-      // Generate the rich PDF ticket file
-      const file = await createShareTicketFile(shareBooking);
-
-      const shareData: ShareData = {
-        title: `${placeName} — Entry Ticket`,
-        text:  `My ticket for ${placeName} (Booking #${bookingId}). Govt of Rajasthan — OBMS.`,
-        files: [file],
-      };
-
-      // Check if the browser supports sharing files via the Web Share API.
-      // navigator.canShare({ files }) is the correct guard — it returns false
-      // on desktop browsers that don't support file sharing.
-      const supportsFileShare =
-        typeof navigator !== 'undefined' &&
-        typeof (navigator as any).share === 'function' &&
-        typeof (navigator as any).canShare === 'function' &&
-        (navigator as any).canShare({ files: [file] });
-
-      if (supportsFileShare) {
-        // Opens the native OS share sheet (Android / iOS).
-        // The user picks the target app from the sheet.
-        await (navigator as any).share(shareData);
-        // If we reach here the share sheet was opened successfully.
-        setShareModalOpen(false);
-        return;
-      }
-
-      // No native file-share support (desktop) — open web platform URLs
-      // and download the PDF for manual attachment.
-      await handlePlatformFallback(platform, file, placeName, bookingId);
-
-    } catch (error: any) {
-      if (error?.name === 'AbortError') {
-        // User dismissed the share sheet — not an error, close the modal silently.
-        setShareModalOpen(false);
-        return;
-      }
-
-      // Any other error (PDF generation failed, share API threw unexpectedly, etc.)
-      // — try to at least download the file so the user isn't left empty-handed.
-      console.error('Share ticket error:', error);
+    if (sharingFileLoading) {
+      showErrorToastMessage('Ticket is still being prepared, please wait...');
+      return;
+    }
+    if (!shareFile) {
+      // Fallback – generate now (may lose activation, but better than nothing)
+      showErrorToastMessage('Ticket not ready, trying again...');
       try {
         const file = await createShareTicketFile(shareBooking);
-        downloadFile(file);
-        showSuccessToastMessage('Ticket downloaded. You can share it from your device.');
-      } catch {
-        showErrorToastMessage('Unable to generate ticket. Please try again.');
+        await performShare(file, platform, shareBooking);
+      } catch (err) {
+        showErrorToastMessage('Failed to share ticket');
       }
-    } finally {
-      setShareLoading('');
-      setShareModalOpen(false);
+      return;
     }
+
+    await performShare(shareFile, platform, shareBooking);
+  }
+
+  async function performShare(file: File, platform: 'facebook' | 'whatsapp' | 'instagram', booking: any) {
+    const placeName = booking.placeName || booking.placeDetailDto?.name || 'Booking';
+    const bookingId = String(booking.bookingId || booking.id || '');
+    const shareData: ShareData = {
+      title: `${placeName} — Entry Ticket`,
+      text: `My ticket for ${placeName} (Booking #${bookingId}). Govt of Rajasthan — OBMS.`,
+      files: [file],
+    };
+
+    const supportsFileShare =
+      typeof navigator !== 'undefined' &&
+      typeof (navigator as any).share === 'function' &&
+      typeof (navigator as any).canShare === 'function' &&
+      (navigator as any).canShare({ files: [file] });
+
+    if (supportsFileShare) {
+      await (navigator as any).share(shareData);
+      setShareModalOpen(false);
+      return;
+    }
+
+    // Desktop fallback
+    await handlePlatformFallback(platform, file, placeName, bookingId);
   }
 
   function openShareModalForBooking(b: any) {
     setShareBooking(b);
     setShareModalOpen(true);
+    setShareFile(null);
+    setSharingFileLoading(true);
+
+    // Pre‑generate the ticket PDF in the background
+    createShareTicketFile(b)
+      .then(file => {
+        setShareFile(file);
+        setSharingFileLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to pre‑generate share file:', err);
+        showErrorToastMessage('Unable to prepare ticket. Please try again.');
+        setSharingFileLoading(false);
+        setShareModalOpen(false); // close modal if generation fails
+      });
   }
 
   // ─── Download router ────────────────────────────────────────────────────────
   async function dispatchTicketDownload(ticket: any) {
-    if (isJkkBooking(ticket))       openJkkTicket(ticket);
-    else if (isAsiBooking(ticket))   openAsiTicket(ticket);
+    if (isJkkBooking(ticket)) openJkkTicket(ticket);
+    else if (isAsiBooking(ticket)) openAsiTicket(ticket);
     else if (isInventoryType(ticket)) openInventoryTicket(ticket);
-    else                             openNonInventoryTicket(ticket);
+    else openNonInventoryTicket(ticket);
   }
 
   // ─── Main download entry point ─────────────────────────────────────────────
@@ -613,8 +624,8 @@ function MyBookingsPageInner() {
     setDateFilterOpen(false);
   }
 
-  function openDrawer(b: any)        { setSelectedBooking(b); setDrawerOpen(true); }
-  function openRaiseIssue(b: any)    { setIssueBooking(b);    setRaiseIssueOpen(true); }
+  function openDrawer(b: any) { setSelectedBooking(b); setDrawerOpen(true); }
+  function openRaiseIssue(b: any) { setIssueBooking(b); setRaiseIssueOpen(true); }
   function handleCancelClick(b: any) { setBookingToCancel(b); checkRefundable.mutate({ bookingId: String(b.bookingId || b.id) }); }
 
   function handleCancelConfirm() {
@@ -666,7 +677,7 @@ function MyBookingsPageInner() {
                 <div className="filter-bar">
                   <div className="search-input-wrap">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+                      <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
                     </svg>
                     <input
                       type="text" className="search-input"
@@ -678,7 +689,7 @@ function MyBookingsPageInner() {
                   </div>
                   <button className="filter-btn" onClick={() => setDateFilterOpen(true)}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
                     </svg>
                     {appliedDateType ? `${appliedDateType} Date Filter` : 'Filter By Date'}
                   </button>
@@ -717,10 +728,10 @@ function MyBookingsPageInner() {
 
           <div className="stats-strip">
             {[
-              { num: stats.total,     lbl: 'Total Bookings', cls: ''       },
-              { num: stats.upcoming,  lbl: 'Upcoming',       cls: 'orange' },
-              { num: stats.completed, lbl: 'Completed',      cls: 'green'  },
-              { num: stats.cancelled, lbl: 'Cancelled',      cls: 'red'    },
+              { num: stats.total, lbl: 'Total Bookings', cls: '' },
+              { num: stats.upcoming, lbl: 'Upcoming', cls: 'orange' },
+              { num: stats.completed, lbl: 'Completed', cls: 'green' },
+              { num: stats.cancelled, lbl: 'Cancelled', cls: 'red' },
               { num: `₹${toNum(stats.spent).toFixed(2)}`, lbl: 'Total Spent', cls: '' },
             ].map((s) => (
               <div key={s.lbl} className="stats-strip-item">
@@ -771,13 +782,13 @@ function MyBookingsPageInner() {
                 );
               }
 
-              const status     = getBookingStatus(b);
-              const placeName  = b.placeName || b.placeDetailDto?.name || b.packageDto?.packageName || 'Booking';
-              const district   = b.placeDetailDto?.districtName || '';
-              const fullImg    = resolveBookingImage(b);
+              const status = getBookingStatus(b);
+              const placeName = b.placeName || b.placeDetailDto?.name || b.packageDto?.packageName || 'Booking';
+              const district = b.placeDetailDto?.districtName || '';
+              const fullImg = resolveBookingImage(b);
               const totalUsers = b.totalUsers || (b.ticketUserDto?.reduce((s: number, t: any) => s + (t.qty || 0), 0)) || 0;
-              const bId        = String(b.bookingId || b.id);
-              const isGen      = pdfGenerating === bId;
+              const bId = String(b.bookingId || b.id);
+              const isGen = pdfGenerating === bId;
 
               return (
                 <div key={b.bookingId || b.id} className="booking-card" onClick={() => openDrawer(b)}>
@@ -786,7 +797,7 @@ function MyBookingsPageInner() {
                       className="booking-img"
                       style={{ backgroundImage: `url('${fullImg}')`, ...(b.cancelled || b.refund ? { filter: 'grayscale(.6)' } : {}) }}
                     >
-                      <div className="booking-img-overlay"/>
+                      <div className="booking-img-overlay" />
                     </div>
                     <div className="booking-main">
                       <div className="booking-top">
@@ -796,22 +807,22 @@ function MyBookingsPageInner() {
                       <div className="booking-name">{placeName}</div>
                       {district && (
                         <div className="booking-loc">
-                          <img src="/icons/google-maps.png" width={12} height={12} alt="" className="loc-ico mr-1"/>
+                          <img src="/icons/google-maps.png" width={12} height={12} alt="" className="loc-ico mr-1" />
                           {district}
                         </div>
                       )}
                       <div className="booking-meta">
                         <div className="bm-item">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <rect x="3" y="4" width="18" height="18" rx="2"/>
-                            <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                            <rect x="3" y="4" width="18" height="18" rx="2" />
+                            <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
                           </svg>
                           Visit Date: <span>{formatDate(b.bookingDate)}</span>
                         </div>
                         {(b.shiftName || b.shiftDto?.name) && (
                           <div className="bm-item">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                              <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
                             </svg>
                             Shift: <span>{b.shiftName || b.shiftDto?.name}</span>
                           </div>
@@ -819,7 +830,7 @@ function MyBookingsPageInner() {
                          {placeName.includes("Jawahar") ? "" :
                         <div className="bm-item">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
                           </svg>
                            Visitors: <span>{totalUsers}</span>
                         </div>}
@@ -957,11 +968,11 @@ function MyBookingsPageInner() {
                   <>
                     <div className="form-group">
                       <label className="form-label">Start Date *</label>
-                      <input type="date" className="form-input" value={startDate} onChange={(e) => setStartDate(e.target.value)}/>
+                      <input type="date" className="form-input" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
                     </div>
                     <div className="form-group">
                       <label className="form-label">End Date * (max 5 day range)</label>
-                      <input type="date" className="form-input" value={endDate} min={startDate} onChange={(e) => setEndDate(e.target.value)}/>
+                      <input type="date" className="form-input" value={endDate} min={startDate} onChange={(e) => setEndDate(e.target.value)} />
                     </div>
                   </>
                 )}
@@ -981,16 +992,16 @@ function MyBookingsPageInner() {
                 <span className="drawer-close-title">Booking Details</span>
               </div>
               {selectedBooking && (() => {
-                const b         = selectedBooking;
-                const status    = getBookingStatus(b);
+                const b = selectedBooking;
+                const status = getBookingStatus(b);
                 const placeName = b.placeName || b.placeDetailDto?.name || b.packageDto?.packageName || 'Booking';
-                const district  = b.placeDetailDto?.districtName || '';
-                const fullImg   = resolveBookingImage(b);
-                const bId       = String(b.bookingId || b.id);
-                const isGen     = pdfGenerating === bId;
-                const isInv     = isInventoryType(b);
+                const district = b.placeDetailDto?.districtName || '';
+                const fullImg = resolveBookingImage(b);
+                const bId = String(b.bookingId || b.id);
+                const isGen = pdfGenerating === bId;
+                const isInv = isInventoryType(b);
                 const invTickets: any[] = Array.isArray(b.ticketUserDto) ? b.ticketUserDto : [];
-                const invDocs: any[]   = invTickets.flatMap((t: any) => (Array.isArray(t?.ticketUserDocs) ? t.ticketUserDocs : []));
+                const invDocs: any[] = invTickets.flatMap((t: any) => (Array.isArray(t?.ticketUserDocs) ? t.ticketUserDocs : []));
                 const invTotalVisitors =
                   (invDocs.length || invTickets.reduce((s: number, t: any) => s + (Number(t?.qty) || 0), 0) || b.totalUsers || 0) as number;
                 const invVisitorNames = invDocs
@@ -1001,49 +1012,49 @@ function MyBookingsPageInner() {
 
                 const invChargeRows: any[] = Array.isArray(b?.ticketCharges) ? b.ticketCharges
                   : Array.isArray(b?.chargeDetails) ? b.chargeDetails
-                  : Array.isArray(b?.charges) ? b.charges : [];
+                    : Array.isArray(b?.charges) ? b.charges : [];
 
                 const invChargesTotals = invChargeRows.reduce(
                   (acc: any, c: any) => {
                     const p = classifyChargeRowExtended(c);
-                    acc.entryFeeVisitor  += p.entryFeeVisitor;
-                    acc.entryFeeVehicle  += p.entryFeeVehicle;
-                    acc.ecoDevVisitor    += p.ecoDevVisitor;
-                    acc.ecoDevVehicle    += p.ecoDevVehicle;
+                    acc.entryFeeVisitor += p.entryFeeVisitor;
+                    acc.entryFeeVehicle += p.entryFeeVehicle;
+                    acc.ecoDevVisitor += p.ecoDevVisitor;
+                    acc.ecoDevVehicle += p.ecoDevVehicle;
                     acc.tigerReserveFund += p.tigerReserveFund;
-                    acc.vehicleRent      += p.vehicleRent;
-                    acc.vehicleGst       += p.vehicleGst;
-                    acc.guideFee         += p.guideFee;
-                    acc.guideGst         += p.guideGst;
+                    acc.vehicleRent += p.vehicleRent;
+                    acc.vehicleGst += p.vehicleGst;
+                    acc.guideFee += p.guideFee;
+                    acc.guideGst += p.guideGst;
                     return acc;
                   },
-                  { 
-                    entryFeeVisitor: 0, entryFeeVehicle: 0, ecoDevVisitor: 0, 
-                    ecoDevVehicle: 0, tigerReserveFund: 0, vehicleRent: 0, 
-                    vehicleGst: 0, guideFee: 0, guideGst: 0 
+                  {
+                    entryFeeVisitor: 0, entryFeeVehicle: 0, ecoDevVisitor: 0,
+                    ecoDevVehicle: 0, tigerReserveFund: 0, vehicleRent: 0,
+                    vehicleGst: 0, guideFee: 0, guideGst: 0
                   },
                 );
 
                 const entryFeeVisitor = invChargesTotals.entryFeeVisitor;
                 const entryFeeVehicle = invChargesTotals.entryFeeVehicle;
-                const ecoDevVisitor   = invChargesTotals.ecoDevVisitor;
-                const ecoDevVehicle   = invChargesTotals.ecoDevVehicle;
-                const tigerFund       = invChargesTotals.tigerReserveFund;
-                const vehicleRent     = invChargesTotals.vehicleRent;
-                const gst             = invChargesTotals.vehicleGst + invChargesTotals.guideGst;
-                const guideFee        = invChargesTotals.guideFee;
+                const ecoDevVisitor = invChargesTotals.ecoDevVisitor;
+                const ecoDevVehicle = invChargesTotals.ecoDevVehicle;
+                const tigerFund = invChargesTotals.tigerReserveFund;
+                const vehicleRent = invChargesTotals.vehicleRent;
+                const gst = invChargesTotals.vehicleGst + invChargesTotals.guideGst;
+                const guideFee = invChargesTotals.guideFee;
 
-                const rislCharge  = computeRislTotal(b);
+                const rislCharge = computeRislTotal(b);
                 const addOnCharge = computeAddonTotal(b);
-                const surcharge   = toNum(b?.rpacsCharges ?? b?.rpacsCharge ?? b?.rpacs ?? b?.surcharge ?? b?.surCharge ?? b?.surchargeCharges);
+                const surcharge = toNum(b?.rpacsCharges ?? b?.rpacsCharge ?? b?.rpacs ?? b?.surcharge ?? b?.surCharge ?? b?.surchargeCharges);
 
                 return (
                   <div>
                     <div className="drawer-img" style={{ backgroundImage: `url('${fullImg}')` }}>
-                      <div className="drawer-img-grad"/>
+                      <div className="drawer-img-grad" />
                       <div className="drawer-img-foot">
                         <h2>{placeName}</h2>
-                        {district && <p><img src="/icons/google-maps.png" width={12} height={12} alt="" className="loc-ico mr-1"/>{district}</p>}
+                        {district && <p><img src="/icons/google-maps.png" width={12} height={12} alt="" className="loc-ico mr-1" />{district}</p>}
                       </div>
                     </div>
                     <div className="drawer-content">
@@ -1053,9 +1064,9 @@ function MyBookingsPageInner() {
                           <div className="ticket-qr">📲</div>
                         </div>
                         <div className="ticket-divider">
-                          <div className="ticket-divider-circle" style={{ marginLeft: -9 }}/>
-                          <div className="ticket-divider-line"/>
-                          <div className="ticket-divider-circle" style={{ marginRight: -9 }}/>
+                          <div className="ticket-divider-circle" style={{ marginLeft: -9 }} />
+                          <div className="ticket-divider-line" />
+                          <div className="ticket-divider-circle" style={{ marginRight: -9 }} />
                         </div>
                         <div className="ticket-body">
                           <div className="ticket-row">
@@ -1124,15 +1135,15 @@ function MyBookingsPageInner() {
                           {isPaymentSuccess(b) && (b.qrDetail || b.id) && (
                             (() => {
                               const qrValue = b.qrDetail || JSON.stringify({ type: 'BOOKING', data: { ticketBookingId: b.id || b.bookingId } });
-                              const qrUrl   = generateQrDataUrl(qrValue);
+                              const qrUrl = generateQrDataUrl(qrValue);
                               return (
                                 <div style={{ textAlign: 'center', padding: '14px 0', cursor: 'pointer' }} onClick={() => { setQrData(qrValue); setQrModalOpen(true); }}>
                                   <div className="ticket-field-lbl">QR Code</div>
                                   <div style={{ display: 'inline-block', padding: 10, background: '#fff', border: '1px solid #E8DAC5', borderRadius: 8, marginTop: 8 }}>
                                     {qrUrl ? (
-                                      <img src={qrUrl} alt="QR Code" style={{ width: 130, height: 130, display: 'block' }}/>
+                                      <img src={qrUrl} alt="QR Code" style={{ width: 130, height: 130, display: 'block' }} />
                                     ) : (
-                                      <div style={{ width: 130, height: 130 }}/>
+                                      <div style={{ width: 130, height: 130 }} />
                                     )}
                                   </div>
                                   <div style={{ fontSize: 10, color: '#7A6A58', marginTop: 4 }}>Tap to enlarge · Scan at entry</div>
@@ -1221,9 +1232,11 @@ function MyBookingsPageInner() {
                           </button>
                         )}
                         {isJkkBooking(b) && b.approved && (
-                          <div style={{ padding: '10px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600, textAlign: 'center',
+                          <div style={{
+                            padding: '10px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600, textAlign: 'center',
                             background: b.approved === 'APPROVED' ? '#E8F5E9' : b.approved === 'REJECT' ? '#FFEBEE' : '#FFF8E1',
-                            color: b.approved === 'APPROVED' ? '#2E7D32' : b.approved === 'REJECT' ? '#C62828' : '#F57F17' }}>
+                            color: b.approved === 'APPROVED' ? '#2E7D32' : b.approved === 'REJECT' ? '#C62828' : '#F57F17'
+                          }}>
                             JKK Status: {b.approved}
                           </div>
                         )}
@@ -1267,7 +1280,7 @@ function MyBookingsPageInner() {
                 {cancelReason === 'other' && (
                   <div className="form-group">
                     <label className="form-label">Specify Reason *</label>
-                    <input type="text" className="form-input" value={otherReason} onChange={(e) => setOtherReason(e.target.value)}/>
+                    <input type="text" className="form-input" value={otherReason} onChange={(e) => setOtherReason(e.target.value)} />
                   </div>
                 )}
                 {refundableAmount > 0 && (
@@ -1277,9 +1290,9 @@ function MyBookingsPageInner() {
                     </div>
                     {[
                       { lbl: 'Account Holder Name *', key: 'acHolderName' },
-                      { lbl: 'Bank Name *',            key: 'bankName'     },
-                      { lbl: 'Account Number *',       key: 'acNumber'     },
-                      { lbl: 'IFSC Code *',            key: 'ifscValue'    },
+                      { lbl: 'Bank Name *', key: 'bankName' },
+                      { lbl: 'Account Number *', key: 'acNumber' },
+                      { lbl: 'IFSC Code *', key: 'ifscValue' },
                     ].map(({ lbl, key }) => (
                       <div className="form-group" key={key}>
                         <label className="form-label">{lbl}</label>
@@ -1287,7 +1300,7 @@ function MyBookingsPageInner() {
                           type="text" className="form-input" value={(bankForm as any)[key]}
                           onChange={(e) => {
                             let v = e.target.value;
-                            if (key === 'acNumber')  v = v.replace(/[^0-9]/g, '');
+                            if (key === 'acNumber') v = v.replace(/[^0-9]/g, '');
                             if (key === 'ifscValue') v = v.toUpperCase();
                             setBankForm({ ...bankForm, [key]: v });
                           }}
@@ -1305,7 +1318,7 @@ function MyBookingsPageInner() {
                     </div>
                     <div className="form-group">
                       <label className="form-label">Branch Code (optional)</label>
-                      <input type="text" className="form-input" value={bankForm.branchCode} onChange={(e) => setBankForm({ ...bankForm, branchCode: e.target.value })}/>
+                      <input type="text" className="form-input" value={bankForm.branchCode} onChange={(e) => setBankForm({ ...bankForm, branchCode: e.target.value })} />
                     </div>
                   </>
                 )}
@@ -1330,9 +1343,9 @@ function MyBookingsPageInner() {
                 <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 24 }}>
                   <div style={{ padding: 16, background: '#fff', border: '2px solid #E8DAC5', borderRadius: 12 }}>
                     {qrData && generateQrDataUrl(qrData) ? (
-                      <img src={generateQrDataUrl(qrData)} alt="Entry QR Code" style={{ width: 240, height: 240, display: 'block' }}/>
+                      <img src={generateQrDataUrl(qrData)} alt="Entry QR Code" style={{ width: 240, height: 240, display: 'block' }} />
                     ) : (
-                      <div style={{ width: 240, height: 240 }}/>
+                      <div style={{ width: 240, height: 240 }} />
                     )}
                   </div>
                   <p style={{ fontSize: 12, color: '#7A6A58', marginTop: 16 }}>Show this QR code at the entry gate for quick scanning</p>
@@ -1347,9 +1360,19 @@ function MyBookingsPageInner() {
               <div className="modal" style={{ maxWidth: 380 }}>
                 <div className="modal-header">
                   <div className="modal-title">Share Ticket</div>
-                  <button className="modal-close" onClick={() => setShareModalOpen(false)}>✕</button>
+                  <button className="modal-close" onClick={() => {
+                    setShareModalOpen(false);
+                    setShareFile(null);
+                    setSharingFileLoading(false);
+                  }}>✕</button>
                 </div>
-                <div className="modal-body" style={{ paddingTop: 16 }}>
+                <div className="modal-body" style={{ paddingTop: 16 }} onClick={(e) => {
+                  if (e.target === e.currentTarget) {
+                    setShareModalOpen(false);
+                    setShareFile(null);
+                    setSharingFileLoading(false);
+                  }
+                }}>
                   <div style={{ fontSize: 12, color: '#7A6A58', marginBottom: 18 }}>
                     On mobile, tapping a platform opens your device&apos;s share sheet where you can choose the app.
                     On desktop, the ticket PDF is downloaded so you can attach it manually.
@@ -1360,7 +1383,7 @@ function MyBookingsPageInner() {
                         key: 'whatsapp', label: 'WhatsApp', bg: '#E8F8EF', color: '#25D366',
                         icon: (
                           <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                            <path d="M20.5 11.8c0 4.7-3.8 8.5-8.5 8.5-1.5 0-2.9-.4-4.2-1.1L3 20.5l1.3-4.6A8.4 8.4 0 0 1 3.5 12c0-4.7 3.8-8.5 8.5-8.5s8.5 3.8 8.5 8.3zm-8.5-7a7 7 0 0 0-6.1 10.4l.3.5-.8 2.8 2.8-.8.5.3a7 7 0 1 0 3.3-13.2zm4.1 8.9c-.2-.1-1.2-.6-1.4-.7-.2-.1-.3-.1-.4.1l-.6.7c-.1.1-.2.2-.4.1-.2-.1-.8-.3-1.5-1-.6-.6-1-1.3-1.1-1.5-.1-.2 0-.3.1-.4l.3-.3.2-.3.1-.3c0-.1 0-.2 0-.3l-.7-1.6c-.2-.4-.3-.3-.4-.3h-.4c-.1 0-.3.1-.4.2-.1.1-.6.5-.6 1.3s.6 1.5.7 1.6c.1.1 1.2 1.8 3 2.5 1.8.8 1.8.5 2.2.5.4-.1 1.2-.5 1.4-1 .2-.5.2-.9.1-1 0-.1-.2-.1-.4-.2z"/>
+                            <path d="M20.5 11.8c0 4.7-3.8 8.5-8.5 8.5-1.5 0-2.9-.4-4.2-1.1L3 20.5l1.3-4.6A8.4 8.4 0 0 1 3.5 12c0-4.7 3.8-8.5 8.5-8.5s8.5 3.8 8.5 8.3zm-8.5-7a7 7 0 0 0-6.1 10.4l.3.5-.8 2.8 2.8-.8.5.3a7 7 0 1 0 3.3-13.2zm4.1 8.9c-.2-.1-1.2-.6-1.4-.7-.2-.1-.3-.1-.4.1l-.6.7c-.1.1-.2.2-.4.1-.2-.1-.8-.3-1.5-1-.6-.6-1-1.3-1.1-1.5-.1-.2 0-.3.1-.4l.3-.3.2-.3.1-.3c0-.1 0-.2 0-.3l-.7-1.6c-.2-.4-.3-.3-.4-.3h-.4c-.1 0-.3.1-.4.2-.1.1-.6.5-.6 1.3s.6 1.5.7 1.6c.1.1 1.2 1.8 3 2.5 1.8.8 1.8.5 2.2.5.4-.1 1.2-.5 1.4-1 .2-.5.2-.9.1-1 0-.1-.2-.1-.4-.2z" />
                           </svg>
                         ),
                       },
@@ -1368,7 +1391,7 @@ function MyBookingsPageInner() {
                         key: 'facebook', label: 'Facebook', bg: '#E8F0FE', color: '#1877F2',
                         icon: (
                           <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                            <path d="M13.5 22v-8h2.7l.4-3h-3.1V9.1c0-.9.3-1.6 1.7-1.6h1.5V4.8c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4V11H8v3h2.5v8h3z"/>
+                            <path d="M13.5 22v-8h2.7l.4-3h-3.1V9.1c0-.9.3-1.6 1.7-1.6h1.5V4.8c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4V11H8v3h2.5v8h3z" />
                           </svg>
                         ),
                       },
@@ -1376,9 +1399,9 @@ function MyBookingsPageInner() {
                         key: 'instagram', label: 'Instagram', bg: '#FDF0F7', color: '#E1306C',
                         icon: (
                           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <rect x="3" y="3" width="18" height="18" rx="5"/>
-                            <circle cx="12" cy="12" r="4"/>
-                            <circle cx="17.5" cy="6.5" r="1"/>
+                            <rect x="3" y="3" width="18" height="18" rx="5" />
+                            <circle cx="12" cy="12" r="4" />
+                            <circle cx="17.5" cy="6.5" r="1" />
                           </svg>
                         ),
                       },
@@ -1410,7 +1433,7 @@ function MyBookingsPageInner() {
             </div>
           )}
 
-          <RaiseIssueModal open={raiseIssueOpen} onClose={() => setRaiseIssueOpen(false)} booking={issueBooking}/>
+          <RaiseIssueModal open={raiseIssueOpen} onClose={() => setRaiseIssueOpen(false)} booking={issueBooking} />
         </>
       )}
     </div>

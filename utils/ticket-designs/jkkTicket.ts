@@ -288,202 +288,79 @@ export function openJkkTicket(ticket: any) {
 // ════════════════════════════════════════════════════════════════════════════
 
 export async function buildJkkShareFile(ticket: any): Promise<File> {
-  const bookingId   = String(ticket.bookingId || ticket.id || '');
-  const placeName   = (ticket.placeName || ticket.placeDetailDto?.name || 'Jawahar Kala Kendra') as string;
-  const createdDate = ticket.createdDate ? moment(Number(ticket.createdDate)).format('DD MMM YYYY') : '—';
-  const startMs     = Number(ticket.bookingStartDate);
-  const endMs       = Number(ticket.bookingEndDate);
-  const reservationFor = (startMs && endMs)
-    ? `${moment(startMs).format('DD MMM')} - ${moment(endMs).format('DD MMM YYYY')}`
-    : '—';
-  const approvedRaw = String(ticket.approved || 'PENDING').toUpperCase();
-  const approved    = approvedRaw === 'REJECT' ? 'REJECTED' : approvedRaw;
-  const paymentSuccess = String(ticket?.paymentStatus || '').toLowerCase().includes('success');
-  const paymentLabel = paymentSuccess ? 'PAID' : 'PENDING';
+  const bookingId = String(ticket.bookingId || ticket.id || 'ticket');
+  const html = buildJkkTicketHtml(ticket); // ← reuse the EXACT same HTML
 
-  const applicantName = ticket.applicantName || ticket.fullName || '—';
-  const mobileNo      = ticket.mobileNo || '—';
-  const email         = ticket.email || '—';
-  const typeName      = ticket.typeName || ticket.exhibitionType || '—';
-  const subCategory   = ticket.subCategoryName || ticket.jkkSubCategory?.name || '—';
-  const category      = ticket.category || ticket.categoryName || '—';
-  const shiftName     = ticket.shiftName
-    || (ticket.jkkShiftList || ticket.shiftList || []).map((s: any) => s?.name || s).filter(Boolean).join(', ')
-    || '—';
-  const totalAmount   = toNum(ticket.totalAmount).toFixed(2);
-  const transactionId = ticket.transactionId ? String(ticket.transactionId) : '';
+  return new Promise<File>((resolve, reject) => {
+    // Create a hidden iframe to host the HTML
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1100px;height:1200px;visibility:hidden;';
+    document.body.appendChild(iframe);
 
-  const qrValue = ticket.qrDetail
-    || JSON.stringify({ type: 'BOOKING', data: { ticketBookingId: ticket.id || ticket.bookingId } });
-
-  const pdfDoc = await PDFDocument.create();
-  const fSans  = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const fSansB = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const fSerif = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
-  const fMonoB = await pdfDoc.embedFont(StandardFonts.CourierBold);
-
-  const PW = 595.28, PH = 841.89, M = 28;
-  // Pink/rose palette mirrors the JKK download
-  const pinkBg     = rgb(0.992, 0.953, 0.961);   // very light pink page
-  const pinkDeep   = rgb(0.510, 0.094, 0.263);   // #831843
-  const pinkMid    = rgb(0.859, 0.157, 0.467);   // #db2777
-  const pinkLight  = rgb(0.988, 0.906, 0.949);   // #fce7f3
-  const pinkBorder = rgb(0.953, 0.784, 0.847);   // border accent
-  const dark       = rgb(0.196, 0.196, 0.196);   // #323232
-  const muted      = rgb(0.420, 0.447, 0.502);   // #6b7280
-  const accent     = rgb(0.957, 0.247, 0.369);   // #f43f5e
-  const white      = rgb(1, 1, 1);
-
-  const page = pdfDoc.addPage([PW, PH]);
-  page.drawRectangle({ x: 0, y: 0, width: PW, height: PH, color: pinkBg });
-  const drawText = (text: string, x: number, y: number, opts: any) => page.drawText(text, { x, y, ...opts });
-  const truncate = (s: string, max: number) => s.length > max ? s.slice(0, Math.max(0, max - 1)) + '…' : s;
-
-  // ── Header (pink gradient: deep + mid stacked) ──────────────────────────
-  page.drawRectangle({ x: 0, y: PH - 80,  width: PW, height: 80, color: pinkDeep });
-  page.drawRectangle({ x: 0, y: PH - 150, width: PW, height: 70, color: pinkMid });
-
-  drawText('GOVERNMENT OF RAJASTHAN', M + 50, PH - 26, { size: 8, font: fSansB, color: rgb(1, 1, 1) });
-  drawText('Jawahar Kala Kendra', M + 50, PH - 42, { size: 12, font: fSansB, color: white });
-  drawText('Department of Art & Culture', M + 50, PH - 56, { size: 8, font: fSans, color: rgb(0.95, 0.85, 0.92) });
-  page.drawCircle({ x: M + 25, y: PH - 42, size: 19, color: rgb(0.30, 0.05, 0.15), borderColor: rgb(1,1,1), borderWidth: 1 });
-  drawText('JKK', M + 14, PH - 48, { size: 11, font: fSerif, color: white });
-
-  drawText(truncate(placeName, 36), M, PH - 100, { size: 22, font: fSerif, color: white });
-  drawText(`Booking #${bookingId}  .  Created ${createdDate}`, M, PH - 122, { size: 9, font: fSans, color: rgb(0.98, 0.86, 0.92) });
-
-  // QR
-  const qrDataUrl = generateQrDataUrl(qrValue);
-  if (qrDataUrl) {
-    try {
-      const qrImg = await pdfDoc.embedPng(dataUrlToBytes(qrDataUrl));
-      page.drawRectangle({ x: PW - 100, y: PH - 102, width: 80, height: 80, color: white });
-      page.drawImage(qrImg, { x: PW - 96, y: PH - 98, width: 72, height: 72 });
-    } catch {}
-  }
-
-  // ── Status pill row (Application Status + Payment Status) ───────────────
-  let y = PH - 178;
-  {
-    const stripH = 38;
-    page.drawRectangle({ x: M, y: y - stripH, width: PW - M * 2, height: stripH, color: pinkLight, borderColor: pinkBorder, borderWidth: 0.5 });
-    drawText('APPLICATION STATUS', M + 14, y - 14, { size: 7, font: fSansB, color: pinkDeep });
-    drawText(approved, M + 14, y - 28, { size: 12, font: fSansB, color: approved === 'APPROVED' ? rgb(0.13, 0.55, 0.13) : approved === 'REJECTED' ? accent : pinkMid });
-
-    drawText('PAYMENT', PW / 2, y - 14, { size: 7, font: fSansB, color: pinkDeep });
-    drawText(paymentLabel, PW / 2, y - 28, { size: 12, font: fSansB, color: paymentSuccess ? rgb(0.13, 0.55, 0.13) : pinkMid });
-
-    drawText('TOTAL', PW - M - 90, y - 14, { size: 7, font: fSansB, color: pinkDeep });
-    drawText(`Rs. ${totalAmount}`, PW - M - 90, y - 28, { size: 12, font: fSansB, color: pinkMid });
-    y -= stripH + 14;
-  }
-
-  // ── Section heading helper ──────────────────────────────────────────────
-  const sectionHead = (label: string) => {
-    page.drawRectangle({ x: M, y: y - 2, width: 14, height: 2, color: pinkMid });
-    drawText(label.toUpperCase(), M + 22, y - 6, { size: 9, font: fSerif, color: pinkDeep });
-    page.drawLine({ start: { x: M, y: y - 12 }, end: { x: PW - M, y: y - 12 }, thickness: 0.5, color: pinkBorder });
-    y -= 24;
-  };
-
-  // ── Applicant Details ───────────────────────────────────────────────────
-  sectionHead('Applicant Details');
-  {
-    const cells: Array<[string, string]> = [
-      ['Name', applicantName],
-      ['Mobile', mobileNo],
-      ['Email', email],
-    ];
-    const cellW = (PW - M * 2 - 12) / 3;
-    const cellH = 42;
-    for (let i = 0; i < cells.length; i++) {
-      const [lbl, val] = cells[i];
-      const cx = M + i * (cellW + 6);
-      page.drawRectangle({ x: cx, y: y - cellH, width: cellW, height: cellH, color: white, borderColor: pinkBorder, borderWidth: 0.5 });
-      drawText(lbl.toUpperCase(), cx + 8, y - 14, { size: 7, font: fSansB, color: pinkDeep });
-      drawText(truncate(val, Math.floor((cellW - 16) / 5.4)), cx + 8, y - 30, { size: 10, font: fSansB, color: dark });
-    }
-    y -= cellH + 14;
-  }
-
-  // ── Event Details ───────────────────────────────────────────────────────
-  sectionHead('Event Details');
-  {
-    const cells: Array<[string, string]> = [
-      ['Type',         typeName],
-      ['Sub-Category', subCategory],
-      ['Category',     category],
-      ['Shift',        shiftName],
-      ['Reservation',  reservationFor],
-      ['Booking ID',   bookingId],
-    ];
-    const cellW = (PW - M * 2 - 12) / 3;
-    const cellH = 42;
-    for (let i = 0; i < cells.length; i++) {
-      const [lbl, val] = cells[i];
-      const cx = M + (i % 3) * (cellW + 6);
-      const cy = y - Math.floor(i / 3) * (cellH + 6);
-      page.drawRectangle({ x: cx, y: cy - cellH, width: cellW, height: cellH, color: white, borderColor: pinkBorder, borderWidth: 0.5 });
-      drawText(lbl.toUpperCase(), cx + 8, cy - 14, { size: 7, font: fSansB, color: pinkDeep });
-      drawText(truncate(val, Math.floor((cellW - 16) / 5.4)), cx + 8, cy - 30, { size: 10, font: fSansB, color: dark });
-    }
-    y -= Math.ceil(cells.length / 3) * (cellH + 6) + 8;
-  }
-
-  // ── Payment Summary ─────────────────────────────────────────────────────
-  if (y < 200) y = PH - 80; // single-page assumption — rare for JKK to overflow
-  sectionHead('Payment Summary');
-  {
-    const ticketHeads: any[] = Array.isArray(ticket.ticketHeads) ? ticket.ticketHeads : [];
-    const heads = ticketHeads.length ? ticketHeads : [];
-    const rowH = 22;
-    const drawHead = (label: string, val: string, italic = false) => {
-      page.drawRectangle({ x: M, y: y - rowH, width: PW - M * 2, height: rowH, color: white, borderColor: pinkBorder, borderWidth: 0.4 });
-      drawText(label, M + 10, y - 14, { size: 9, font: italic ? fSans : fSansB, color: italic ? muted : dark });
-      drawText(val, PW - M - 10 - val.length * 5.4, y - 14, { size: 9, font: fMonoB, color: dark });
-      y -= rowH;
+    const cleanup = () => {
+      try { document.body.removeChild(iframe); } catch {}
     };
-    if (heads.length) {
-      for (const h of heads) {
-        const lbl = String(h?.name || 'Charge');
-        const amt = typeof h?.amount === 'number' ? h.amount.toFixed(2) : String(h?.amount || '0.00');
-        drawHead(lbl, `Rs. ${amt}`);
+
+    iframe.onload = () => {
+      try {
+        const iDoc = iframe.contentDocument!;
+        // Remove the auto-print script so it doesn't fire
+        iDoc.querySelectorAll('script').forEach(s => s.remove());
+
+        // Use the iframe's window.print via Blob trick — but for sharing
+        // we need a File, so we use html2canvas → canvas → blob approach,
+        // OR the cleanest: serialize the HTML as a self-contained blob PDF
+        // via the browser's built-in print-to-PDF (not available in JS directly).
+        //
+        // Best cross-browser approach: convert to image via html2canvas,
+        // then wrap in a minimal PDF using your existing pdf-lib pattern.
+        import('html2canvas').then(({ default: html2canvas }) => {
+          html2canvas(iDoc.body, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#ffffff',
+            width: 1100,
+            windowWidth: 1100,
+          }).then(canvas => {
+            canvas.toBlob(async (blob) => {
+              if (!blob) { cleanup(); reject(new Error('Canvas to blob failed')); return; }
+
+              try {
+                const { PDFDocument } = await import('pdf-lib');
+                const imgBytes = new Uint8Array(await blob.arrayBuffer());
+                const pdfDoc = await PDFDocument.create();
+
+                // A4 proportional — scale canvas to A4 width
+                const A4_W = 595.28;
+                const scale = A4_W / canvas.width;
+                const A4_H = canvas.height * scale;
+
+                const page = pdfDoc.addPage([A4_W, A4_H]);
+                const pngImage = await pdfDoc.embedPng(imgBytes);
+                page.drawImage(pngImage, { x: 0, y: 0, width: A4_W, height: A4_H });
+
+                const pdfBytes = await pdfDoc.save();
+const file = new File([pdfBytes.buffer as ArrayBuffer], `jkk_ticket_${bookingId}.pdf`, { type: 'application/pdf' });                cleanup();
+                resolve(file);
+              } catch (err) {
+                cleanup();
+                reject(err);
+              }
+            }, 'image/png');
+          }).catch(err => { cleanup(); reject(err); });
+        }).catch(err => { cleanup(); reject(err); });
+      } catch (err) {
+        cleanup();
+        reject(err);
       }
-    } else {
-      drawHead('Application Fee', `Rs. ${totalAmount}`);
-    }
-    if (transactionId) drawHead('Transaction ID', transactionId, true);
+    };
 
-    // Grand total band
-    page.drawRectangle({ x: M, y: y - 26, width: PW - M * 2, height: 26, color: pinkLight, borderColor: pinkMid, borderWidth: 0.6 });
-    drawText('GRAND TOTAL', M + 10, y - 17, { size: 11, font: fSerif, color: pinkDeep });
-    const v = `Rs. ${totalAmount}`;
-    drawText(v, PW - M - 10 - v.length * 7, y - 17, { size: 13, font: fMonoB, color: pinkMid });
-    y -= 26 + 14;
-  }
+    iframe.onerror = () => { cleanup(); reject(new Error('iframe load failed')); };
 
-  // ── Notes / disclaimers ─────────────────────────────────────────────────
-  {
-    const boxH = 70;
-    page.drawRectangle({ x: M, y: y - boxH, width: PW - M * 2, height: boxH, color: pinkLight, borderColor: pinkBorder, borderWidth: 0.4 });
-    page.drawRectangle({ x: M, y: y - boxH, width: 3, height: boxH, color: pinkMid });
-    drawText('Important:', M + 12, y - 14, { size: 9, font: fSansB, color: pinkDeep });
-    const txt = 'Please carry a printed copy of this application or the booking ID. Submit any required attachments before the event start date. JKK reserves the right to amend or cancel allotments under exceptional circumstances.';
-    let ny = y - 28;
-    for (const line of wrapLines(txt, 92)) {
-      drawText(line, M + 12, ny, { size: 8, font: fSans, color: dark });
-      ny -= 11;
-    }
-    y -= boxH + 12;
-  }
-
-  // ── Footer ──────────────────────────────────────────────────────────────
-  page.drawRectangle({ x: 0, y: 0, width: PW, height: 56, color: pinkDeep });
-  drawText('JKK Helpdesk:  jkk[at]rajasthan.gov.in', M, 38, { size: 9, font: fSans, color: rgb(0.95, 0.85, 0.92) });
-  drawText('Address:       JLN Marg, Jaipur, Rajasthan', M, 24, { size: 9, font: fSans, color: rgb(0.95, 0.85, 0.92) });
-  drawText('Web:           obms-tourist.rajasthan.gov.in', M, 10, { size: 9, font: fSans, color: rgb(0.95, 0.85, 0.92) });
-  drawText('JKK', PW - M - 24, 36, { size: 14, font: fSerif, color: rgb(0.95, 0.85, 0.92) });
-  drawText('JAWAHAR KALA KENDRA', PW - M - 130, 18, { size: 7, font: fSansB, color: rgb(0.85, 0.65, 0.78) });
-
-  return fileFromPdf(await pdfDoc.save(), `ticket_${bookingId}.pdf`);
+    // Write the HTML (with print script removed)
+    const cleanHtml = html.replace(/<script>[\s\S]*?<\/script>/gi, '');
+    iframe.contentDocument?.open();
+    iframe.contentDocument?.write(cleanHtml);
+    iframe.contentDocument?.close();
+  });
 }

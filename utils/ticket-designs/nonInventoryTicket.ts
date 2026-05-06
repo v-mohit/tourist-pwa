@@ -118,7 +118,6 @@ body{font-family:'Rajdhani',sans-serif;background:#111;min-height:100vh;display:
 .d1-breakdown-title{font-family:'Rajdhani',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#9B5520;margin-bottom:8px;}
 .d1-breakdown-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;}
 .d1-breakdown-grid .d1-info-item{color:#7A6A58;}
-
 .d1-ref{background:#3D1F00;border-radius:4px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;}
 .d1-ref .rl{font-family:'Rajdhani',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.4);}
 .d1-ref .rv{font-family:'Space Mono',monospace;font-size:13px;color:#D4A017;letter-spacing:1.5px;}
@@ -210,7 +209,22 @@ export function openNonInventoryTicket(ticket: any) {
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-//  SANDSTONE / NON-INVENTORY share PDF
+//  SHARE AS HTML FILE
+//  Converts the exact same HTML ticket design into a self-contained .html
+//  File object. On mobile, navigator.share({ files }) opens the native OS
+//  share sheet so the user can pick WhatsApp, Gmail, Drive, etc directly.
+//  On desktop it falls back to a download.
+// ════════════════════════════════════════════════════════════════════════════
+
+export function buildNonInventoryShareFileAsHtml(ticket: any): File {
+  const bookingId = String(ticket.bookingId || ticket.id || '');
+  const html = buildNonInventoryTicketHtml(ticket);
+  const blob = new Blob([html], { type: 'text/html' });
+  return new File([blob], `ticket_${bookingId}.html`, { type: 'text/html' });
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  SANDSTONE / NON-INVENTORY share PDF  (kept for backwards compatibility)
 //  Mirrors the "Single Entry Pass" download with gold strip + 3 visit cells
 //  + ticket breakdown list + booking-reference band.
 // ════════════════════════════════════════════════════════════════════════════
@@ -230,7 +244,6 @@ export async function buildNonInventoryShareFile(ticket: any): Promise<File> {
   const shiftSub   = shiftStart ? `${shiftStart} - ${shiftEnd}` : '';
 
   const visitors: any[] = Array.isArray(ticket.ticketUserDto) ? ticket.ticketUserDto : [];
-  // "1 Indian Citizen, 1 Indian Student" line + "Indian Citizen × 1" breakdown
   const ticketBreakdown: Array<{ name: string; qty: number }> = visitors.map((v) => ({
     name: String(v?.ticketName || 'Visitor'),
     qty:  Number(v?.qty) || (Array.isArray(v?.ticketUserDocs) ? v.ticketUserDocs.length : 0) || 1,
@@ -273,7 +286,6 @@ export async function buildNonInventoryShareFile(ticket: any): Promise<File> {
   const drawText = (text: string, x: number, y: number, opts: any) => page.drawText(text, { x, y, ...opts });
   const truncate = (s: string, max: number) => s.length > max ? s.slice(0, Math.max(0, max - 1)) + '…' : s;
 
-  // ── Header band (brown→orange) ──────────────────────────────────────────
   page.drawRectangle({ x: 0, y: PH - 100, width: PW, height: 100, color: orangeDark });
   page.drawRectangle({ x: 0, y: PH - 200, width: PW, height: 100, color: orange });
 
@@ -286,7 +298,6 @@ export async function buildNonInventoryShareFile(ticket: any): Promise<File> {
   const locParts = [district, 'Rajasthan', 'India'].filter(Boolean).join(', ');
   if (locParts) drawText(truncate(locParts.toUpperCase(), 70), M, PH - 132, { size: 9, font: fSans, color: rgb(0.95, 0.88, 0.82) });
 
-  // QR — large card top-right
   const qrDataUrl = generateQrDataUrl(qrValue);
   if (qrDataUrl) {
     try {
@@ -296,7 +307,6 @@ export async function buildNonInventoryShareFile(ticket: any): Promise<File> {
     } catch {}
   }
 
-  // ── Gold "Single Entry Pass" strip ──────────────────────────────────────
   page.drawRectangle({ x: 0, y: PH - 232, width: PW, height: 32, color: goldStrip });
   drawText('---  Single Entry Pass  ---', M, PH - 220, { size: 11, font: fSerif, color: dark });
   const priceText = `Rs. ${perTicket.toFixed(0)} / Ticket`;
@@ -304,7 +314,6 @@ export async function buildNonInventoryShareFile(ticket: any): Promise<File> {
 
   let y = PH - 260;
 
-  // ── 3 visit-info cells: Visit Date / Visitors / Time Slot ───────────────
   {
     const cells: Array<{ label: string; main: string; sub: string }> = [
       { label: 'Visit Date',  main: visitDateMonth, sub: visitDateYear },
@@ -317,19 +326,15 @@ export async function buildNonInventoryShareFile(ticket: any): Promise<File> {
       const c = cells[i];
       const cx = M + i * (cellW + 8);
       page.drawRectangle({ x: cx, y: y - cellH, width: cellW, height: cellH, color: cellBg, borderColor: rgb(0.90, 0.62, 0.30), borderWidth: 0.4 });
-      // label
       drawText(c.label.toUpperCase(), cx + cellW / 2 - (c.label.length * 2.4), y - 30, { size: 8, font: fSansB, color: muted });
-      // main value (large serif)
       const mainTrim = truncate(c.main, Math.floor((cellW - 8) / 7));
       drawText(mainTrim, cx + cellW / 2 - (mainTrim.length * 4.4), y - 52, { size: 14, font: fSerif, color: dark });
-      // sub
       const subTrim = truncate(c.sub || '', Math.floor((cellW - 8) / 4.6));
       drawText(subTrim, cx + cellW / 2 - (subTrim.length * 2.4), y - 70, { size: 8, font: fSans, color: muted });
     }
     y -= cellH + 18;
   }
 
-  // ── Dashed divider ──────────────────────────────────────────────────────
   {
     const dashLen = 4, gap = 4;
     let dx = M;
@@ -340,12 +345,10 @@ export async function buildNonInventoryShareFile(ticket: any): Promise<File> {
     y -= 20;
   }
 
-  // ── TICKET BREAKDOWN heading + 2-column list ────────────────────────────
   drawText('TICKET BREAKDOWN', M, y, { size: 8, font: fSansB, color: muted });
   y -= 16;
 
   {
-    // First N items: ticket types; rest: rules
     const RULES = [
       'Carry valid ID proof for verification',
       'Entry on booked date and time only',
@@ -358,7 +361,6 @@ export async function buildNonInventoryShareFile(ticket: any): Promise<File> {
       ...ticketBreakdown.map((r) => `${r.name} x ${r.qty}`),
       ...RULES,
     ];
-    // If we have an odd count, balance: pair items by index modulo 2
     const colGap = 24;
     const colW = (PW - M * 2 - colGap) / 2;
     const half = Math.ceil(items.length / 2);
@@ -378,7 +380,6 @@ export async function buildNonInventoryShareFile(ticket: any): Promise<File> {
     y = Math.min(yL, yR) - 8;
   }
 
-  // ── Booking Reference dark band ─────────────────────────────────────────
   if (y < 110) y = 110;
   {
     const bandH = 36;
@@ -389,7 +390,6 @@ export async function buildNonInventoryShareFile(ticket: any): Promise<File> {
     y -= bandH + 14;
   }
 
-  // ── Footer band ─────────────────────────────────────────────────────────
   page.drawRectangle({ x: 0, y: 0, width: PW, height: 64, color: dark });
   drawText('Phone:  141-220-0234', M, 44, { size: 9, font: fSans, color: rgb(0.78, 0.74, 0.68) });
   drawText('Email:  support@rajasthantourism.gov.in', M, 30, { size: 9, font: fSans, color: rgb(0.78, 0.74, 0.68) });
@@ -398,4 +398,66 @@ export async function buildNonInventoryShareFile(ticket: any): Promise<File> {
   drawText('RAJASTHAN TOURISM', PW - M - 110, 24, { size: 7, font: fSansB, color: rgb(0.55, 0.50, 0.42) });
 
   return fileFromPdf(await pdfDoc.save(), `ticket_${bookingId}.pdf`);
+}
+
+export async function buildNonInventoryShareFileFromHtml(ticket: any): Promise<File> {
+  const bookingId = String(ticket.bookingId || ticket.id || '');
+  const html = buildNonInventoryTicketHtml(ticket);
+
+  return new Promise<File>((resolve, reject) => {
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:820px;height:960px;border:none;visibility:hidden;';
+    document.body.appendChild(iframe);
+
+    const cleanup = () => {
+      try { document.body.removeChild(iframe); } catch {}
+    };
+
+    iframe.onload = async () => {
+      try {
+        const iDoc = iframe.contentDocument!;
+        iDoc.open();
+        iDoc.write(html);
+        iDoc.close();
+
+        await new Promise(r => setTimeout(r, 1200));
+
+        const { default: html2canvas } = await import('html2canvas');
+        const ticketEl = iDoc.querySelector('.d1') as HTMLElement;
+        if (!ticketEl) throw new Error('Ticket element not found');
+
+        const canvas = await html2canvas(ticketEl, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#F5ECD7',
+          logging: false,
+        });
+
+        const imgDataUrl = canvas.toDataURL('image/png');
+
+        const { PDFDocument } = await import('pdf-lib');
+        const pdfDoc = await PDFDocument.create();
+        const imgBytes = await fetch(imgDataUrl).then(r => r.arrayBuffer());
+        const pngImg = await pdfDoc.embedPng(imgBytes);
+        const { width, height } = pngImg.scale(1);
+        const page = pdfDoc.addPage([width, height]);
+        page.drawImage(pngImg, { x: 0, y: 0, width, height });
+
+        const pdfBytes = await pdfDoc.save();
+        const file = new File(
+          [new Uint8Array(pdfBytes)],
+          `ticket_${bookingId}.pdf`,
+          { type: 'application/pdf' }
+        );
+
+        cleanup();
+        resolve(file);
+      } catch (err) {
+        cleanup();
+        reject(err);
+      }
+    };
+
+    iframe.src = 'about:blank';
+  });
 }

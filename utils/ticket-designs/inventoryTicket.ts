@@ -43,9 +43,9 @@ export function buildInventoryTicketHtml(ticket: any): string {
   const zoneAddress = ticket.zoneAddress || '';
   const mapLink     = ticket.zoneMapLink  || '';
 
-  const visitors: any[]  = ticket.ticketUserDto || [];
+  const visitors: any[]    = ticket.ticketUserDto || [];
   const visitorDocs: any[] = visitors.flatMap((t: any) => (Array.isArray(t?.ticketUserDocs) ? t.ticketUserDocs : []));
-  const totalVisitors = (visitorDocs.length || visitors.reduce((s, t) => s + (Number(t.qty) || 0), 0)) || 0;
+  const totalVisitors       = (visitorDocs.length || visitors.reduce((s, t) => s + (Number(t.qty) || 0), 0)) || 0;
 
   let srCounter = 0;
   const visitorRows = visitors.flatMap((t: any) => {
@@ -53,13 +53,16 @@ export function buildInventoryTicketHtml(ticket: any): string {
     if (docs.length === 0) {
       srCounter++;
       const addonsText = (t.addonItems || []).filter((a: any) => a?.name).map((a: any) => a.name).join(', ') || '— None —';
-      return [`<div class="visitor-row-data">
-        <div class="vr-num">${srCounter}</div>
-        <div class="vr-name">—</div>
-        <div class="vr-id">—</div>
-        <div class="vr-nat">${checkNationality(t.nationality)}</div>
-        <div class="vr-addon">${addonsText}</div>
-      </div>`];
+      return [`
+        <div class="visitor-card">
+          <div class="vc-num">#${srCounter}</div>
+          <div class="vc-body">
+            <div class="vc-row"><span class="vc-lbl">Name</span><span class="vc-val">—</span></div>
+            <div class="vc-row"><span class="vc-lbl">Identity</span><span class="vc-val">—</span></div>
+            <div class="vc-row"><span class="vc-lbl">Nationality</span><span class="vc-val">${checkNationality(t.nationality)}</span></div>
+            <div class="vc-row"><span class="vc-lbl">Add Ons</span><span class="vc-val vc-addon">${addonsText}</span></div>
+          </div>
+        </div>`];
     }
     return docs.map((doc: any) => {
       srCounter++;
@@ -68,13 +71,16 @@ export function buildInventoryTicketHtml(ticket: any): string {
       const idNo   = maskId(doc.identityNo || doc.documentNo || doc.identity || '');
       const nat    = checkNationality(doc.nationality || t.nationality);
       const addons = (t.addonItems || []).filter((a: any) => a?.name).map((a: any) => a.name).join(', ') || '— None —';
-      return `<div class="visitor-row-data">
-        <div class="vr-num">${srCounter}</div>
-        <div class="vr-name">${name}</div>
-        <div class="vr-id">${idType ? `${idType} / ${idNo}` : idNo || '—'}</div>
-        <div class="vr-nat">${nat}</div>
-        <div class="vr-addon">${addons}</div>
-      </div>`;
+      return `
+        <div class="visitor-card">
+          <div class="vc-num">#${srCounter}</div>
+          <div class="vc-body">
+            <div class="vc-row"><span class="vc-lbl">Name</span><span class="vc-val vc-name">${name}</span></div>
+            <div class="vc-row"><span class="vc-lbl">Identity</span><span class="vc-val vc-id">${idType ? `${idType} / ${idNo}` : idNo || '—'}</span></div>
+            <div class="vc-row"><span class="vc-lbl">Nationality</span><span class="vc-val">${nat}</span></div>
+            <div class="vc-row"><span class="vc-lbl">Add Ons</span><span class="vc-val vc-addon">${addons}</span></div>
+          </div>
+        </div>`;
     });
   }).join('');
 
@@ -83,7 +89,7 @@ export function buildInventoryTicketHtml(ticket: any): string {
 
   const qrValue = ticket.qrDetail || JSON.stringify({ type: 'BOOKING', data: { ticketBookingId: ticket.id || ticket.bookingId } });
   const { rects: qrRects, count: qrCount } = generateQrSvgRects(qrValue, 96);
-  const shiftIcon = (shiftName || '').toLowerCase().includes('morning') ? '🌅'
+  const shiftIcon = (shiftName || '').toLowerCase().includes('morning')   ? '🌅'
     : (shiftName || '').toLowerCase().includes('afternoon') ? '🌇'
     : (shiftName || '').toLowerCase().includes('evening')   ? '🌆' : '🌿';
 
@@ -91,89 +97,316 @@ export function buildInventoryTicketHtml(ticket: any): string {
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5"/>
 <title>Ticket #${bookingId} — ${placeName}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Rajdhani:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
 <style>
+/* ── Reset & Base ─────────────────────────────────────────── */
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#1a0e06;background-image:radial-gradient(ellipse at 20% 20%,rgba(180,60,10,.15) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(120,30,5,.1) 0%,transparent 60%);font-family:'Rajdhani',sans-serif;padding:36px 20px;min-height:100vh;}
-.ticket-wrap{max-width:680px;margin:0 auto;}
-.ticket{background:#F7EDD8;border-radius:6px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.7),0 0 0 1px rgba(184,74,14,.25),inset 0 1px 0 rgba(255,255,255,.6);}
-.t-top{background:linear-gradient(140deg,#6B2309 0%,#A63A08 40%,#C9580F 70%,#D4691A 100%);padding:28px 36px 44px;position:relative;overflow:hidden;}
-.t-top::before{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.045'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");}
-.t-top::after{content:'';position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:115%;height:36px;background:#F7EDD8;border-radius:60% 60% 0 0;}
-.t-header-row{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:2;gap:16px;}
+html{font-size:16px}
+body{
+  background:#1a0e06;
+  background-image:
+    radial-gradient(ellipse at 20% 20%,rgba(180,60,10,.15) 0%,transparent 60%),
+    radial-gradient(ellipse at 80% 80%,rgba(120,30,5,.1) 0%,transparent 60%);
+  font-family:'Rajdhani',sans-serif;
+  padding:16px 10px 32px;
+  min-height:100vh;
+  -webkit-text-size-adjust:100%;
+  overflow-x:hidden;
+}
+
+/* ── Ticket Shell ─────────────────────────────────────────── */
+.ticket-wrap{max-width:700px;margin:0 auto;width:100%;}
+.ticket{background:#F7EDD8;border-radius:8px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.65),0 0 0 1px rgba(184,74,14,.25);}
+
+/* ── Horizontal scroll wrapper (used on every wide section) ── */
+/* The wrapper clips & scrolls; inner content keeps its natural width */
+.hscroll{
+  overflow-x:auto;
+  overflow-y:visible;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(184,74,14,.35) transparent;
+  position:relative;
+  margin-bottom:18px;
+}
+.hscroll::-webkit-scrollbar{height:4px;}
+.hscroll::-webkit-scrollbar-track{background:transparent;}
+.hscroll::-webkit-scrollbar-thumb{background:rgba(184,74,14,.35);border-radius:2px;}
+
+/* Fade-right hint — only shown when content overflows */
+.hscroll-outer{position:relative;margin-bottom:18px;}
+.hscroll-outer .hscroll{margin-bottom:0;}
+.hscroll-outer::after{
+  content:'';
+  position:absolute;top:0;right:0;
+  width:28px;height:100%;
+  background:linear-gradient(to right,transparent,rgba(247,237,216,.9));
+  pointer-events:none;
+  border-radius:0 6px 6px 0;
+  transition:opacity .2s;
+}
+.hscroll-outer.no-overflow::after{opacity:0;}
+
+/* Scroll hint label */
+.scroll-hint{
+  display:none;
+  font-size:9px;letter-spacing:1.5px;text-transform:uppercase;
+  color:#B84A0E;text-align:right;padding:2px 4px 8px;
+  opacity:.7;
+}
+
+/* ── Header / Top Band ────────────────────────────────────── */
+.t-top{
+  background:linear-gradient(140deg,#6B2309 0%,#A63A08 40%,#C9580F 70%,#D4691A 100%);
+  padding:20px 20px 40px;
+  position:relative;overflow:hidden;
+}
+.t-top::before{
+  content:'';position:absolute;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.045'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.t-top::after{
+  content:'';position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);
+  width:115%;height:28px;background:#F7EDD8;border-radius:60% 60% 0 0;
+}
+.t-header-row{display:flex;align-items:flex-start;gap:12px;position:relative;z-index:2;}
 .t-header-left{display:flex;flex-direction:column;gap:0;flex:1;min-width:0;}
-.t-gov{display:flex;align-items:center;gap:14px;margin-bottom:16px;}
-.t-emblem{width:50px;height:50px;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 2px 12px rgba(0,0,0,.2);flex-shrink:0;}
-.t-gov-text .g1{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:2px;}
-.t-gov-text .g2{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;color:#fff;letter-spacing:.5px;line-height:1.1;}
-.t-gov-text .g3{font-size:9px;letter-spacing:1.5px;color:rgba(255,255,255,.4);margin-top:2px;}
+.t-gov{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.t-emblem{
+  width:44px;height:44px;min-width:44px;
+  background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.3);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:20px;box-shadow:0 2px 10px rgba(0,0,0,.2);
+}
+.t-gov-text .g1{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:2px;}
+.t-gov-text .g2{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;color:#fff;letter-spacing:.4px;line-height:1.2;}
+.t-gov-text .g3{font-size:8px;letter-spacing:1px;color:rgba(255,255,255,.4);margin-top:2px;}
 .t-title-block{position:relative;z-index:2;}
-.t-title-block h1{font-family:'Cinzel',serif;font-size:24px;font-weight:700;color:#fff;letter-spacing:1.5px;line-height:1.2;text-shadow:0 2px 12px rgba(0,0,0,.25);margin-bottom:6px;}
-.t-title-block .t-loc{font-size:11px;color:rgba(255,255,255,.68);letter-spacing:2px;text-transform:uppercase;}
-.t-qr-wrap{background:#fff;border-radius:7px;padding:2px;box-shadow:0 6px 20px rgba(0,0,0,.35);position:relative;z-index:2;flex-shrink:0;align-self:flex-start;margin-left:auto;width:120px;height:120px;display:flex;align-items:center;justify-content:center;}
+.t-title-block h1{
+  font-family:'Cinzel',serif;font-size:clamp(16px,4vw,24px);font-weight:700;
+  color:#fff;letter-spacing:1px;line-height:1.2;text-shadow:0 2px 10px rgba(0,0,0,.25);
+  margin-bottom:5px;word-break:break-word;
+}
+.t-title-block .t-loc{font-size:10px;color:rgba(255,255,255,.68);letter-spacing:1.5px;text-transform:uppercase;word-break:break-word;}
+.t-qr-wrap{
+  background:#fff;border-radius:6px;padding:2px;
+  box-shadow:0 4px 16px rgba(0,0,0,.3);
+  flex-shrink:0;align-self:flex-start;
+  width:clamp(80px,20vw,110px);height:clamp(80px,20vw,110px);
+  display:flex;align-items:center;justify-content:center;
+}
 .t-qr-wrap svg{display:block;width:100%;height:100%;}
-.t-body{padding:26px 36px;}
-.sec-head{font-family:'Cinzel',serif;font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#9B4A1A;border-bottom:1px solid rgba(155,74,26,.2);padding-bottom:6px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
-.sec-head::before{content:'';display:block;width:16px;height:2px;background:#B84A0E;border-radius:1px;}
-.meta-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px;}
-.meta-cell{text-align:center;padding:13px 8px;border:1px solid rgba(184,74,14,.2);border-radius:5px;background:rgba(184,74,14,.04);}
-.meta-cell .mc-icon{font-size:20px;margin-bottom:6px;display:block;}
-.meta-cell .mc-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#9B5520;margin-bottom:3px;}
-.meta-cell .mc-val{font-family:'Cinzel',serif;font-size:14px;font-weight:600;color:#2D1400;line-height:1.1;}
-.meta-cell .mc-sub{font-size:10px;color:#9B5520;margin-top:1px;}
-.booking-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:22px;}
-.booking-cell{padding:10px 14px;border:1px solid rgba(184,74,14,.18);border-radius:4px;background:rgba(184,74,14,.03);}
-.booking-cell .bl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#9B5520;margin-bottom:3px;}
-.booking-cell .bv{font-family:'Space Mono',monospace;font-size:12px;color:#2D1400;line-height:1.3;}
-.location-table{width:100%;border-collapse:collapse;margin-bottom:22px;border:1px solid rgba(184,74,14,.22);overflow:hidden;}
+
+/* ── Body ─────────────────────────────────────────────────── */
+.t-body{padding:18px 16px;}
+
+/* Section headings */
+.sec-head{
+  font-family:'Cinzel',serif;font-size:9px;font-weight:600;
+  letter-spacing:2.5px;text-transform:uppercase;color:#9B4A1A;
+  border-bottom:1px solid rgba(155,74,26,.2);padding-bottom:5px;
+  margin-bottom:8px;display:flex;align-items:center;gap:7px;
+}
+.sec-head::before{content:'';display:block;width:14px;height:2px;background:#B84A0E;border-radius:1px;}
+
+/* ── Booking Detail Cells — horizontal scroll on mobile ───── */
+.booking-scroll-inner{
+  display:flex;gap:8px;
+  /* fixed-width cards so they overflow and trigger scroll */
+  min-width:max-content;
+  padding-bottom:4px;
+}
+.booking-cell{
+  min-width:148px;max-width:200px;flex:0 0 148px;
+  padding:9px 12px;border:1px solid rgba(184,74,14,.18);
+  border-radius:5px;background:rgba(184,74,14,.03);
+}
+.booking-cell .bl{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:#9B5520;margin-bottom:3px;}
+.booking-cell .bv{font-family:'Space Mono',monospace;font-size:11px;color:#2D1400;line-height:1.35;word-break:break-all;}
+
+/* ── Location Table — horizontal scroll on mobile ─────────── */
+.location-table-inner{min-width:360px;}
+.location-table{width:100%;border-collapse:collapse;border:1px solid rgba(184,74,14,.22);}
 .location-table tr{border-bottom:1px solid rgba(184,74,14,.15);}
 .location-table tr:last-child{border-bottom:none;}
-.location-table td{padding:10px 14px;font-size:13px;vertical-align:middle;}
-.location-table td.loc-label{font-family:'Cinzel',serif;font-size:12px;font-weight:700;color:#2D1400;letter-spacing:.5px;width:200px;background:rgba(184,74,14,.05);border-right:1px solid rgba(184,74,14,.15);}
-.location-table td.loc-value{font-family:'Rajdhani',sans-serif;font-size:13.5px;font-weight:500;color:#3D1F00;}
-.location-table td.loc-value a{color:#B84A0E;text-decoration:none;font-weight:600;display:inline-flex;align-items:center;gap:5px;}
-.visitor-block{border:1.5px solid rgba(184,74,14,.25);border-radius:5px;overflow:hidden;margin-bottom:22px;}
-.visitor-header{background:rgba(184,74,14,.08);padding:7px 16px;display:grid;grid-template-columns:40px 1fr 1fr 1fr 1fr;gap:8px;align-items:center;border-bottom:1px solid rgba(184,74,14,.15);}
-.visitor-header span{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#9B5520;}
-.visitor-row-data{padding:11px 16px;display:grid;grid-template-columns:40px 1fr 1fr 1fr 1fr;gap:8px;align-items:center;border-bottom:1px solid rgba(184,74,14,.06);}
-.visitor-row-data:last-child{border-bottom:none;}
-.visitor-row-data .vr-num{font-family:'Space Mono',monospace;font-size:12px;color:#B84A0E;font-weight:700;}
-.visitor-row-data .vr-name{font-family:'Cinzel',serif;font-size:13px;color:#2D1400;font-weight:600;}
-.visitor-row-data .vr-id{font-family:'Space Mono',monospace;font-size:11px;color:#6B3A1F;}
-.visitor-row-data .vr-nat{font-size:12px;color:#6B3A1F;font-weight:600;}
-.visitor-row-data .vr-addon{font-size:11px;color:#aaa;font-style:italic;}
+.location-table td{padding:9px 12px;font-size:12px;vertical-align:top;}
+.location-table td.loc-label{
+  font-family:'Cinzel',serif;font-size:11px;font-weight:700;color:#2D1400;
+  letter-spacing:.4px;background:rgba(184,74,14,.05);
+  border-right:1px solid rgba(184,74,14,.15);
+  white-space:nowrap;width:120px;
+}
+.location-table td.loc-value{font-family:'Rajdhani',sans-serif;font-size:12.5px;font-weight:500;color:#3D1F00;min-width:200px;}
+.location-table td.loc-value a{color:#B84A0E;text-decoration:none;font-weight:600;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;}
 
-.t-divider{border:none;border-top:1px dashed rgba(184,74,14,.28);margin:4px -8px 22px;position:relative;}
-.t-divider::before,.t-divider::after{content:'';position:absolute;top:-10px;width:19px;height:19px;background:#1a0e06;border-radius:50%;}
-.t-divider::before{left:-28px;}.t-divider::after{right:-28px;}
-.terms-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px 20px;margin-bottom:22px;}
+/* ── Visit Meta Cells — horizontal scroll on mobile ──────── */
+.meta-scroll-inner{
+  display:flex;gap:8px;
+  min-width:max-content;
+  padding-bottom:4px;
+}
+.meta-cell{
+  min-width:110px;flex:0 0 110px;
+  text-align:center;padding:12px 8px;
+  border:1px solid rgba(184,74,14,.2);border-radius:5px;background:rgba(184,74,14,.04);
+}
+.meta-cell .mc-icon{font-size:18px;margin-bottom:5px;display:block;}
+.meta-cell .mc-lbl{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:#9B5520;margin-bottom:3px;}
+.meta-cell .mc-val{font-family:'Cinzel',serif;font-size:13px;font-weight:600;color:#2D1400;line-height:1.2;white-space:nowrap;}
+.meta-cell .mc-sub{font-size:9px;color:#9B5520;margin-top:2px;white-space:nowrap;}
+
+/* ── Visitor Table — always horizontal scroll ─────────────── */
+.visitor-table-inner{
+  min-width:540px;
+  border:1.5px solid rgba(184,74,14,.25);border-radius:6px;overflow:hidden;
+}
+.vt-head{
+  background:rgba(184,74,14,.08);padding:8px 14px;
+  display:grid;grid-template-columns:36px 140px 160px 100px 1fr;
+  gap:8px;border-bottom:1px solid rgba(184,74,14,.15);
+}
+.vt-head span{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#9B5520;white-space:nowrap;}
+.vt-row{
+  padding:10px 14px;
+  display:grid;grid-template-columns:36px 140px 160px 100px 1fr;
+  gap:8px;align-items:center;
+  border-bottom:1px solid rgba(184,74,14,.06);background:#fff;
+}
+.vt-row:last-child{border-bottom:none;}
+.vt-sr{font-family:'Space Mono',monospace;font-size:12px;color:#B84A0E;font-weight:700;}
+.vt-name{font-family:'Cinzel',serif;font-size:12px;color:#2D1400;font-weight:600;}
+.vt-id{font-family:'Space Mono',monospace;font-size:10px;color:#6B3A1F;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.vt-nat{font-size:12px;color:#6B3A1F;font-weight:600;}
+.vt-add{font-size:10px;color:#aaa;font-style:italic;}
+
+/* ── Charges — horizontal scroll ─────────────────────────── */
+.charges-inner{
+  min-width:600px;
+  border:1px solid rgba(184,74,14,.2);border-radius:6px;overflow:hidden;
+}
+.charges-inner table{width:100%;border-collapse:collapse;}
+.charges-inner th{
+  background:rgba(184,74,14,.08);padding:7px 8px;
+  font-size:8px;letter-spacing:1.2px;text-transform:uppercase;
+  color:#9B5520;border:1px solid rgba(184,74,14,.15);
+  text-align:left;white-space:nowrap;
+}
+.charges-inner td{
+  padding:7px 8px;font-size:10.5px;color:#2D1400;
+  border:1px solid rgba(184,74,14,.1);
+  font-family:'Space Mono',monospace;white-space:nowrap;
+}
+.charges-inner td.cat{font-family:'Rajdhani',sans-serif;font-size:11.5px;font-weight:600;white-space:nowrap;}
+.charges-inner tr.t-row td{font-weight:700;background:rgba(184,74,14,.04);}
+.charges-inner tr.g-row td{font-size:12px;font-weight:700;background:rgba(184,74,14,.1);color:#B84A0E;}
+
+/* ── Refund — horizontal scroll on very small screens ─────── */
+.refund-inner{
+  display:flex;gap:8px;
+  min-width:max-content;
+  padding-bottom:4px;
+}
+.refund-cell{
+  min-width:110px;flex:0 0 110px;
+  text-align:center;padding:12px 8px;
+  border:1px solid rgba(184,74,14,.18);border-radius:5px;background:rgba(184,74,14,.03);
+}
+.refund-cell .rf-pct{font-family:'Cinzel',serif;font-size:22px;font-weight:700;color:#B84A0E;line-height:1;margin-bottom:3px;}
+.refund-cell .rf-lbl{font-size:9px;letter-spacing:1px;color:#9B5520;text-transform:uppercase;margin-bottom:4px;}
+.refund-cell .rf-cond{font-family:'Space Mono',monospace;font-size:8px;color:#6B3A1F;line-height:1.6;}
+
+/* ── Divider ──────────────────────────────────────────────── */
+.t-divider{border:none;border-top:1px dashed rgba(184,74,14,.28);margin:4px 0 18px;position:relative;}
+.t-divider::before,.t-divider::after{content:'';position:absolute;top:-10px;width:18px;height:18px;background:#1a0e06;border-radius:50%;}
+.t-divider::before{left:-18px;}.t-divider::after{right:-18px;}
+
+/* ── Terms ────────────────────────────────────────────────── */
+.terms-list{display:flex;flex-direction:column;gap:8px;margin-bottom:18px;}
 .term-item{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;color:#5A2D10;line-height:1.55;}
 .term-item .tick{color:#B84A0E;font-weight:700;flex-shrink:0;margin-top:1px;}
-.note-box{background:rgba(184,74,14,.06);border:1px solid rgba(184,74,14,.2);border-left:3px solid #B84A0E;border-radius:3px;padding:10px 14px;margin-bottom:22px;font-size:11.5px;color:#5A2D10;line-height:1.6;}
+
+/* ── Note Box ─────────────────────────────────────────────── */
+.note-box{
+  background:rgba(184,74,14,.06);border:1px solid rgba(184,74,14,.2);
+  border-left:3px solid #B84A0E;border-radius:4px;
+  padding:10px 12px;margin-bottom:18px;
+  font-size:11px;color:#5A2D10;line-height:1.65;
+}
 .note-box strong{color:#B84A0E;}
-.refund-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:22px;}
-.refund-cell{text-align:center;padding:10px 8px;border:1px solid rgba(184,74,14,.18);border-radius:4px;background:rgba(184,74,14,.03);}
-.refund-cell .rf-pct{font-family:'Cinzel',serif;font-size:22px;font-weight:700;color:#B84A0E;line-height:1;margin-bottom:4px;}
-.refund-cell .rf-lbl{font-size:10px;letter-spacing:1px;color:#9B5520;text-transform:uppercase;margin-bottom:2px;}
-.refund-cell .rf-cond{font-family:'Space Mono',monospace;font-size:9px;color:#6B3A1F;line-height:1.4;}
-.t-footer{background:#2D1400;border-top:1px solid rgba(255,255,255,.05);padding:16px 36px;display:flex;justify-content:space-between;align-items:center;}
-.t-footer .fc{font-size:11px;color:rgba(255,255,255,.45);line-height:1.9;}
+
+/* ── Footer ───────────────────────────────────────────────── */
+.t-footer{
+  background:#2D1400;border-top:1px solid rgba(255,255,255,.05);
+  padding:14px 16px;
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:10px;
+}
+.t-footer .fc{font-size:10px;color:rgba(255,255,255,.45);line-height:2;}
 .t-footer .fb .bname{font-family:'Cinzel',serif;font-size:13px;color:#D4A017;letter-spacing:1.5px;text-align:right;}
-.t-footer .fb .bsub{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.25);text-align:right;margin-top:2px;}
-.action-bar{display:flex;gap:10px;justify-content:center;margin-top:22px;}
-.btn-print{background:linear-gradient(135deg,#6B2309,#B84A0E);color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;border-radius:4px;padding:13px 36px;cursor:pointer;box-shadow:0 4px 16px rgba(184,74,14,.4);transition:opacity .15s;}
+.t-footer .fb .bsub{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.25);text-align:right;margin-top:2px;}
+
+/* ── Action Bar ───────────────────────────────────────────── */
+.action-bar{display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap;}
+.btn-print{
+  background:linear-gradient(135deg,#6B2309,#B84A0E);color:#fff;
+  font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;border:none;border-radius:5px;
+  padding:13px 30px;cursor:pointer;box-shadow:0 4px 14px rgba(184,74,14,.4);
+  transition:opacity .15s;-webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;min-height:48px;
+}
 .btn-print:hover{opacity:.88;}
-.btn-close{background:transparent;color:rgba(255,255,255,.45);font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;letter-spacing:1px;border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:13px 24px;cursor:pointer;}
-@media print{body{background:#fff;padding:0;display:block;}.action-bar{display:none!important;}.ticket{box-shadow:none;border-radius:0;}.ticket-wrap{max-width:100%;}.t-top,.t-footer{-webkit-print-color-adjust:exact;print-color-adjust:exact;}.t-divider::before,.t-divider::after{background:#fff;}}
+.btn-close{
+  background:transparent;color:rgba(255,255,255,.45);
+  font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;
+  letter-spacing:1px;border:1px solid rgba(255,255,255,.15);border-radius:5px;
+  padding:13px 22px;cursor:pointer;min-height:48px;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+}
+
+/* ── Show scroll hint only when there is overflow ────────── */
+@media (max-width:600px){
+  .scroll-hint{display:block;}
+}
+
+/* ── Desktop: body padding ────────────────────────────────── */
+@media (min-width:540px){
+  body{padding:24px 16px 40px;}
+  .t-top{padding:24px 28px 44px;}
+  .t-body{padding:22px 24px;}
+  .t-footer{padding:16px 24px;}
+  .t-title-block h1{font-size:22px;}
+}
+
+/* ── Print ────────────────────────────────────────────────── */
+@media print{
+  body{background:#fff;padding:0;overflow-x:visible;}
+  .action-bar{display:none!important;}
+  .scroll-hint{display:none!important;}
+  .hscroll-outer::after{display:none;}
+  .ticket{box-shadow:none;border-radius:0;}
+  .ticket-wrap{max-width:100%;}
+  .t-top,.t-footer{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .t-divider::before,.t-divider::after{background:#fff;}
+  /* Let everything expand for print — no clipping */
+  .hscroll{overflow:visible;}
+  .booking-scroll-inner,.meta-scroll-inner,.refund-inner{
+    flex-wrap:wrap;min-width:0;
+  }
+  .booking-cell,.meta-cell,.refund-cell{flex:1 1 140px;}
+  .visitor-table-inner,.charges-inner,.location-table-inner{min-width:0;width:100%;}
+}
 </style>
 </head>
 <body>
 <div class="ticket-wrap">
 <div class="ticket">
+
+  <!-- ══ Header ══ -->
   <div class="t-top">
     <div class="t-header-row">
       <div class="t-header-left">
@@ -191,41 +424,132 @@ body{background:#1a0e06;background-image:radial-gradient(ellipse at 20% 20%,rgba
         </div>
       </div>
       <div class="t-qr-wrap">
-        <svg viewBox="0 0 ${qrCount} ${qrCount}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" shape-rendering="crispEdges">${qrRects}</svg>
+        <svg viewBox="0 0 ${qrCount} ${qrCount}" xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="xMidYMid meet" shape-rendering="crispEdges">${qrRects}</svg>
       </div>
     </div>
   </div>
+
+  <!-- ══ Body ══ -->
   <div class="t-body">
+
+    <!-- ── Booking Details ── -->
     <div class="sec-head">Booking Details</div>
-    <div class="booking-row">
-      <div class="booking-cell"><div class="bl">Booking ID</div><div class="bv">${bookingId}</div></div>
-      <div class="booking-cell"><div class="bl">Booking Date &amp; Time</div><div class="bv">${bookedDateShort}</div></div>
-      <div class="booking-cell"><div class="bl">Mode of Booking</div><div class="bv">ONLINE</div></div>
-      ${zoneName  ? `<div class="booking-cell"><div class="bl">Route / Zone</div><div class="bv">${zoneName}</div></div>`  : ''}
-      ${quotaName ? `<div class="booking-cell"><div class="bl">Quota Name</div><div class="bv">${quotaName}</div></div>` : ''}
-      <div class="booking-cell"><div class="bl">Ticket Amount</div><div class="bv">₹ ${toNum(totalAmount).toFixed(2)}</div></div>
+    <div class="hscroll-outer">
+      <div class="hscroll" id="hs-booking">
+        <div class="booking-scroll-inner">
+          <div class="booking-cell"><div class="bl">Booking ID</div><div class="bv">${bookingId}</div></div>
+          <div class="booking-cell"><div class="bl">Booking Date &amp; Time</div><div class="bv">${bookedDateShort}</div></div>
+          <div class="booking-cell"><div class="bl">Mode of Booking</div><div class="bv">ONLINE</div></div>
+          ${zoneName  ? `<div class="booking-cell"><div class="bl">Route / Zone</div><div class="bv">${zoneName}</div></div>`  : ''}
+          ${quotaName ? `<div class="booking-cell"><div class="bl">Quota Name</div><div class="bv">${quotaName}</div></div>` : ''}
+          <div class="booking-cell"><div class="bl">Ticket Amount</div><div class="bv">₹ ${toNum(totalAmount).toFixed(2)}</div></div>
+        </div>
+      </div>
+      <div class="scroll-hint">← swipe to see more →</div>
     </div>
+
+    <!-- ── Location ── -->
     ${(zoneAddress || mapLink) ? `
-    <table class="location-table">
-      ${zoneAddress ? `<tr><td class="loc-label">Address</td><td class="loc-value">${zoneAddress}</td></tr>` : ''}
-      ${mapLink     ? `<tr><td class="loc-label">Boarding Point Location</td><td class="loc-value"><a href="${mapLink}" target="_blank"><span>📍</span> Click here to view on map</a></td></tr>` : ''}
-    </table>` : ''}
+    <div class="hscroll-outer">
+      <div class="hscroll" id="hs-location">
+        <div class="location-table-inner">
+          <table class="location-table">
+            ${zoneAddress ? `<tr><td class="loc-label">Address</td><td class="loc-value">${zoneAddress}</td></tr>` : ''}
+            ${mapLink     ? `<tr><td class="loc-label">Boarding&nbsp;Point</td><td class="loc-value"><a href="${mapLink}" target="_blank">📍 Click here to view on map</a></td></tr>` : ''}
+          </table>
+        </div>
+      </div>
+      <div class="scroll-hint">← swipe to see more →</div>
+    </div>` : ''}
+
+    <!-- ── Visit Details ── -->
     <div class="sec-head">Visit Details</div>
-    <div class="meta-row">
-      <div class="meta-cell"><span class="mc-icon">📅</span><div class="mc-lbl">Visit Date</div><div class="mc-val">${visitDate}</div><div class="mc-sub">${visitDay}</div></div>
-      <div class="meta-cell"><span class="mc-icon">${shiftIcon}</span><div class="mc-lbl">Shift</div><div class="mc-val">${shiftName || 'Full Day'}</div><div class="mc-sub">${shiftSub}</div></div>
-      ${vehicleType ? `<div class="meta-cell"><span class="mc-icon">🚌</span><div class="mc-lbl">Vehicle</div><div class="mc-val">${vehicleType}</div><div class="mc-sub">${vehicleNum || quotaName}</div></div>` : ''}
-      <div class="meta-cell"><span class="mc-icon">👥</span><div class="mc-lbl">Total Visitors</div><div class="mc-val">${totalVisitors}</div></div>
+    <div class="hscroll-outer">
+      <div class="hscroll" id="hs-meta">
+        <div class="meta-scroll-inner">
+          <div class="meta-cell"><span class="mc-icon">📅</span><div class="mc-lbl">Visit Date</div><div class="mc-val">${visitDate}</div><div class="mc-sub">${visitDay}</div></div>
+          <div class="meta-cell"><span class="mc-icon">${shiftIcon}</span><div class="mc-lbl">Shift</div><div class="mc-val">${shiftName || 'Full Day'}</div><div class="mc-sub">${shiftSub}</div></div>
+          ${vehicleType ? `<div class="meta-cell"><span class="mc-icon">🚌</span><div class="mc-lbl">Vehicle</div><div class="mc-val">${vehicleType}</div><div class="mc-sub">${vehicleNum || quotaName}</div></div>` : ''}
+          <div class="meta-cell"><span class="mc-icon">👥</span><div class="mc-lbl">Total Visitors</div><div class="mc-val">${totalVisitors}</div></div>
+        </div>
+      </div>
+      <div class="scroll-hint">← swipe to see more →</div>
     </div>
+
+    <!-- ── Visitor Information ── -->
     <div class="sec-head">Visitor Information</div>
-    <div class="visitor-block">
-      <div class="visitor-header"><span>Sr.</span><span>Visitor Name</span><span>Identity Type / No.</span><span>Nationality</span><span>Add Ons</span></div>
-      ${visitorRows || `<div class="visitor-row-data"><div class="vr-num">—</div><div class="vr-name">—</div><div class="vr-id">—</div><div class="vr-nat">—</div><div class="vr-addon">—</div></div>`}
+    <div class="hscroll-outer">
+      <div class="hscroll" id="hs-visitors">
+        <div class="visitor-table-inner">
+          <div class="vt-head">
+            <span>Sr.</span><span>Visitor Name</span>
+            <span>Identity Type / No.</span><span>Nationality</span><span>Add Ons</span>
+          </div>
+          ${visitors.flatMap((t: any, ti: number) => {
+            const docs: any[] = Array.isArray(t.ticketUserDocs) ? t.ticketUserDocs : [];
+            const addons = (t.addonItems || []).filter((a: any) => a?.name).map((a: any) => a.name).join(', ') || '— None —';
+            if (docs.length === 0) {
+              return [`<div class="vt-row">
+                <div class="vt-sr">${ti + 1}</div>
+                <div class="vt-name">${t.ticketName || 'Visitor'}</div>
+                <div class="vt-id">—</div>
+                <div class="vt-nat">${checkNationality(t.nationality)}</div>
+                <div class="vt-add">${addons}</div>
+              </div>`];
+            }
+            return docs.map((doc: any, di: number) => {
+              const nm  = doc.name || doc.fullName || doc.visitorName || t.ticketName || '—';
+              const idT = doc.identityType || doc.docType || '';
+              const idN = maskId(doc.identityNo || doc.documentNo || doc.identity || '');
+              const nat = checkNationality(doc.nationality || t.nationality);
+              return `<div class="vt-row">
+                <div class="vt-sr">${ti + 1}.${di + 1}</div>
+                <div class="vt-name">${nm}</div>
+                <div class="vt-id">${idT ? `${idT} / ${idN}` : (idN || '—')}</div>
+                <div class="vt-nat">${nat}</div>
+                <div class="vt-add">${addons}</div>
+              </div>`;
+            });
+          }).join('') || '<div class="vt-row" style="color:#aaa;font-size:12px;grid-column:1/-1;padding:10px;">No visitor data</div>'}
+        </div>
+      </div>
+      <div class="scroll-hint">← swipe to see more →</div>
     </div>
-    ${renderChargesDetailSummary(ticket, addonTotal, rislTotal, totalAmount)}
+
+    <!-- ── Charges Detail Summary ── -->
+    <div class="sec-head">Charges Detail Summary</div>
+    <div class="hscroll-outer">
+      <div class="hscroll" id="hs-charges">
+        <div class="charges-inner">
+          <table>
+            <thead>
+              <tr>
+                <th style="min-width:90px;">Category</th>
+                <th>Entry Fee<br/><span style="font-weight:400;font-size:7px;">Visitor</span></th>
+                <th>Entry Fee<br/><span style="font-weight:400;font-size:7px;">Vehicle</span></th>
+                <th>Eco-Dev<br/><span style="font-weight:400;font-size:7px;">Visitor</span></th>
+                <th>Eco-Dev<br/><span style="font-weight:400;font-size:7px;">Vehicle</span></th>
+                <th>Tiger Reserve<br/><span style="font-weight:400;font-size:7px;">Vis+Veh+Guide</span></th>
+                <th>Vehicle Rent</th>
+                <th>Guide Fee</th>
+                <th>GST</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${renderChargesDetailSummary(ticket, addonTotal, rislTotal, totalAmount)}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="scroll-hint">← swipe to see more →</div>
+    </div>
+
     <hr class="t-divider"/>
+
+    <!-- ── Terms & Conditions ── -->
     <div class="sec-head">Terms &amp; Conditions for Visitors</div>
-    <div class="terms-grid">
+    <div class="terms-list">
       <div class="term-item"><span class="tick">✓</span><span>The visitor must reach the Forest permit counter to collect the boarding pass at least <strong>45 minutes prior</strong> to entry time.</span></div>
       <div class="term-item"><span class="tick">✓</span><span>First visitor whose photo ID was uploaded is <strong>mandatory to visit</strong> so that ID can be verified at the gate.</span></div>
       <div class="term-item"><span class="tick">✓</span><span><strong>Mobile phone use</strong> within the tourism zone of the core habitat is <strong>not permitted</strong>.</span></div>
@@ -239,28 +563,83 @@ body{background:#1a0e06;background-image:radial-gradient(ellipse at 20% 20%,rgba
       <div class="term-item"><span class="tick">✓</span><span><strong>Visitors under the influence</strong> of alcohol or intoxicating substances will be denied entry.</span></div>
       <div class="term-item"><span class="tick">✓</span><span>If passenger count is less than vehicle capacity, <strong>difference in vehicle rent &amp; guide fee</strong> will be charged extra.</span></div>
     </div>
+
     <div class="note-box">
       <strong>⚠ Indemnity Bond:</strong> By booking this permit the visitor acknowledges risks of visiting this reserve, enters at own risk and accepts full liability. The protected area management shall not be responsible in any manner. Any litigation shall be in a court of law in Rajasthan.<br/><br/>
       <strong>Please Note:</strong> We will not be responsible for costs arising out of unforeseen circumstances like landslides, road blocks, or bad weather.
     </div>
+
+    <!-- ── Cancellation & Refund Policy ── -->
     <div class="sec-head">Cancellation &amp; Refund Policy</div>
-    <div class="refund-row">
-      <div class="refund-cell"><div class="rf-pct">75%</div><div class="rf-lbl">Refund</div><div class="rf-cond">If cancelled<br/>31+ days before<br/>visit date</div></div>
-      <div class="refund-cell"><div class="rf-pct">50%</div><div class="rf-lbl">Refund</div><div class="rf-cond">If cancelled<br/>4–30 days before<br/>visit date</div></div>
-      <div class="refund-cell"><div class="rf-pct">0%</div><div class="rf-lbl">Refund</div><div class="rf-cond">If cancelled<br/>within 3 days of<br/>visit date</div></div>
+    <div class="hscroll-outer">
+      <div class="hscroll" id="hs-refund">
+        <div class="refund-inner">
+          <div class="refund-cell">
+            <div class="rf-pct">75%</div>
+            <div class="rf-lbl">Refund</div>
+            <div class="rf-cond">If cancelled<br/>31+ days before<br/>visit date</div>
+          </div>
+          <div class="refund-cell">
+            <div class="rf-pct">50%</div>
+            <div class="rf-lbl">Refund</div>
+            <div class="rf-cond">If cancelled<br/>4–30 days before<br/>visit date</div>
+          </div>
+          <div class="refund-cell">
+            <div class="rf-pct">0%</div>
+            <div class="rf-lbl">Refund</div>
+            <div class="rf-cond">If cancelled<br/>within 3 days of<br/>visit date</div>
+          </div>
+        </div>
+      </div>
+      <div class="scroll-hint">← swipe to see more →</div>
     </div>
-  </div>
+
+  </div><!-- /.t-body -->
+
+  <!-- Footer -->
   <div class="t-footer">
     <div class="fc">📞 &nbsp;0141-282-0384<br/>✉ &nbsp;helpdesk[dot]tourist[at]rajasthan[dot]gov[dot]in<br/>🌐 &nbsp;obms-tourist.rajasthan.gov.in</div>
     <div class="fb"><div class="bname">OBMS</div><div class="bsub">Rajasthan Tourism</div></div>
   </div>
-</div>
-</div>
+
+</div><!-- /.ticket -->
+</div><!-- /.ticket-wrap -->
+
 <div class="action-bar">
   <button class="btn-print" onclick="window.print()">🖨 &nbsp;Print / Save as PDF</button>
   <button class="btn-close" onclick="window.close()">✕ Close</button>
 </div>
-<script>document.fonts.ready.then(() => setTimeout(() => window.print(), 600));</script>
+
+<script>
+(function() {
+  // Hide scroll-hint for sections that don't actually overflow
+  function checkOverflow() {
+    document.querySelectorAll('.hscroll-outer').forEach(function(outer) {
+      var hs = outer.querySelector('.hscroll');
+      if (!hs) return;
+      var hint = outer.querySelector('.scroll-hint');
+      var overflows = hs.scrollWidth > hs.clientWidth + 2;
+      if (!overflows) {
+        outer.classList.add('no-overflow');
+        if (hint) hint.style.display = 'none';
+      } else {
+        outer.classList.remove('no-overflow');
+      }
+      // Hide fade-right once scrolled to the end
+      hs.addEventListener('scroll', function() {
+        var atEnd = hs.scrollLeft + hs.clientWidth >= hs.scrollWidth - 4;
+        outer.classList.toggle('no-overflow', atEnd);
+      }, { passive: true });
+    });
+  }
+
+  document.fonts.ready.then(function() {
+    checkOverflow();
+    window.addEventListener('resize', checkOverflow, { passive: true });
+    setTimeout(function() { window.print(); }, 700);
+  });
+})();
+</script>
 </body>
 </html>`;
 }
@@ -273,6 +652,17 @@ export function openInventoryTicket(ticket: any) {
   }
   w.document.write(buildInventoryTicketHtml(ticket));
   w.document.close();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Share helper — wraps the same HTML as an .html File for Web Share API
+// ════════════════════════════════════════════════════════════════════════════
+
+export function buildInventoryShareFileFromHtml(ticket: any): File {
+  const html = buildInventoryTicketHtml(ticket);
+  const blob = new Blob([html], { type: 'text/html' });
+  const bookingId = String(ticket.bookingId || ticket.id || 'ticket');
+  return new File([blob], `ticket_${bookingId}.html`, { type: 'text/html' });
 }
 
 // ════════════════════════════════════════════════════════════════════════════
